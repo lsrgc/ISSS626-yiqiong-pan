@@ -1,23 +1,25 @@
 project:
   type: website
+  output-dir: _site
 
 website:
   title: "ISSS626-yiqiong-pan"
   navbar:
     left:
       - text: "Hands-on Exercise"
-      - menu: 
-        - text: "Hands-on Exercise 1"
-          href: "Hands-on Exercise/Hands-on_Ex01/Hands-on_Ex01.html"
-        - text: "Hands-on Exercise 2"
+        menu: 
+          - text: "Hands-on Exercise 1"
+            href: "Hands-on Exercise/Hands-on_Ex01/Hands-on_Ex01.html"
+          - text: "Hands-on Exercise 2"
       - text: "In-class Exercise"
-      - menu: 
-        - text: "In-class Exercise 1"
-        - text: "In-class Exercise 2"
+        menu: 
+          - text: "In-class Exercise 1"
+          - text: "In-class Exercise 2"
     right: 
-      -  href: index.qmd
+      - href: index.qmd
         text: Home
-      - about.qmd
+      - href: about.qmd
+        text: About
 
 format:
   html:
@@ -28,4 +30,3 @@ format:
     toc: true
 
 editor: visual
-
