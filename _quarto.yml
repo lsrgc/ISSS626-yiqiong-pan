@@ -5,10 +5,10 @@ website:
   title: "ISSS626-yiqiong-pan"
   navbar:
     left:
-      - text: "Hands-on Exercise"
+      - text: "Hands-on_instExercise"
         menu: 
           - text: "Hands-on Exercise 1"
-            href: "Hands-on Exercise/Hands-on_Ex01/Hands-on_Ex01.html"
+            href: "Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html"
           - text: "Hands-on Exercise 2"
       - text: "In-class Exercise"
         menu: 
