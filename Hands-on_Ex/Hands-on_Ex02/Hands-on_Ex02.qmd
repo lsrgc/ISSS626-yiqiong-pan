@@ -1,0 +1,7 @@
+---
+title: "Hands-on Exercise 02"
+author: "Yiqiong PAN"
+date: "Aug 28, 2025"
+date-modified: "last-modified"
+---
+Ex2  Thematic Mapping and GeoVisualisation with R
