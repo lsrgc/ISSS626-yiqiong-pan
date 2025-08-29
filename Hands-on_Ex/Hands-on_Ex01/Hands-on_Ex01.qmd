@@ -331,7 +331,7 @@ summary(mpsz$`PreSch Count`)
 top_n(mpsz, 1, `PreSch Count`)
 ```
 
-Step 2: The code chunk below uses st_area() from the sf package to calculate the area of each subzone, returning values in square metres because the CRS (SVY21) is in metres. Note that the SHAPE_Area field shown in the glimpse(mpsz) output is a precomputed attribute from the original dataset and may not be accurate for current analysis; we rely on st_area() instead.
+**Step 2:** The code chunk below uses **st_area()** from the sf package to calculate the area of each subzone, returning values in square metres because the CRS (SVY21) is in metres. Note that the **SHAPE_Area** field shown in the glimpse(mpsz) output is a precomputed attribute from the original dataset and may not be accurate for current analysis; we rely on st_area() instead.
 
 ```{r}
 mpsz$AREA <- mpsz %>%
@@ -340,7 +340,7 @@ mpsz$AREA <- mpsz %>%
 summary(mpsz$AREA)
 ```
 
-The code chunk below computes preschool density per km2 ( 1km2 = 1,000,000m2)
+The code chunk below computes preschool density **per km2** ( 1km2 = 1,000,000m2). We convert to per km2 to make the numbers **comparable** and readable.
 
 ```{r}
 mpsz <- mpsz %>%
@@ -350,16 +350,18 @@ mpsz <- mpsz %>%
 summary(mpsz$`PreSch Density`)
 ```
 
-Step 3: EDA using ggplot2
+**Step 3: EDA using ggplot2**
 
-a. Use hist() of R Graphics to plot a histgram of the distribution of PreSch Density.
+a.  Use **hist() of R Graphics** to plot a histogram of the distribution of PreSch Density.
+
 ```{r}
 hist(mpsz$`PreSch Density`)
 ```
 
-b. use ggplot2 functions to provide informative visualisation.
+b.  use **ggplot2** functions to provide informative visualisation.
 
-b1. create a histogram
+b1. create a **histogram**
+
 ```{r}
 #initiates the ggplot using mpsz data fram, set x-axis
 ggplot(data=mpsz,
@@ -375,7 +377,8 @@ ggplot(data=mpsz,
       y = "Frequency")
 ```
 
-b2. create a scatter plot for PreSch Density and PreSch Count.
+b2. create a **scatterplot** for PreSch Density and PreSch Count.
+
 ```{r}
 
 #starts a ggplot with mpsz, and maps x to PreSch Density and y to PreSch Count.
@@ -384,7 +387,8 @@ ggplot(data=mpsz,
        aes(y = `PreSch Count`,
            x = as.numeric(`PreSch Density`))) +
   #adds points and colours
-  geom_point(color ="black",
+  geom_point(shape =21,
+             color ="black",
              fill = "lightblue") +
   #sets the range of data from 0 to 40.
   xlim(0,40) +

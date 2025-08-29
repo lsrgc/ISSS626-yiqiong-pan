@@ -1057,7 +1057,7 @@ Projected CRS: SVY21 / Singapore TM
 1    4339824 MULTIPOLYGON (((42196.76 38...           72</code></pre>
 </div>
 </div>
-<p>Step 2: The code chunk below uses st_area() from the sf package to calculate the area of each subzone, returning values in square metres because the CRS (SVY21) is in metres. Note that the SHAPE_Area field shown in the glimpse(mpsz) output is a precomputed attribute from the original dataset and may not be accurate for current analysis; we rely on st_area() instead.</p>
+<p><strong>Step 2:</strong> The code chunk below uses <strong>st_area()</strong> from the sf package to calculate the area of each subzone, returning values in square metres because the CRS (SVY21) is in metres. Note that the <strong>SHAPE_Area</strong> field shown in the glimpse(mpsz) output is a precomputed attribute from the original dataset and may not be accurate for current analysis; we rely on st_area() instead.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb109"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb109-1"><a href="#cb109-1" aria-hidden="true" tabindex="-1"></a>mpsz<span class="sc">$</span>AREA <span class="ot">&lt;-</span> mpsz <span class="sc">%&gt;%</span></span>
 <span id="cb109-2"><a href="#cb109-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_area</span>()</span>
@@ -1068,7 +1068,7 @@ Projected CRS: SVY21 / Singapore TM
    39438   628261  1229894  2420882  2106483 69748299 </code></pre>
 </div>
 </div>
-<p>The code chunk below computes preschool density per km2 ( 1km2 = 1,000,000m2)</p>
+<p>The code chunk below computes preschool density <strong>per km2</strong> ( 1km2 = 1,000,000m2). We convert to per km2 to make the numbers <strong>comparable</strong> and readable.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb111"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb111-1"><a href="#cb111-1" aria-hidden="true" tabindex="-1"></a>mpsz <span class="ot">&lt;-</span> mpsz <span class="sc">%&gt;%</span></span>
 <span id="cb111-2"><a href="#cb111-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">PreSch Density</span><span class="st">`</span> <span class="ot">=</span> <span class="st">`</span><span class="at">PreSch Count</span><span class="st">`</span><span class="sc">/</span>AREA <span class="sc">*</span> <span class="dv">1000000</span>)</span>
@@ -1080,9 +1080,9 @@ Projected CRS: SVY21 / Singapore TM
   0.000   0.000   5.154   6.449  10.908  35.602 </code></pre>
 </div>
 </div>
-<p>Step 3: EDA using ggplot2</p>
+<p><strong>Step 3: EDA using ggplot2</strong></p>
 <ol type="a">
-<li>Use hist() of R Graphics to plot a histgram of the distribution of PreSch Density.</li>
+<li>Use <strong>hist() of R Graphics</strong> to plot a histogram of the distribution of PreSch Density.</li>
 </ol>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb113"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb113-1"><a href="#cb113-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(mpsz<span class="sc">$</span><span class="st">`</span><span class="at">PreSch Density</span><span class="st">`</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1095,9 +1095,9 @@ Projected CRS: SVY21 / Singapore TM
 </div>
 </div>
 <ol start="2" type="a">
-<li>use ggplot2 functions to provide informative visualisation.</li>
+<li>use <strong>ggplot2</strong> functions to provide informative visualisation.</li>
 </ol>
-<p>b1. create a histogram</p>
+<p>b1. create a <strong>histogram</strong></p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb114"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb114-1"><a href="#cb114-1" aria-hidden="true" tabindex="-1"></a><span class="co">#initiates the ggplot using mpsz data fram, set x-axis</span></span>
 <span id="cb114-2"><a href="#cb114-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data=</span>mpsz,</span>
@@ -1119,7 +1119,7 @@ Projected CRS: SVY21 / Singapore TM
 </div>
 </div>
 </div>
-<p>b2. create a scatter plot for PreSch Density and PreSch Count.</p>
+<p>b2. create a <strong>scatterplot</strong> for PreSch Density and PreSch Count.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb115"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb115-1"><a href="#cb115-1" aria-hidden="true" tabindex="-1"></a><span class="co">#starts a ggplot with mpsz, and maps x to PreSch Density and y to PreSch Count.</span></span>
 <span id="cb115-2"><a href="#cb115-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Uses as.numeric() to drop units from PreSch Density and coerce it to plain numbers</span></span>
@@ -1127,15 +1127,16 @@ Projected CRS: SVY21 / Singapore TM
 <span id="cb115-4"><a href="#cb115-4" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">y =</span> <span class="st">`</span><span class="at">PreSch Count</span><span class="st">`</span>,</span>
 <span id="cb115-5"><a href="#cb115-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">x =</span> <span class="fu">as.numeric</span>(<span class="st">`</span><span class="at">PreSch Density</span><span class="st">`</span>))) <span class="sc">+</span></span>
 <span id="cb115-6"><a href="#cb115-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">#adds points and colours</span></span>
-<span id="cb115-7"><a href="#cb115-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">color =</span><span class="st">"black"</span>,</span>
-<span id="cb115-8"><a href="#cb115-8" aria-hidden="true" tabindex="-1"></a>             <span class="at">fill =</span> <span class="st">"lightblue"</span>) <span class="sc">+</span></span>
-<span id="cb115-9"><a href="#cb115-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">#sets the range of data from 0 to 40.</span></span>
-<span id="cb115-10"><a href="#cb115-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>,<span class="dv">40</span>) <span class="sc">+</span></span>
-<span id="cb115-11"><a href="#cb115-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="dv">0</span>,<span class="dv">40</span>) <span class="sc">+</span> </span>
-<span id="cb115-12"><a href="#cb115-12" aria-hidden="true" tabindex="-1"></a>  <span class="co">#adds labels</span></span>
-<span id="cb115-13"><a href="#cb115-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span><span class="st">""</span>,</span>
-<span id="cb115-14"><a href="#cb115-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Pre-school density (per km sq)"</span>,</span>
-<span id="cb115-15"><a href="#cb115-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Pre-school count"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb115-7"><a href="#cb115-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span><span class="dv">21</span>,</span>
+<span id="cb115-8"><a href="#cb115-8" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span><span class="st">"black"</span>,</span>
+<span id="cb115-9"><a href="#cb115-9" aria-hidden="true" tabindex="-1"></a>             <span class="at">fill =</span> <span class="st">"lightblue"</span>) <span class="sc">+</span></span>
+<span id="cb115-10"><a href="#cb115-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">#sets the range of data from 0 to 40.</span></span>
+<span id="cb115-11"><a href="#cb115-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>,<span class="dv">40</span>) <span class="sc">+</span></span>
+<span id="cb115-12"><a href="#cb115-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="dv">0</span>,<span class="dv">40</span>) <span class="sc">+</span> </span>
+<span id="cb115-13"><a href="#cb115-13" aria-hidden="true" tabindex="-1"></a>  <span class="co">#adds labels</span></span>
+<span id="cb115-14"><a href="#cb115-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span><span class="st">""</span>,</span>
+<span id="cb115-15"><a href="#cb115-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Pre-school density (per km sq)"</span>,</span>
+<span id="cb115-16"><a href="#cb115-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Pre-school count"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Removed 2 rows containing missing values or values outside the scale range
 (`geom_point()`).</code></pre>
