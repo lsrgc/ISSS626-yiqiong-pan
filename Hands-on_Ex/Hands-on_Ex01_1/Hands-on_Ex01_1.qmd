@@ -28,7 +28,7 @@ mpsz = st_read(dsn = "data/geospatial",
                layer = "mp14_SUBZONE_WEB_PL")
 ```
 
--   1.4.2 Similarly, the code below uses st_read() to import the Pre-Schools Location shapefile as a **polyline** data frame.
+-   1.4.2 Similarly, the code below uses st_read() to import the Cycling Path shapefile as a **polyline** data frame.
 
 ```{r}
 cyclingpath = st_read(dsn = "data/geospatial",
