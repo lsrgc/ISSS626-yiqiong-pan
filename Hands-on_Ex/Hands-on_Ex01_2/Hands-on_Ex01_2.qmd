@@ -475,6 +475,7 @@ tm_shape(mpsz_pop2024) +
 
 ```{r}
 # assigning two variables to the visual variable (fill)
+#| fig-width: 12
 tm_shape(mpsz_pop2024) + 
   tm_polygons(
     fill = c("YOUNG", "AGED"),
