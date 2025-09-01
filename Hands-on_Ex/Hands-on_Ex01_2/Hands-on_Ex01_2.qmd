@@ -487,8 +487,7 @@ tm_shape(mpsz_pop2024) +
       n = 5,
       values = "brewer.blues")) +
   tm_borders(fill_alpha = 0.5) +
-  tm_facets(ncol = 2, free.sacles = FALSE) +
-  tm_layout(legend.outside = TRUE) +
+  tm_facets(ncol = 2) +
   tmap_style("natural")
 ```
 
