@@ -3,6 +3,11 @@ title: "Hands-on Exercise 01-2"
 author: "Yiqiong PAN"
 date: "Aug 28, 2025"
 date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  warning: false 
+  freeze: true
 ---
 
 ## **Ex2 Thematic Mapping and GeoVisualisation with R**
@@ -475,7 +480,7 @@ tm_shape(mpsz_pop2024) +
 
 ```{r}
 # assigning two variables to the visual variable (fill)
-#| fig-width: 20
+#| fig-width: 30
 tm_shape(mpsz_pop2024) + 
   tm_polygons(
     fill = c("YOUNG", "AGED"),

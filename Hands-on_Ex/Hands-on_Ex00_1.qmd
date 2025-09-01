@@ -1,0 +1,27 @@
+---
+title: "Hands-on Exercise 1"
+date: "Sep 01, 2025"
+date-modified: "last-modified"
+format: 
+  html:
+    toc-depth: 4
+    toc-expand: true
+execute: 
+  eval: true
+  echo: true
+  warning: false 
+  freeze: true
+---
+
+# Overview
+
+## Getting Started
+
+The is first code.
+
+
+```{r}
+pacman::p_load(sf, tidyverse)
+```
+
+### Importing the Data

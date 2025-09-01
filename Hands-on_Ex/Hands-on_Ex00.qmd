@@ -1,0 +1,22 @@
+---
+title: "Hands-on Exercise 1"
+author: "Yiqiong PAN"
+date: "Aug 28, 2025"
+date-modified: "last-modified"
+format: 
+  html:
+    toc-depth: 4
+    toc-expand: true
+---
+
+# header 1 overview
+
+this is an overview 
+
+## header 2 getting started 
+
+lets get started 
+
+### header 3 importing data 
+
+it is time to import data

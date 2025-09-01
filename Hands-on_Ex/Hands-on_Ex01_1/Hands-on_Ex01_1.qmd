@@ -3,6 +3,11 @@ title: "Hands-on Exercise 01-1"
 author: "Yiqiong PAN"
 date: "Aug 28, 2025"
 date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true #display the code
+  warning: false 
+  freeze: true # not render if nothing edited
 ---
 
 ## **Ex 1: Geospatial Data Science with R**

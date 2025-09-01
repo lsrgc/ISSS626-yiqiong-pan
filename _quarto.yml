@@ -1,9 +1,10 @@
 project:
   type: website
-  output-dir: _site
+  #output-dir: _site
 website:
   title: "ISSS626-yiqiong-pan"
   navbar:
+    #background: "#dafad4"
     left:
       - text: "Hands-on Exercise"
         menu: 
@@ -27,7 +28,9 @@ website:
 
 format:
   html:
-    theme: cosmo
+    theme:
+      - flatly
+      - brand
     css: styles.css
     toc: true
 

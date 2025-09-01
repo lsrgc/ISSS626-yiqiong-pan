@@ -1,0 +1,15 @@
+{
+  "hash": "9b242d0ae4c99e0c4fdfd72ebaba54f1",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Hands-on Exercise 1\"\ndate: \"Sep 01, 2025\"\ndate-modified: \"last-modified\"\nformat: \n  html:\n    toc-depth: 4\n    toc-expand: true\nexecute: \n  eval: true\n  echo: true\n  warning: false \n  freeze: true\n---\n\n\n\n# Overview\n\n## Getting Started\n\nThe is first code.\n\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\npacman::p_load(sf, tidyverse)\n```\n:::\n\n\n\n### Importing the Data\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}
