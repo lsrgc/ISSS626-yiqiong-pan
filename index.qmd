@@ -4,4 +4,4 @@ title: "ISSS626-yiqiong-pan"
 
 Welcome to **ISSS626 Geospatial Analytics and Applications.** In this website, you will find my coursework prepared for this course.
 
-![](images/cover page.png){fig-align="center" width="800"}
+![](images/cover%20page.png){fig-align="center" width="800"}
