@@ -1,0 +1,62 @@
+---
+title: "Hands-on Exercise 02-1: First-order Spatial Point Pattern Analysis"
+author: "Yiqiong PAN"
+date: "Sep 02, 2025"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true #display the code
+  warning: false 
+  freeze: true # not render if nothing edited
+---
+
+# Overview
+
+**Spatial Point Pattern Analysis** (SPPA) refers to the study of how points are arranged or distributed across a given surface. There points may represent:
+
+-   **Events**, such as crimes, road accidents, or disease occurrences, or
+
+-   **Service and facility locations**, including shops (e.g., cafes, supermarkets) and community facilities like childcare or aged care centres.
+
+**First-order** **Spatial Point Pattern Analysis** (1-st SPPA) examines the intensity or density of points across a study area. It identifies spatial trends in point distribution without considering interaction between points helping to answer questions like:
+
+-   Where are points most concentrated?
+
+-   Is density uniform or variable?
+
+-   How dispersed is the pattern?
+
+> In this exercise, the [**spatsat**](https://cran.r-project.org/web/packages/spatstat/) is utilised to apply two common 1st-SPPA methods to explore:
+>
+> 1.  Whether childcare centres in Singapore are randomly distributed;
+>
+> 2.  If not, identifying areas with higher concentrations of centres.
+
+# The Data
+
+The following datasets were downloaded from publicly available websites, and both are available in KML and GeoJSON format.
+
+| Dataset Name | Source | Discrption |
+|------------------|----------------------|---------------------------------|
+| Child Care Services | [data.gov.sg](data.gov.sg) | **Point feature data**: contains the locations and attributes of childcare centres. |
+| Master plan 2019 Subzone Boundary (No Sea) | [singstat.gov.sg](https://www.singstat.gov.sg/) | **Polygon feature data**: represents the URA 2019 Master Plan planning subzone boundaries. |
+
+# Installing and Loading the R Packages
+
+In addition to *spatstat*, a total of five R packages will be used in this exercise.
+
+| Package | Discription |
+|-----------------|:------------------------------------------------------|
+| [sf](https://r-spatial.github.io/sf/) | Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data. |
+| [spatstat](https://spatstat.org/) | Provides useful functions for SPPA, which will be called to conduct both 1st and 2nd SPPA and KDE. |
+| [terra](https://rspatial.github.io/terra/index.html) | Modern package for raster/vector spatial data and will be used to convert spastat outputs into terra format. |
+| [tmap](https://cran.r-project.org/web/packages/tmap/index.html) | Creates high quality static or interactive choropleth maps via [leaflet](https://leafletjs.com/). |
+| [rvest](https://rvest.tidyverse.org/) | Scrapes and extracts data from web pages. |
+
+After installation, we load them into R environment using the code below.
+
+```{r}
+pacman:: p_load(sf, terra, spatstat, tmap, rvest, tidyverse)
+```
+
+# Importing and Wrangling Geospatial Data Sets

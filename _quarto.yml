@@ -12,6 +12,10 @@ website:
             href: "Hands-on_Ex/Hands-on_Ex01_1/Hands-on_Ex01_1.html"
           - text: "Hands-on Exercise 1-2"
             href: "Hands-on_Ex/Hands-on_Ex01_2/Hands-on_Ex01_2.html"
+          - text: "Hands-on Exercise 2-1: First-order Spatial Point Patterns Analysis Methods"
+            href: "Hands-on_Ex/Hands-on_Ex02_1/Hands-on_Ex02_1.html"
+          - text: "Hands-on Exercise 2-2"
+            href: "Hands-on_Ex/Hands-on_Ex02_2/Hands-on_Ex02_2.html"            
       - text: "In-class Exercise"
         menu: 
           - text: "In-class Exercise 1"
