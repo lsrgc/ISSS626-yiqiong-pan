@@ -12,7 +12,7 @@ execute:
   eval: true 
   message: false
   warning: false
-  freeze: true # not render if nothing edited
+  freeze: false # not render if nothing edited
 editor: visual
 ---
 
