@@ -1,5 +1,5 @@
 ---
-title: "Hands-on Exercise 01-1"
+title: "01-1 Geospatial Data Science with R"
 author: "Yiqiong PAN"
 date: "Aug 28, 2025"
 date-modified: "last-modified"
@@ -9,8 +9,6 @@ execute:
   warning: false 
   freeze: true # not render if nothing edited
 ---
-
-## **Ex 1: Geospatial Data Science with R**
 
 **Notes from Week 1**
 
@@ -90,7 +88,7 @@ In R (sf package)
 
 -   Use SHP whenever possible for structured workflows and compatibility.
 
-### **1.3 Getting Started: Installing and Launching R Packages**
+# 1 Getting Started: Installing and Launching R Packages
 
 The following code chunk uses the **p_load()** function from the pacman package to check whether the **sf** and **tidyverse** packages are installed. If they are, it loads them into the R session; if not, we could install them first via function **install.packages()** and then load them into R by using p_load().
 
@@ -98,27 +96,32 @@ The following code chunk uses the **p_load()** function from the pacman package 
 pacman::p_load(sf,tidyverse)
 ```
 
-### **1.4 Importing the Data**
+# 2 Importing the Data
 
 The geospatial datasets include **shapefiles** and **KML** file. (The reason of selecting file format). The geospatial data consist of the **Master Plan 2014 Subzone Boundary (Web)**, **Pre-Schools Location** from data.gov.sg, and **Cycling Path** from LTA DataMall. The aspatial dataset is the **Singapore Airbnb listings** from Inside Airbnb.
 
 R itself is **case-sensitive**, especially for object and function names. Whether file paths are case-sensitive depends on the operating system, e.g. On Windows: it is **not** **case-sensitive**.
 
--   1.4.1 The code below uses the **st_read()** function from the sf package to load the Master Plan 2014 Subzone Boundary (Web) shapefile as a **polygon** data frame. For shapefiles, the .shp extension does not need to be specified in the code. Both absolute and relative paths can be used, but a relative path is applied here to keep the code cleaner and shorter.
+## 2.1 Importing Polygon Data Frame
+
+The code below uses the **st_read()** function from the sf package to load the Master Plan 2014 Subzone Boundary (Web) shapefile as a **polygon** data frame. For shapefiles, the .shp extension does not need to be specified in the code. Both absolute and relative paths can be used, but a relative path is applied here to keep the code cleaner and shorter.
 
 ```{r}
 mpsz = st_read(dsn = "data/geospatial",
                layer = "mp14_SUBZONE_WEB_PL")
 ```
 
--   1.4.2 Similarly, the code below uses st_read() to import the Cycling Path shapefile as a **polyline** data frame.
+## 2.2 Importing Polyline Data Frame
+
+Similarly, the code below uses st_read() to import the Cycling Path shapefile as a **polyline** data frame.
 
 ```{r}
 cyclingpath = st_read(dsn = "data/geospatial",
                       layer = "CyclingPathGazette")
 ```
 
--   1.4.3 The code below uses st_read() to import the Pre-Schools Location in KML format as **point** feature data frame into R. When importing a KML file, the .kml extension must be **included**.
+## 2.3 Importing Point Data Frame
+The code below uses st_read() to import the Pre-Schools Location in KML format as **point** feature data frame into R. When importing a KML file, the .kml extension must be **included**.
 
 svy21 vs wgs84?
 
@@ -127,7 +130,7 @@ preschool = st_read("data/geospatial/PreSchoolsLocation.kml")
 
 ```
 
-### **1.5 Checking the Content of a Simple Feature Data Frame**
+# 3. Checking the Content of a Simple Feature Data Frame
 
 Both **two** code chunks display the basic information about the dataset. However, it is more common to use the second approach.
 
@@ -154,7 +157,7 @@ Lastly, the code below uses the **head()** function from base R (similar to Pyth
 head(mpsz, n=5)
 ```
 
-### **1.6 Plotting the Geo spatial Data**
+# 4. Plotting the Geo spatial Data
 
 Visualising an sf data frame is straightforward: using the **plot()** of Base R function automatically generates **small** **coloured** maps of the geometries by each attribute (field), while excluding non-informative columns such as the OBJECTID.
 
@@ -208,7 +211,7 @@ plot(st_geometry(preschool),
      add = TRUE)
 ```
 
-### **1.7 Projection Transformation**
+# 5. Projection Transformation
 
 ```{r}
 st_crs(mpsz)
@@ -243,16 +246,20 @@ plot(st_geometry(mpsz))
 plot(st_geometry(preschool), add = TRUE)
 ```
 
-### **1.8 Importing and Converting an Aspatial Data**
+# 6. Importing and Converting an Aspatial Data
 
-1.8.1 The chunk below first uses r**ead_csv()** from readr to import listing.csv into R as a tibble data frame, and then applies **list() from base R** to preview the first 10 records, similar to **glimpse() of dplyr.**
+## 6.1 Importing CSV 
+
+The chunk below first uses **read_csv()** from readr to import listing.csv into R as a tibble data frame, and then applies **list() from base R** to preview the first 10 records, similar to **glimpse() of dplyr.**
 
 ```{r}
 listings <- read_csv("data/aspatial/listings.csv")
 list(listings)
 ```
 
-1.8.2 The code chunk below uses **st_as_sf()** **of sf package** to convert the listings data frame into a simple feature data frame. Specifically the coordinates are first defined in **WGS84 (EPSG:4326, longitude/latitude in degrees**) and then **reprojected** into Singapore’s **SVY21 system** (**EPSG:3414, X/Y in metres**).
+## 6.2 Preview of the Data
+
+The code chunk below uses **st_as_sf()** **of sf package** to convert the listings data frame into a simple feature data frame. Specifically the coordinates are first defined in **WGS84 (EPSG:4326, longitude/latitude in degrees**) and then **reprojected** into Singapore’s **SVY21 system** (**EPSG:3414, X/Y in metres**).
 
 ```{r}
 listings_sf <- st_as_sf(listings,
@@ -277,9 +284,9 @@ plot(st_geometry(listings_sf), add = TRUE)
 #plot(st_geometry(mpsz), add = TRUE)
 ```
 
-### **1.9 Geoprocessing with SF Package**
+# 7. Geoprocessing with SF Package
 
-#### 1.9.1 Use case 1: Land Acquisition Analysis
+## 7.1 Use case 1: Land Acquisition Analysis
 
 Task: compute the total land area to reserve for a 5-m corridor/shoulder on both sides of the cycling paths.
 
@@ -383,7 +390,7 @@ plot(st_geometry(buffer_cycling_selected))
 
 **DONE!**
 
-#### **1.9.2 Use Case 2: To determine the number of pre-schools by planning subzone**
+## 7.2 Use Case 2: To determine the number of pre-schools by planning subzone
 
 **Solution**:
 
