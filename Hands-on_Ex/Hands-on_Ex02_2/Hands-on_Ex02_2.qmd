@@ -1,5 +1,5 @@
 ---
-title: "02-1: 2nd Order Spatial Point Patterns Analysis Methods"
+title: "02-2: 2nd Order Spatial Point Patterns Analysis Methods"
 author: "Yiqiong PAN"
 date: "Sep 04, 2025"
 date-modified: "last-modified"

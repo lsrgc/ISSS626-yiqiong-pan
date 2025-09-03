@@ -3,11 +3,17 @@ title: "01-1 Geospatial Data Science with R"
 author: "Yiqiong PAN"
 date: "Aug 28, 2025"
 date-modified: "last-modified"
-execute: 
-  eval: true
+format: 
+  html:
+    toc: true
+    toc-depth: 6
+execute:
   echo: true #display the code
-  warning: false 
+  eval: true 
+  message: false
+  warning: false
   freeze: true # not render if nothing edited
+editor: visual
 ---
 
 **Notes from Week 1**
