@@ -37,7 +37,7 @@ execute:
 The following datasets were downloaded from publicly available websites, and both are available in KML and GeoJSON format.
 
 | Dataset Name | Source | Discrption |
-|------------------------|------------------------|------------------------|
+|----|----|----|
 | Child Care Services | [data.gov.sg](data.gov.sg) | **Point feature data**: contains the locations and attributes of childcare centres. |
 | Master plan 2019 Subzone Boundary (No Sea) | [singstat](https://www.singstat.gov.sg/) | **Polygon feature data**: represents the URA 2019 Master Plan planning subzone boundaries. |
 
@@ -46,7 +46,7 @@ The following datasets were downloaded from publicly available websites, and bot
 In addition to *spatstat*, a total of five R packages will be used in this exercise.
 
 | Package | Discription |
-|------------------------------------|:-----------------------------------|
+|----|:---|
 | [sf](https://r-spatial.github.io/sf/) | Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data. |
 | [spatstat](https://spatstat.org/) | Provides useful functions for SPPA, which will be called to conduct both 1st and 2nd SPPA and KDE. |
 | [terra](https://rspatial.github.io/terra/index.html) | Modern package for raster/vector spatial data and will be used to convert spastat outputs into terra format. |
@@ -234,12 +234,11 @@ clarkevans.test(childcareSG_PPP,
 
 ## Performing the Clark-Evans Test with CSR (Monte Carlo?)
 
-The code chunk below performs Clark-Evans Test with 99 times simulation. 
+The code chunk below performs Clark-Evans Test with 99 times simulation.
 
 **Statistical Conclusion** The Clark-Evans test shows an aggregation index R 0.535 and p value of 0.01. As a result we reject the null hypothesis of random pattern (CSR) and conclude the childcare services in Singapore are more clustered at 95% confidence level.
 
 **Business Communication** The statistical results based on 99 Monte Carlo simulations confirm that childcare centres in Singapore are not evenly distributed. It is therefore essential to identify underserved areas and prioritise them in future planning. Policymakers may consider providing incentives to attract service providers to establish new centres in these regions or, in the interim, offering subsidies to local families to ensure a smoother transition and equitable access to childcare services.
-
 
 ```{r}
 clarkevans.test(childcareSG_PPP,
@@ -250,12 +249,12 @@ clarkevans.test(childcareSG_PPP,
                 nsim = 99)
 ```
 
-
 # Kernel Density Estimation Method
 
 Kernel Density Estimation (KDE) creates a continuous surface from point data, allowing us to visualise clusters, hotspots, and spatial variation.It provides an initial understanding of childcare service distribution in Singapore.
 
 ## Working with Automatic Bandwidth Selection Method
+
 The `density()` function is used to compute a KDE of the `childcareSG_PPP` point pattern and smooth these point locations into a continuous intensity surface. `sigma` is the bandwidth (smoothing parameter): a smaller sigma produces a spikier output, while a larger sigma smooths the surface. Bandwidth selectors include `bw.diggle`, `bw.CvL`, `bw.scott`, and `bw.ppl`. Enabling edge correction helps avoid border bias. The kernel function defines the shape of the smoothing: "gaussian" is the smoothest, while alternatives such as "epanechnikov", "quartic", or "disc" produce sharper surfaces.
 
 ```{r}
