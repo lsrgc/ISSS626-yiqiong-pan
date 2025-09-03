@@ -322,10 +322,10 @@ kde_childcareSG.ppl <- density(childcareSG_ppp_km,
 summary(kde_childcareSG.ppl)
 ```
 
-```{r}
+```{r,fig.width=16, fig.width=16}
 par(mfrow = c(2,2))#shows two plots side by side (1 row, 2 columns).
 plot(kde_childcareSG_km)
-title(main = "bw.diggle") #main is the title of the plot, im ojbect
+title(main = "bw.diggle") #main is the title of the plot, im object
 
 plot(kde_childcareSG.ppl)
 title(main = "bw.ppl")
@@ -347,7 +347,7 @@ title(main = "bw.CvL")
 
 Next we compare difference between kernel methods (Gaussian, Epanechnikov, Quartic and Disc) through the charts.
 
-```{r}
+```{r,fig.width=16, fig.width=16}
 par(mfrow = c(2,2)) # par= plot appearance settings, mfrow= multi-frame by row e.g. 2 * 2.
 plot(density(childcareSG_ppp_km,
              sigma = 0.2959712,
@@ -370,3 +370,19 @@ plot(density(childcareSG_ppp_km,
              kernel = "disc"),
              main = "Disc")
 ```
+
+# Fixed and Adaptive KDE
+
+## Computing KDE by Using Fixed Bandwidth
+
+In the section, we define the bandwidth 600 metres or 0.6 km for the KDE layer.
+
+```{r}
+kde_childcare_fb <- density(childcareSG_ppp_km,
+                            sigma = 0.6,
+                            edge = TRUE,
+                            kernel = "gaussian")
+plot(kde_childcare_fb)
+```
+
+
