@@ -33,8 +33,8 @@ website:
       - icon: journal-bookmark
         href: https://isss626-ay2025-26aug.netlify.app/
         aria-label: Course Textbook
-      - href: about.qmd
-        text: About
+      #- href: about.qmd
+        #text: About
 
 format:
   html:
