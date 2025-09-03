@@ -10,7 +10,7 @@ execute:
   freeze: true # not render if nothing edited
 ---
 
-# Overview
+# 1.Overview
 
 **Spatial Point Pattern Analysis** (SPPA) refers to the study of how points are arranged or distributed across a given surface. There points may represent:
 
@@ -32,7 +32,7 @@ execute:
 >
 > 2.  If not, identifying areas with higher concentrations of centres.
 
-# The Data
+# 2. The Data
 
 The following datasets were downloaded from publicly available websites, and both are available in KML and GeoJSON format.
 
@@ -41,7 +41,7 @@ The following datasets were downloaded from publicly available websites, and bot
 | Child Care Services | [data.gov.sg](data.gov.sg) | **Point feature data**: contains the locations and attributes of childcare centres. |
 | Master plan 2019 Subzone Boundary (No Sea) | [singstat](https://www.singstat.gov.sg/) | **Polygon feature data**: represents the URA 2019 Master Plan planning subzone boundaries. |
 
-# Installing and Loading the R Packages
+# 3. Installing and Loading the R Packages
 
 In addition to *spatstat*, a total of five R packages will be used in this exercise.
 
@@ -59,7 +59,7 @@ After installation, we load them into R environment using the code below.
 pacman:: p_load(sf, terra, spatstat, tmap, rvest, tidyverse)
 ```
 
-# Importing and Wrangling Geospatial Data Sets
+# 4. Importing and Wrangling Geospatial Data Sets
 
 The following code chunk shows the steps to first import the `Master plan 2019 Subzone Boundary (No Sea)` data using st_read, extract the required 4 columns from the `Description` field, filter out the nearby islands, and finally save the file as `mpsz_cl` for further analysis.
 
@@ -118,7 +118,7 @@ childcare_sf <- st_read("data/ChildCareServices.geojson") %>%
   st_transform(crs = 3414)
 ```
 
-## Mapping the Geospatial Data Sets
+## 4.1 Mapping the Geospatial Data Sets
 
 Using the tmap mapping methods, the code chunk below creates a map combining `childcare_sf` and `mpsz_cl`.
 
@@ -146,11 +146,11 @@ tmap_mode('plot') #switch back static maps
 It is advised to always switch back to plot mode to save connection consumption and limit the number of interactive maps to 10 in one documents when publishing.
 :::
 
-# Geospatial Data Wrangling
+# 5. Geospatial Data Wrangling
 
 In this section, the data (sf objects) will be converted to spatstat data structure: **ppp** (for point data) and **owin** for observation window.
 
-## Converting sf Data Frames to PPP
+## 5.1 Converting sf Data Frames to PPP
 
 Here we use `as.ppp()` of spatstat package to covert the point data `childcare_sf` to ppp file, confirm the change using `class()` and have a quick overview of the data statistics via `summary()`.
 
@@ -169,7 +169,7 @@ Before moving forwards, let's check if there are any duplicated points.
 any(duplicated(childcare_ppp))
 ```
 
-## Creating Owin Object
+## 5.2 Creating Owin Object
 
 Similarly, the owin object can be created using the function as.owin() for polygon data. After the conversion, the class() and plot() functions can be used to verify that the object is of the correct class and that the data retains its original shape.
 
@@ -179,7 +179,7 @@ class(sg_owin)
 plot(sg_owin)
 ```
 
-## Combining Point Events object and Owin Object
+## 5.3 Combining Point Events object and Owin Object
 
 The code chunk below combines ppp and owin into one ppp file which means it updates the window of childcare_ppp to sg_owin and keeps the points that fall inside.
 
@@ -196,7 +196,7 @@ summary(childcareSG_PPP)
 plot(childcareSG_PPP)
 ```
 
-# Clark-Evans Test for Nearest Neighbour Anaylysis (NNA)
+# 6. Clark-Evans Test for Nearest Neighbour Anaylysis (NNA)
 
 Nearest Neighbor Analysis (NNA) is a general spatial analytical approach that examines the distribution of points by calculating the average nearest-neighbour distance to identify whether the pattern is clustered, random, or regular.
 
@@ -216,7 +216,7 @@ Null hypothesis (H0): Childcare services are randomly distributed.
 
 A 95% confidence level will be applied for the test.
 
-## Performing the Clark-Evans Test without CSR (Monte Carlo)
+## 6.1 Performing the Clark-Evans Test without CSR (Monte Carlo)
 
 `clarkevans.test()`has two modes without CSR and with CSR. Here we try out the mode without CSR. The alternative hypothesis (H1) here is the childcare services in Singapore are **clustered**.
 
@@ -232,7 +232,7 @@ clarkevans.test(childcareSG_PPP,
                 )
 ```
 
-## Performing the Clark-Evans Test with CSR (Monte Carlo?)
+## 6.2 Performing the Clark-Evans Test with CSR (Monte Carlo?)
 
 The code chunk below performs Clark-Evans Test with 99 times simulation.
 
@@ -249,11 +249,11 @@ clarkevans.test(childcareSG_PPP,
                 nsim = 99)
 ```
 
-# Kernel Density Estimation Method
+# 7. Kernel Density Estimation Method
 
 Kernel Density Estimation (KDE) creates a continuous surface from point data, allowing us to visualise clusters, hotspots, and spatial variation.It provides an initial understanding of childcare service distribution in Singapore.
 
-## Working with Automatic Bandwidth Selection Method
+## 7.1 Working with Automatic Bandwidth Selection Method
 
 The `density()` function is used to compute a KDE of the `childcareSG_PPP` point pattern and smooth these point locations into a continuous intensity surface. `sigma` is the bandwidth (smoothing parameter): a smaller sigma produces a spikier output, while a larger sigma smooths the surface. Bandwidth selectors include `bw.diggle`, `bw.CvL`, `bw.scott`, and `bw.ppl`. Enabling edge correction helps avoid border bias. The kernel function defines the shape of the smoothing: "gaussian" is the smoothest, while alternatives such as "epanechnikov", "quartic", or "disc" produce sharper surfaces.
 
@@ -279,7 +279,7 @@ bw <- bw.diggle(childcareSG_PPP)
 bw
 ```
 
-## Rescalling KDE Values
+## 7.2 Rescalling KDE Values
 
 As seen in the summary statistic of `kde_SG_diggle`, the KDE output ranges from 0 to 0.000037 which is hard to connect with real world interpretation. Since this is due to the unit in SVY21 is metre, here we convert the unit from metre to kilometre using `rescale.ppp()`.
 
@@ -300,7 +300,7 @@ summary(kde_childcareSG_km)
 plot(kde_childcareSG_km)
 ```
 
-## Working with Different Automatic Bandwidth Methods
+## 7.3 Working with Different Automatic Bandwidth Methods
 
 As mentioned before, there are four automatic bandwidth methods. Let's compare and see the difference for one ppp data.
 
@@ -324,26 +324,25 @@ summary(kde_childcareSG.ppl)
 
 ```{r,fig.width=16, fig.height=12}
 par(mfrow = c(2,2))#shows two plots side by side (1 row, 2 columns).
-plot(kde_childcareSG_km)
-title(main = "bw.diggle") #main is the title of the plot, im object
 
-plot(kde_childcareSG.ppl)
-title(main = "bw.ppl")
+plot(kde_childcareSG_km, main = "bw.diggle") #main is the title of the plot
+
+plot(kde_childcareSG.ppl, main = "bw.ppl")
 
 plot(density(childcareSG_ppp_km,
               sigma = bw.scott,
               edge = TRUE,
-              kernel = "gaussian"))
-title(main = "bw.sscott")
+              kernel = "gaussian"),
+     main = "bw.sscott")
 
 plot(density(childcareSG_ppp_km,
               sigma = bw.CvL,
               edge = TRUE,
-              kernel = "gaussian"))
-title(main = "bw.CvL")     
+              kernel = "gaussian"),
+     main = "bw.CvL")     
 ```
 
-## Working with Different kernel Methods
+## 7.4 Working with Different kernel Methods
 
 Next we compare difference between kernel methods (Gaussian, Epanechnikov, Quartic and Disc) through the charts. 
 ```{r,fig.width=16, fig.height=12}
@@ -372,9 +371,9 @@ plot(density(childcareSG_ppp_km,
 
 When sigma is same, the KDEs look alike between kernel methods, thus to plot a reasonable KDE map, **bandwidth choice matters more.**
 
-# Fixed and Adaptive KDE
+# 8. Fixed and Adaptive KDE
 
-## Computing KDE by Using Fixed Bandwidth
+## 8.1 Computing KDE by Using Fixed Bandwidth
 
 In the section, we define the bandwidth 600 metres or 0.6 km for the KDE layer.
 
@@ -386,7 +385,7 @@ kde_childcare_fb <- density(childcareSG_ppp_km,
 plot(kde_childcare_fb)
 ```
 
-## Computing KDE by Using Adaptive Bandwidth
+## 8.2 Computing KDE by Using Adaptive Bandwidth
 
 `density.adaptive()` generates adaptive KDE and helps us to overcome problems such as highly skewed distribution e.g., rural vs urban.
 
@@ -397,7 +396,7 @@ kde_childcareSG_ab <- adaptive.density(
 plot(kde_childcareSG_ab)
 ```
 
-We can compare both side by side.
+We can compare both side by side.Adaptive KDE reduces visual contrast in hotspots because it balances smoothing between dense and sparse areas, whereas fixed bandwidth highlights dense clusters more strongly.
 
 ```{r}
 par(mfrow = c(1,2))
@@ -405,5 +404,276 @@ plot(kde_childcare_fb, main = "Fixed bandwidth")
 plot(kde_childcareSG_ab, main = "Adaptive bandwidth")
 ```
 
+# 9. Plotting Cartopraphic Quality KDE Map
 
+## 9.1 Converting Gridded Output into Raster
+
+The chunk below uses `rast()` from terra package to covert im kernel density object into *SpatRaster* object which is verified by the `class()`.
+
+```{r}
+kde_childcareSG_bw_terra <- rast(kde_childcareSG_km)
+class(kde_childcareSG_bw_terra)
 ```
+
+```{r}
+kde_childcareSG_bw_terra
+```
+
+Here the CSR property (coord.ref.) should be SVY21 but is empty as per properties displayed above.
+
+## 9.2 Assigning Propjection Systems
+
+The code chunk below assign the correct EPSG 3414 to the SpatRaster object. 
+```{r}
+crs(kde_childcareSG_bw_terra) <- "EPSG:3414"
+
+kde_childcareSG_bw_terra
+```
+
+
+:::callout-note
+
+It seems that when working with spatial data, some values/attributes may be missing initially or may become missing during data conversion. Therefore, it is important to always do sanity check first.
+
+Before running spatial analysis: simply typing the object name will print its metadata: dimensions, resolution, CRS, range of values, etc.
+
+:::
+
+## 9.3 Plotting KDE Map with tmap
+
+Let's plot the KDE map.
+
+```{r}
+tm_shape(kde_childcareSG_bw_terra) + # load the data source for the layers that follow
+  tm_raster(col.scale =
+              tm_scale_continuous(  # uses a continuous colour scale.
+                values = "viridis"),
+            col.legend = tm_legend(  # customises the legend for the raster:
+              title = "Density values",
+              title.size = 0.7,
+              text.size = 0.7,
+              bg.color = "white",
+              bg.alpha = 0.7,
+              position = tm_pos_in(
+                "right", "bottom"),
+              frame = TRUE)) +
+  tm_graticules(labels.size = 0.7) + # adds latitude/longitude grid lines
+  tm_compass() + # adds a compass
+  tm_layout(scale = 1.0) # keeps default size
+```
+
+*layer.1 is the default name for the single KDE band. It holds the density values, one for each pixel in the raster grid.*?
+
+# 10. First Order SPPA at the Planning Subzone Level
+
+We focus on the childcare centres in the four areas: Punggol, Tampines, Choa Chu Kang and Jurong West.
+
+## 10.1 Geospatial Data Wrangling
+
+### 10.1.1 Extracting the Study Area
+
+The code chunk uses filter() to create a new variable for each area and plot() for quick preview.
+
+```{r}
+pg <- mpsz_cl %>%
+  filter(PLN_AREA_N == "PUNGGOL")
+tm <- mpsz_cl %>%
+  filter(PLN_AREA_N == "TAMPINES")
+ck <- mpsz_cl %>%
+  filter(PLN_AREA_N == "CHOA CHU KANG")
+jw <- mpsz_cl %>%
+  filter(PLN_AREA_N == "JURONG WEST")
+```
+
+```{r, fig.width=16, fig.height=12}
+par(mfrow=c(2,2))
+plot(st_geometry(pg), main = "Ponggol")
+plot(st_geometry(tm), main = "Tampines")
+plot(st_geometry(ck), main = "Choa Chu Kang")
+plot(st_geometry(jw), main = "Jurong West")
+```
+
+### 10.1.2 Creating owin Object Using `as.owin()`
+```{r}
+pg_owin = as.owin(pg)
+tm_owin = as.owin(tm)
+ck_owin = as.owin(ck)
+jw_owin = as.owin(jw)
+```
+
+### 10.1.3 Combining Point Event Object and Owin Object
+
+The code chunk below subsets the dataset to the study areas, rescales the unit of measurement from metre to kilometre and finally plot the areas with childcare points.
+
+```{r}
+childcare_pg_ppp = childcare_ppp[pg_owin] #crop childcare points to Punggol
+childcare_tm_ppp = childcare_ppp[tm_owin]
+childcare_ck_ppp = childcare_ppp[ck_owin]
+childcare_jw_ppp = childcare_ppp[jw_owin]
+```
+
+```{r}
+childcare_pg_ppp.km = rescale.ppp(childcare_pg_ppp, 1000, "km")
+childcare_tm_ppp.km = rescale.ppp(childcare_tm_ppp, 1000, "km")
+childcare_ck_ppp.km = rescale.ppp(childcare_ck_ppp, 1000, "km")
+childcare_jw_ppp.km = rescale.ppp(childcare_jw_ppp, 1000, "km")
+```
+
+```{r, fig.width=16, fig.height=12}
+par(mfrow=c(2,2))
+plot(unmark(childcare_pg_ppp.km),
+  main = "Punggol")
+plot(unmark(childcare_tm_ppp.km),
+  main = "Tampines")
+plot(unmark(childcare_ck_ppp.km),
+  main = "Choa Chu Kang")
+plot(unmark(childcare_jw_ppp.km),
+  main = "Jurong West")
+```
+
+## 10.2 Clark-Evans Test
+
+A 95% confidence level will be applied for the test.
+
+- Null Hypothesis: Childcare services are randomly distributed.
+
+- Alternative Hypothesis: Childcare services are mot randomly distributed.
+
+::: panel-tabset
+### 10.2.1 Choa Chu Kang Planning Area
+
+```{r}
+clarkevans.test(childcare_ck_ppp,
+                correction ="none",
+                clipregion = NULL,
+                alternative = c("two.sided"),
+                nsim = 99)
+```
+
+
+### 10.2.2 Tampines Planning Area
+
+```{r}
+clarkevans.test(childcare_tm_ppp,
+                correction ="none",
+                clipregion = NULL,
+                alternative = c("two.sided"),
+                nsim = 99)
+```
+
+### 10.2.3 Choa Chu Kang Planning Area
+
+```{r}
+clarkevans.test(childcare_ck_ppp,
+                correction ="none",
+                clipregion = NULL,
+                alternative = c("two.sided"),
+                nsim = 99)
+```
+
+### 10.2.4 Jurong West Planning Area
+
+```{r}
+clarkevans.test(childcare_jw_ppp,
+                correction ="none",
+                clipregion = NULL,
+                alternative = c("two.sided"),
+                nsim = 99)
+```
+
+:::
+
+**Statistical Conclusion**  Based on the p-values for each study area, we reject all null hypotheses of complete spatial randomness. This indicates that childcare centres are significantly clustered rather than randomly distributed.
+
+**Business Communication** While the analysis confirms that childcare centres are spatially clustered, this alone does not establish that the clusters coincide with residential hubs. Some residential complexes may lack nearby childcare facilities, while other areas may be overserved. To verify this relationship, further analysis with additional datasets (e.g., population density and housing distribution) is required.
+
+## 10.3 Computing KDE Surfaces By Planning Area
+
+::: panel-tabset
+
+### 10.3.1 `bw.diggle` 
+
+```{r, fig.width=16, fig.height=12}
+
+par(mfrow=c(2,2))
+plot(density(childcare_pg_ppp.km,
+              sigma = bw.diggle,
+              edge = TRUE,
+              kernel = "gaussian"),
+      main = "Punggol")
+
+plot(density(childcare_tm_ppp.km,
+              sigma = bw.diggle,
+              edge = TRUE,
+              kernel = "gaussian"),
+      main = "Tempines")
+
+plot(density(childcare_ck_ppp.km,
+              sigma = bw.diggle,
+              edge = TRUE,
+              kernel = "gaussian"),
+      main = "Choa Chu Kang")
+
+plot(density(childcare_jw_ppp.km,
+              sigma = bw.diggle,
+              edge = TRUE,
+              kernel = "gaussian"),
+      main = "Jurong West")
+```
+
+
+
+### 10.3.2 `bw.ppl`
+
+```{r, fig.width=16, fig.height=12}
+par(mfrow=c(2,2))
+plot(density(childcare_pg_ppp.km,
+              sigma = bw.ppl,
+              edge = TRUE,
+              kernel = "gaussian"),
+      main = "Punggol")
+
+plot(density(childcare_tm_ppp.km,
+              sigma = bw.ppl,
+              edge = TRUE,
+              kernel = "gaussian"),
+      main = "Tempines")
+
+plot(density(childcare_ck_ppp.km,
+              sigma = bw.ppl,
+              edge = TRUE,
+              kernel = "gaussian"),
+      main = "Choa Chu Kang")
+
+plot(density(childcare_jw_ppp.km,
+              sigma = bw.ppl,
+              edge = TRUE,
+              kernel = "gaussian"),
+      main = "Jurong West")
+```
+
+### 10.3.3 `adaptive.density`
+
+```{r, fig.width=16, fig.height=12}
+par(mfrow=c(2,2))
+plot(adaptive.density(childcare_pg_ppp.km,
+              method = "kernel"),
+      main = "Punggol")
+
+plot(adaptive.density(childcare_tm_ppp.km,
+              method = "kernel"),
+      main = "Tempines")
+
+plot(adaptive.density(childcare_ck_ppp.km,
+              method = "kernel"),
+      main = "Choa Chu Kang")
+
+plot(adaptive.density(childcare_jw_ppp.km,
+              method = "kernel"),
+      main = "Jurong West")
+```
+
+
+:::
+
+KDE results show that childcare distribution patterns differ across planning areas from highly concentrated hubs (Tampines) to more dispersed clusters (Punggol, Jurong West). However further analysis with population and residential data is needed to assess alignment with demand.
