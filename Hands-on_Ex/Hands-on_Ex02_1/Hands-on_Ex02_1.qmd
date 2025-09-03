@@ -147,9 +147,9 @@ It is advised to always switch back to plot mode to save connection consumption 
 :::
 
 # Geospatial Data Wrangling
-In this section, the data (sf objects) will be converted to spatstat data structure: **ppp** (for point data) and **owin** for observation windows.
+In this section, the data (sf objects) will be converted to spatstat data structure: **ppp** (for point data) and **owin** (for polygonal data).
 
-## Converting sf Data Frames to ppp
+## Converting sf Data Frames to PPP
 Here we use `as.ppp()` of spatstat package to covert the point data `childcare_sf` to ppp file, confirm the change using `class()` and have a quick overview of the data statistics via `summary()`.
 
 ```{r}
@@ -159,4 +159,23 @@ class(childcare_ppp)
 
 ```{r}
 summary(childcare_ppp)
+```
+
+## Creating Owin Object
+
+Similarly, the owin object can be created using the function as.owin() for polygon data. After the conversion, the class() and plot() functions can be used to verify that the object is of the correct class and that the data retains its original shape.
+
+```{r}
+sg_owin <- as.owin(mpsz_cl)
+class(sg_owin)
+plot(sg_owin)
+```
+
+
+## Combining Point Events object and Owin Object
+
+```{r}
+childcareSG_PPP = childcare_ppp[sg_owin]
+class(childcareSG_PPP)
+plot(childcareSG_PPP)
 ```

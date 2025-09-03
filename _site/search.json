@@ -101,7 +101,21 @@
     "objectID": "Hands-on_Ex/Hands-on_Ex02_1/Hands-on_Ex02_1.html#converting-sf-data-frames-to-ppp",
     "href": "Hands-on_Ex/Hands-on_Ex02_1/Hands-on_Ex02_1.html#converting-sf-data-frames-to-ppp",
     "title": "Hands-on Exercise 02-1: First-order Spatial Point Pattern Analysis",
-    "section": "Converting sf Data Frames to ppp",
-    "text": "Converting sf Data Frames to ppp\nHere we use as.ppp() of spatstat package to covert the point data childcare_sf to ppp file and confirm the change using class().\n\nchildcare_ppp &lt;- as.ppp(childcare_sf)\nclass(childcare_ppp)\n\n[1] \"ppp\""
+    "section": "Converting sf Data Frames to PPP",
+    "text": "Converting sf Data Frames to PPP\nHere we use as.ppp() of spatstat package to covert the point data childcare_sf to ppp file, confirm the change using class() and have a quick overview of the data statistics via summary().\n\nchildcare_ppp &lt;- as.ppp(childcare_sf)\nclass(childcare_ppp)\n\n[1] \"ppp\"\n\n\n\nsummary(childcare_ppp)\n\nMarked planar point pattern:  1925 points\nAverage intensity 2.417323e-06 points per square unit\n\nCoordinates are given to 11 decimal places\n\nMark variables: Name, Description\nSummary:\n     Name           Description       \n Length:1925        Length:1925       \n Class :character   Class :character  \n Mode  :character   Mode  :character  \n\nWindow: rectangle = [11810.03, 45404.24] x [25596.33, 49300.88] units\n                    (33590 x 23700 units)\nWindow area = 796335000 square units"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex02_1/Hands-on_Ex02_1.html#creating-owin-object",
+    "href": "Hands-on_Ex/Hands-on_Ex02_1/Hands-on_Ex02_1.html#creating-owin-object",
+    "title": "Hands-on Exercise 02-1: First-order Spatial Point Pattern Analysis",
+    "section": "Creating Owin Object",
+    "text": "Creating Owin Object\nSimilarly, the owin object can be created using the function as.owin() for polygon data. After the conversion, the class() and plot() functions can be used to verify that the object is of the correct class and that the data retains its original shape.\n\nsg_owin &lt;- as.owin(mpsz_cl)\nclass(sg_owin)\n\n[1] \"owin\"\n\nplot(sg_owin)"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex02_1/Hands-on_Ex02_1.html#combining-point-events-object-and-owin-object",
+    "href": "Hands-on_Ex/Hands-on_Ex02_1/Hands-on_Ex02_1.html#combining-point-events-object-and-owin-object",
+    "title": "Hands-on Exercise 02-1: First-order Spatial Point Pattern Analysis",
+    "section": "Combining Point Events object and Owin Object",
+    "text": "Combining Point Events object and Owin Object\n\nchildcareSG_PPP = childcare_ppp[sg_owin]\nclass(childcareSG_PPP)\n\n[1] \"ppp\"\n\nplot(childcareSG_PPP)"
   }
 ]
