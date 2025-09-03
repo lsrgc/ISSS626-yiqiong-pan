@@ -14,7 +14,7 @@ website:
             href: "Hands-on_Ex/Hands-on_Ex01_2/Hands-on_Ex01_2.html"
           - text: "02-1: First-order Spatial Point Patterns Analysis Methods"
             href: "Hands-on_Ex/Hands-on_Ex02_1/Hands-on_Ex02_1.html"
-          - text: "Hands-on Exercise 2-2"
+          - text: "02-2: 2nd Order Spatial Point Patterns Analysis Methods"
             href: "Hands-on_Ex/Hands-on_Ex02_2/Hands-on_Ex02_2.html"            
       - text: "In-class Exercise"
         menu: 

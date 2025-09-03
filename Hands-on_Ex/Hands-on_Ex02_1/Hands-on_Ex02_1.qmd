@@ -1,16 +1,22 @@
 ---
-title: "Hands-on Exercise 02-1: First-order Spatial Point Pattern Analysis"
+title: "02-1: First-order Spatial Point Pattern Analysis"
 author: "Yiqiong PAN"
 date: "Sep 02, 2025"
 date-modified: "last-modified"
-execute: 
-  eval: true
+format: 
+  html:
+    toc: true
+    toc-depth: 6
+execute:
   echo: true #display the code
-  warning: false 
+  eval: true 
+  message: false
+  warning: false
   freeze: true # not render if nothing edited
+editor: visual
 ---
 
-# 1.Overview
+# Overview
 
 **Spatial Point Pattern Analysis** (SPPA) refers to the study of how points are arranged or distributed across a given surface. There points may represent:
 
@@ -344,7 +350,8 @@ plot(density(childcareSG_ppp_km,
 
 ## 7.4 Working with Different kernel Methods
 
-Next we compare difference between kernel methods (Gaussian, Epanechnikov, Quartic and Disc) through the charts. 
+Next we compare difference between kernel methods (Gaussian, Epanechnikov, Quartic and Disc) through the charts.
+
 ```{r,fig.width=16, fig.height=12}
 par(mfrow = c(2,2)) # par= plot appearance settings, mfrow= multi-frame by row e.g. 2 * 2.
 plot(density(childcareSG_ppp_km,
@@ -423,20 +430,18 @@ Here the CSR property (coord.ref.) should be SVY21 but is empty as per propertie
 
 ## 9.2 Assigning Propjection Systems
 
-The code chunk below assign the correct EPSG 3414 to the SpatRaster object. 
+The code chunk below assign the correct EPSG 3414 to the SpatRaster object.
+
 ```{r}
 crs(kde_childcareSG_bw_terra) <- "EPSG:3414"
 
 kde_childcareSG_bw_terra
 ```
 
-
-:::callout-note
-
+::: callout-note
 It seems that when working with spatial data, some values/attributes may be missing initially or may become missing during data conversion. Therefore, it is important to always do sanity check first.
 
 Before running spatial analysis: simply typing the object name will print its metadata: dimensions, resolution, CRS, range of values, etc.
-
 :::
 
 ## 9.3 Plotting KDE Map with tmap
@@ -494,6 +499,7 @@ plot(st_geometry(jw), main = "Jurong West")
 ```
 
 ### 10.1.2 Creating owin Object Using `as.owin()`
+
 ```{r}
 pg_owin = as.owin(pg)
 tm_owin = as.owin(tm)
@@ -535,9 +541,9 @@ plot(unmark(childcare_jw_ppp.km),
 
 A 95% confidence level will be applied for the test.
 
-- Null Hypothesis: Childcare services are randomly distributed.
+-   Null Hypothesis: Childcare services are randomly distributed.
 
-- Alternative Hypothesis: Childcare services are mot randomly distributed.
+-   Alternative Hypothesis: Childcare services are mot randomly distributed.
 
 ::: panel-tabset
 ### 10.2.1 Choa Chu Kang Planning Area
@@ -549,7 +555,6 @@ clarkevans.test(childcare_ck_ppp,
                 alternative = c("two.sided"),
                 nsim = 99)
 ```
-
 
 ### 10.2.2 Tampines Planning Area
 
@@ -580,18 +585,16 @@ clarkevans.test(childcare_jw_ppp,
                 alternative = c("two.sided"),
                 nsim = 99)
 ```
-
 :::
 
-**Statistical Conclusion**  Based on the p-values for each study area, we reject all null hypotheses of complete spatial randomness. This indicates that childcare centres are significantly clustered rather than randomly distributed.
+**Statistical Conclusion** Based on the p-values for each study area, we reject all null hypotheses of complete spatial randomness. This indicates that childcare centres are significantly clustered rather than randomly distributed.
 
 **Business Communication** While the analysis confirms that childcare centres are spatially clustered, this alone does not establish that the clusters coincide with residential hubs. Some residential complexes may lack nearby childcare facilities, while other areas may be overserved. To verify this relationship, further analysis with additional datasets (e.g., population density and housing distribution) is required.
 
 ## 10.3 Computing KDE Surfaces By Planning Area
 
 ::: panel-tabset
-
-### 10.3.1 `bw.diggle` 
+### 10.3.1 `bw.diggle`
 
 ```{r, fig.width=16, fig.height=16}
 
@@ -620,8 +623,6 @@ plot(density(childcare_jw_ppp.km,
               kernel = "gaussian"),
       main = "Jurong West")
 ```
-
-
 
 ### 10.3.2 `bw.ppl`
 
@@ -672,8 +673,6 @@ plot(adaptive.density(childcare_jw_ppp.km,
               method = "kernel"),
       main = "Jurong West")
 ```
-
-
 :::
 
 KDE results show that childcare distribution patterns differ across planning areas, but none are evenly distributed. At this stage, we cannot confirm whether the clusters align with residential areas. Further analysis with population and housing data is needed to assess whether the current supply matches local demand to identify under-served areas.
