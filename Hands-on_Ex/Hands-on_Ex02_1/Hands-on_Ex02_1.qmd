@@ -222,7 +222,7 @@ A 95% confidence level will be applied for the test.
 
 **Statistical Conclusion** Since the Clark-Evans test shows an aggregation index R 0.535 which is less than 1 and p value is close to zero, we reject the null hypothesis of random pattern and conclude the childcare services in Singapore are clustered at 95% confidence level.
 
-**Business Communication** The statistical results indicate that childcare centres in Singapore are unevenly distributed across the island. Given the critical role of childcare services in supporting social welfare and community stability, it is essential to identify underserved areas and prioritise them in future planning.
+**Business Communication** The statistical results indicate that childcare centres in Singapore are unevenly distributed across the island. Given the critical role of childcare services in supporting social welfare and community stability, it is essential to zoom in and identify underserved areas and prioritise them in future planning.
 
 ```{r}
 clarkevans.test(childcareSG_PPP,
@@ -593,7 +593,7 @@ clarkevans.test(childcare_jw_ppp,
 
 ### 10.3.1 `bw.diggle` 
 
-```{r, fig.width=16, fig.height=12}
+```{r, fig.width=16, fig.height=16}
 
 par(mfrow=c(2,2))
 plot(density(childcare_pg_ppp.km,
@@ -625,7 +625,7 @@ plot(density(childcare_jw_ppp.km,
 
 ### 10.3.2 `bw.ppl`
 
-```{r, fig.width=16, fig.height=12}
+```{r, fig.width=16, fig.height=16}
 par(mfrow=c(2,2))
 plot(density(childcare_pg_ppp.km,
               sigma = bw.ppl,
@@ -654,7 +654,7 @@ plot(density(childcare_jw_ppp.km,
 
 ### 10.3.3 `adaptive.density`
 
-```{r, fig.width=16, fig.height=12}
+```{r, fig.width=16, fig.height=16}
 par(mfrow=c(2,2))
 plot(adaptive.density(childcare_pg_ppp.km,
               method = "kernel"),
@@ -676,4 +676,4 @@ plot(adaptive.density(childcare_jw_ppp.km,
 
 :::
 
-KDE results show that childcare distribution patterns differ across planning areas from highly concentrated hubs (Tampines) to more dispersed clusters (Punggol, Jurong West). However further analysis with population and residential data is needed to assess alignment with demand.
+KDE results show that childcare distribution patterns differ across planning areas, but none are evenly distributed. At this stage, we cannot confirm whether the clusters align with residential areas. Further analysis with population and housing data is needed to assess whether the current supply matches local demand to identify under-served areas.
