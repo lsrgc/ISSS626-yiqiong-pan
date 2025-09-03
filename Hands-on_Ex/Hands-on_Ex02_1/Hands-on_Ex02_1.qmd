@@ -118,7 +118,7 @@ childcare_sf <- st_read("data/ChildCareServices.geojson") %>%
   st_transform(crs = 3414)
 ```
 
-## Mapping the geospatial data sets
+## Mapping the Geospatial Data Sets
 
 Using the tmap mapping methods, the code chunk below creates a map combining `childcare_sf` and `mpsz_cl`.
 
@@ -139,9 +139,24 @@ tm_shape(childcare_sf) +
 ```
 
 ```{r}
-tmap_mode('plot') #switchs back static maps
+tmap_mode('plot') #switch back static maps
 ```
 
-::: callout-note
+::: callout-warning
 It is advised to always switch back to plot mode to save connection consumption and limit the number of interactive maps to 10 in one documents when publishing.
 :::
+
+# Geospatial Data Wrangling
+In this section, the data (sf objects) will be converted to spatstat data structure: **ppp** (for point data) and **owin** for observation windows.
+
+## Converting sf Data Frames to ppp
+Here we use `as.ppp()` of spatstat package to covert the point data `childcare_sf` to ppp file, confirm the change using `class()` and have a quick overview of the data statistics via `summary()`.
+
+```{r}
+childcare_ppp <- as.ppp(childcare_sf)
+class(childcare_ppp)
+```
+
+```{r}
+summary(childcare_ppp)
+```
