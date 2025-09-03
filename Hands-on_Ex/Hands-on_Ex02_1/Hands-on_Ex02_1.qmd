@@ -60,3 +60,88 @@ pacman:: p_load(sf, terra, spatstat, tmap, rvest, tidyverse)
 ```
 
 # Importing and Wrangling Geospatial Data Sets
+
+The following code chunk shows the steps to first import the `Master plan 2019 Subzone Boundary (No Sea)` data using st_read, extract the required 4 columns from the `Description` field, filter out the nearby islands, and finally save the file as `mpsz_cl` for further analysis.
+
+```{r}
+mpsz_sf <- st_read("data/MasterPlan2019SubzoneBoundaryNoSeaKML.kml") %>%
+  st_zm(drop = TRUE, what = "ZM") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+extract_kml_field <- function(html_text, field_name) {
+  if (is.na(html_text) || html_text == "") return(NA_character_)
+  
+  page <- read_html(html_text)
+  rows <- page %>% html_elements("tr")
+  
+  value <- rows %>%
+    keep(~ html_text2(html_element(.x, "th")) == field_name) %>%
+    html_element("td") %>%
+    html_text2()
+  
+  if (length(value) == 0) NA_character_ else value
+}
+```
+
+```{r}
+# map_chr of purr (tidyverse) applies a function to each element of a list/vector and returns a character vector.
+mpsz_sf <- mpsz_sf %>%
+  mutate(
+    REGION_N = map_chr(Description, extract_kml_field, "REGION_N"),
+    PLN_AREA_N = map_chr(Description, extract_kml_field, "PLN_AREA_N"),
+    SUBZONE_N = map_chr(Description, extract_kml_field, "SUBZONE_N"),
+    SUBZONE_C = map_chr(Description, extract_kml_field, "SUBZONE_C")
+  ) %>%
+  select(-Name, -Description) %>%
+  relocate(geometry, .after = last_col())
+```
+
+```{r}
+mpsz_cl <- mpsz_sf %>%
+  filter(SUBZONE_N != "SOUTHERN GROUP",
+         PLN_AREA_N != "WESTERN ISLANDS",
+         PLN_AREA_N != "NORTH-EASTERN ISLANDS")
+```
+
+```{r}
+write_rds(mpsz_cl,
+          "data/mpsz_cl.rds")
+```
+
+The code chuck below imports downloaded `ChildCareServices` data to R as sf data frame as `childcare_sf` by using st_read, coverts 3d to 2d (st_zm) and finally transform the CRS from WGS84 to SVY21.
+
+```{r}
+childcare_sf <- st_read("data/ChildCareServices.geojson") %>%
+  st_zm(drop = TRUE, what = "ZM") %>% # Drop Z and M to convert from multi-dimensional to 2d (XY)
+  st_transform(crs = 3414)
+```
+
+## Mapping the geospatial data sets
+
+Using the tmap mapping methods, the code chunk below creates a map combining `childcare_sf` and `mpsz_cl`.
+
+```{r}
+tm_shape(mpsz_cl)+
+  tm_fill(col = "grey" ) +
+  tm_borders(col = "black") +
+tm_shape(childcare_sf) +
+  tm_dots(col = "black")
+```
+
+Alternatively, an interactive thematic map can be plotted using the code below. The interactive map is easy to navigate and query intuitively. It is optional to change the background map layer(choices: ESRI.WorldGrayCanvas(default), OpenStreetMap, ESRI.WorldTopoMap).
+
+```{r}
+tmap_mode('view')
+tm_shape(childcare_sf) +
+  tm_dots() #creates a layer of dots to visualise point data on a map.
+```
+
+```{r}
+tmap_mode('plot') #switchs back static maps
+```
+
+::: callout-note
+It is advised to always switch back to plot mode to save connection consumption and limit the number of interactive maps to 10 in one documents when publishing.
+:::

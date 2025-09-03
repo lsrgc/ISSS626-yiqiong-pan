@@ -30,11 +30,10 @@ website:
       - icon: github
         href: https://github.com/lsrgc
         aria-label: Github
-      - icon: journal-bookmark
+      - icon: eyeglasses
         href: https://isss626-ay2025-26aug.netlify.app/
         aria-label: Course Textbook
-      #- href: about.qmd
-        #text: About
+
 
 format:
   html:
