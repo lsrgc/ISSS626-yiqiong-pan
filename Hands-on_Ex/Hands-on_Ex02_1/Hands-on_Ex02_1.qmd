@@ -37,7 +37,7 @@ execute:
 The following datasets were downloaded from publicly available websites, and both are available in KML and GeoJSON format.
 
 | Dataset Name | Source | Discrption |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | Child Care Services | [data.gov.sg](data.gov.sg) | **Point feature data**: contains the locations and attributes of childcare centres. |
 | Master plan 2019 Subzone Boundary (No Sea) | [singstat](https://www.singstat.gov.sg/) | **Polygon feature data**: represents the URA 2019 Master Plan planning subzone boundaries. |
 
@@ -46,7 +46,7 @@ The following datasets were downloaded from publicly available websites, and bot
 In addition to *spatstat*, a total of five R packages will be used in this exercise.
 
 | Package | Discription |
-|----|:---|
+|------------------------------------|:-----------------------------------|
 | [sf](https://r-spatial.github.io/sf/) | Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data. |
 | [spatstat](https://spatstat.org/) | Provides useful functions for SPPA, which will be called to conduct both 1st and 2nd SPPA and KDE. |
 | [terra](https://rspatial.github.io/terra/index.html) | Modern package for raster/vector spatial data and will be used to convert spastat outputs into terra format. |
@@ -204,11 +204,11 @@ The Clark-Evans Test is a specific method within the NNA framework that uses the
 
 > The interpretation rule is:
 >
-> 𝑅\< 1: clustered pattern
+> **𝑅\< 1**: clustered pattern
 >
-> 𝑅= 1: random pattern
+> **𝑅= 1**: random pattern
 >
-> 𝑅\> 1: regular pattern
+> **𝑅\> 1**: regular pattern
 
 In this study, the function `clarkevans.test()` from the spatstat package will be used. The hypotheses are defined as follows:
 
@@ -311,7 +311,7 @@ bw.ppl(childcareSG_ppp_km)
 bw.diggle(childcareSG_ppp_km)
 ```
 
-Baddeley et al. (2016) suggest using `bw.ppl()` for patterns with many tight clusters, while `bw.diggle()` is better for detecting a single tight cluster in random noise. The following code compares KDE results using both methods.
+Baddeley et al. (2016) suggest using `bw.ppl()` for patterns with many tight clusters, while `bw.diggle()` is better for detecting a single tight cluster in random noise. The following code compares KDE results using both methods.The KDE results from **bw.ppl** on the right show that certain areas (in yellow) have an estimated intensity of more than **25** childcare centres per square kilometre. The PPL bandwidth (0.379) is close to Diggle’s (0.296) but avoids excessive spikiness, while being much smaller than CvL (4.357), which produces an overly smoothed surface.
 
 ```{r}
 kde_childcareSG.ppl <- density(childcareSG_ppp_km,
@@ -320,7 +320,53 @@ kde_childcareSG.ppl <- density(childcareSG_ppp_km,
                                kernel = "gaussian")
 
 summary(kde_childcareSG.ppl)
-#par(mfrow = c(1,2)) #shows two plots side by side (1 row, 2 columns).
-plot(kde_childcareSG_km, main = "bw.diggle") #main is the title of the plot
-plot(kde_childcareSG.ppl, main = "bw.ppl")
+```
+
+```{r}
+par(mfrow = c(2,2))#shows two plots side by side (1 row, 2 columns).
+plot(kde_childcareSG_km)
+title(main = "bw.diggle") #main is the title of the plot, im ojbect
+
+plot(kde_childcareSG.ppl)
+title(main = "bw.ppl")
+
+plot(density(childcareSG_ppp_km,
+              sigma = bw.scott,
+              edge = TRUE,
+              kernel = "gaussian"))
+title(main = "bw.sscott")
+
+plot(density(childcareSG_ppp_km,
+              sigma = bw.CvL,
+              edge = TRUE,
+              kernel = "gaussian"))
+title(main = "bw.CvL")     
+```
+
+## Working with Different kernel Methods
+
+Next we compare difference between kernel methods (Gaussian, Epanechnikov, Quartic and Disc) through the charts.
+
+```{r}
+par(mfrow = c(2,2)) # par= plot appearance settings, mfrow= multi-frame by row e.g. 2 * 2.
+plot(density(childcareSG_ppp_km,
+             sigma = 0.2959712,
+             edge = TRUE,
+             kernel = "gaussian"),
+             main = "Gaussian")
+plot(density(childcareSG_ppp_km,
+             sigma = 0.2959712,
+             edge = TRUE,
+             kernel = "epanechnikov"),
+             main = "Epanechnikov")
+plot(density(childcareSG_ppp_km,
+             sigma = 0.2959712,
+             edge = TRUE,
+             kernel = "quartic"),
+             main = "Quartic")
+plot(density(childcareSG_ppp_km,
+             sigma = 0.2959712,
+             edge = TRUE,
+             kernel = "disc"),
+             main = "Disc")
 ```
