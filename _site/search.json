@@ -94,7 +94,14 @@
     "objectID": "Hands-on_Ex/Hands-on_Ex02_1/Hands-on_Ex02_1.html#mapping-the-geospatial-data-sets",
     "href": "Hands-on_Ex/Hands-on_Ex02_1/Hands-on_Ex02_1.html#mapping-the-geospatial-data-sets",
     "title": "Hands-on Exercise 02-1: First-order Spatial Point Pattern Analysis",
-    "section": "Mapping the geospatial data sets",
-    "text": "Mapping the geospatial data sets\nUsing the tmap mapping methods, the code chunk below creates a map combining childcare_sf and mpsz_cl.\n\ntm_shape(mpsz_cl)+\n  tm_fill(col = \"grey\" ) +\n  tm_borders(col = \"black\") +\ntm_shape(childcare_sf) +\n  tm_dots(col = \"black\")\n\n\n\n\n\n\n\n\nAlternatively, an interactive thematic map can be plotted using the code below. The interactive map is easy to navigate and query intuitively. It is optional to change the background map layer(choices: ESRI.WorldGrayCanvas(default), OpenStreetMap, ESRI.WorldTopoMap).\n\ntmap_mode('view')\ntm_shape(childcare_sf) +\n  tm_dots() #creates a layer of dots to visualise point data on a map.\n\n\n\n\n\n\ntmap_mode('plot') #switchs back static maps\n\n\n\n\n\n\n\nNote\n\n\n\nIt is advised to always switch back to plot mode to save connection consumption and limit the number of interactive maps to 10 in one documents when publishing."
+    "section": "Mapping the Geospatial Data Sets",
+    "text": "Mapping the Geospatial Data Sets\nUsing the tmap mapping methods, the code chunk below creates a map combining childcare_sf and mpsz_cl.\n\ntm_shape(mpsz_cl)+\n  tm_fill(col = \"grey\" ) +\n  tm_borders(col = \"black\") +\ntm_shape(childcare_sf) +\n  tm_dots(col = \"black\")\n\n\n\n\n\n\n\n\nAlternatively, an interactive thematic map can be plotted using the code below. The interactive map is easy to navigate and query intuitively. It is optional to change the background map layer(choices: ESRI.WorldGrayCanvas(default), OpenStreetMap, ESRI.WorldTopoMap).\n\ntmap_mode('view')\ntm_shape(childcare_sf) +\n  tm_dots() #creates a layer of dots to visualise point data on a map.\n\n\n\n\n\n\ntmap_mode('plot') #switch back static maps\n\n\n\n\n\n\n\nWarning\n\n\n\nIt is advised to always switch back to plot mode to save connection consumption and limit the number of interactive maps to 10 in one documents when publishing."
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex02_1/Hands-on_Ex02_1.html#converting-sf-data-frames-to-ppp",
+    "href": "Hands-on_Ex/Hands-on_Ex02_1/Hands-on_Ex02_1.html#converting-sf-data-frames-to-ppp",
+    "title": "Hands-on Exercise 02-1: First-order Spatial Point Pattern Analysis",
+    "section": "Converting sf Data Frames to ppp",
+    "text": "Converting sf Data Frames to ppp\nHere we use as.ppp() of spatstat package to covert the point data childcare_sf to ppp file and confirm the change using class().\n\nchildcare_ppp &lt;- as.ppp(childcare_sf)\nclass(childcare_ppp)\n\n[1] \"ppp\""
   }
 ]

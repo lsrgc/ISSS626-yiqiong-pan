@@ -1,0 +1,162 @@
+---
+title: "Hands-on Exercise 02-1: First-order Spatial Point Pattern Analysis"
+author: "Yiqiong PAN"
+date: "Sep 02, 2025"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true #display the code
+  warning: false 
+  freeze: true # not render if nothing edited
+---
+
+# Overview
+
+**Spatial Point Pattern Analysis** (SPPA) refers to the study of how points are arranged or distributed across a given surface. There points may represent:
+
+-   **Events**, such as crimes, road accidents, or disease occurrences, or
+
+-   **Service and facility locations**, including shops (e.g., cafes, supermarkets) and community facilities like childcare or aged care centres.
+
+**First-order** **Spatial Point Pattern Analysis** (1-st SPPA) examines the intensity or density of points across a study area. It identifies spatial trends in point distribution without considering interaction between points helping to answer questions like:
+
+-   Where are points most concentrated?
+
+-   Is density uniform or variable?
+
+-   How dispersed is the pattern?
+
+> In this exercise, the [**spatsat**](https://cran.r-project.org/web/packages/spatstat/) is utilised to apply two common 1st-SPPA methods to explore:
+>
+> 1.  Whether childcare centres in Singapore are randomly distributed;
+>
+> 2.  If not, identifying areas with higher concentrations of centres.
+
+# The Data
+
+The following datasets were downloaded from publicly available websites, and both are available in KML and GeoJSON format.
+
+| Dataset Name | Source | Discrption |
+|----|----|----|
+| Child Care Services | [data.gov.sg](data.gov.sg) | **Point feature data**: contains the locations and attributes of childcare centres. |
+| Master plan 2019 Subzone Boundary (No Sea) | [singstat](https://www.singstat.gov.sg/) | **Polygon feature data**: represents the URA 2019 Master Plan planning subzone boundaries. |
+
+# Installing and Loading the R Packages
+
+In addition to *spatstat*, a total of five R packages will be used in this exercise.
+
+| Package | Discription |
+|----|:---|
+| [sf](https://r-spatial.github.io/sf/) | Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data. |
+| [spatstat](https://spatstat.org/) | Provides useful functions for SPPA, which will be called to conduct both 1st and 2nd SPPA and KDE. |
+| [terra](https://rspatial.github.io/terra/index.html) | Modern package for raster/vector spatial data and will be used to convert spastat outputs into terra format. |
+| [tmap](https://cran.r-project.org/web/packages/tmap/index.html) | Creates high quality static or interactive choropleth maps via [leaflet](https://leafletjs.com/). |
+| [rvest](https://rvest.tidyverse.org/) | Scrapes and extracts data from web pages. |
+
+After installation, we load them into R environment using the code below.
+
+```{r}
+pacman:: p_load(sf, terra, spatstat, tmap, rvest, tidyverse)
+```
+
+# Importing and Wrangling Geospatial Data Sets
+
+The following code chunk shows the steps to first import the `Master plan 2019 Subzone Boundary (No Sea)` data using st_read, extract the required 4 columns from the `Description` field, filter out the nearby islands, and finally save the file as `mpsz_cl` for further analysis.
+
+```{r}
+mpsz_sf <- st_read("data/MasterPlan2019SubzoneBoundaryNoSeaKML.kml") %>%
+  st_zm(drop = TRUE, what = "ZM") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+extract_kml_field <- function(html_text, field_name) {
+  if (is.na(html_text) || html_text == "") return(NA_character_)
+  
+  page <- read_html(html_text)
+  rows <- page %>% html_elements("tr")
+  
+  value <- rows %>%
+    keep(~ html_text2(html_element(.x, "th")) == field_name) %>%
+    html_element("td") %>%
+    html_text2()
+  
+  if (length(value) == 0) NA_character_ else value
+}
+```
+
+```{r}
+# map_chr of purr (tidyverse) applies a function to each element of a list/vector and returns a character vector.
+mpsz_sf <- mpsz_sf %>%
+  mutate(
+    REGION_N = map_chr(Description, extract_kml_field, "REGION_N"),
+    PLN_AREA_N = map_chr(Description, extract_kml_field, "PLN_AREA_N"),
+    SUBZONE_N = map_chr(Description, extract_kml_field, "SUBZONE_N"),
+    SUBZONE_C = map_chr(Description, extract_kml_field, "SUBZONE_C")
+  ) %>%
+  select(-Name, -Description) %>%
+  relocate(geometry, .after = last_col())
+```
+
+```{r}
+mpsz_cl <- mpsz_sf %>%
+  filter(SUBZONE_N != "SOUTHERN GROUP",
+         PLN_AREA_N != "WESTERN ISLANDS",
+         PLN_AREA_N != "NORTH-EASTERN ISLANDS")
+```
+
+```{r}
+write_rds(mpsz_cl,
+          "data/mpsz_cl.rds")
+```
+
+The code chuck below imports downloaded `ChildCareServices` data to R as sf data frame as `childcare_sf` by using st_read, coverts 3d to 2d (st_zm) and finally transform the CRS from WGS84 to SVY21.
+
+```{r}
+childcare_sf <- st_read("data/ChildCareServices.geojson") %>%
+  st_zm(drop = TRUE, what = "ZM") %>% # Drop Z and M to convert from multi-dimensional to 2d (XY)
+  st_transform(crs = 3414)
+```
+
+## Mapping the Geospatial Data Sets
+
+Using the tmap mapping methods, the code chunk below creates a map combining `childcare_sf` and `mpsz_cl`.
+
+```{r}
+tm_shape(mpsz_cl)+
+  tm_fill(col = "grey" ) +
+  tm_borders(col = "black") +
+tm_shape(childcare_sf) +
+  tm_dots(col = "black")
+```
+
+Alternatively, an interactive thematic map can be plotted using the code below. The interactive map is easy to navigate and query intuitively. It is optional to change the background map layer(choices: ESRI.WorldGrayCanvas(default), OpenStreetMap, ESRI.WorldTopoMap).
+
+```{r}
+tmap_mode('view')
+tm_shape(childcare_sf) +
+  tm_dots() #creates a layer of dots to visualise point data on a map.
+```
+
+```{r}
+tmap_mode('plot') #switch back static maps
+```
+
+::: callout-warning
+It is advised to always switch back to plot mode to save connection consumption and limit the number of interactive maps to 10 in one documents when publishing.
+:::
+
+# Geospatial Data Wrangling
+In this section, the data (sf objects) will be converted to spatstat data structure: **ppp** (for point data) and **owin** for observation windows.
+
+## Converting sf Data Frames to ppp
+Here we use `as.ppp()` of spatstat package to covert the point data `childcare_sf` to ppp file, confirm the change using `class()` and have a quick overview of the data statistics via `summary()`.
+
+```{r}
+childcare_ppp <- as.ppp(childcare_sf)
+class(childcare_ppp)
+```
+
+```{r}
+summary(childcare_ppp)
+```
