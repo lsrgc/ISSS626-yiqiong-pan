@@ -16,7 +16,7 @@ execute:
 editor: visual
 ---
 
-## Overview 
+## 1. Overview 
 
 **Spatial Point Pattern Analysis** (SPPA) refers to the study of how points are arranged or distributed across a given surface. There points may represent:
 
