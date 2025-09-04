@@ -1,0 +1,322 @@
+---
+title: "02-2: 2nd Order Spatial Point Patterns Analysis Methods"
+author: "Yiqiong PAN"
+date: "Sep 04, 2025"
+date-modified: "last-modified"
+format: 
+  html:
+    toc: true
+    toc-depth: 6
+    number-sections: true
+    number-depth: 4
+execute:
+  echo: true #display the code
+  eval: true 
+  message: false
+  warning: false
+  freeze: true # not render if nothing edited
+editor: visual
+    
+---
+
+execute: echo: true #display the code eval: true message: false warning: false freeze: false \# true: not render if nothing edited editor: visual ---
+
+## Overview
+
+This exercise uses **second-order spatial point pattern analysis** and `spatstat` package to study childcare centres in Singapore. Unlike first-order analysis, which looks only at overall density independently, second-order methods reveal relationships and influences between centres (points) based on distance.
+
+We aim to answer two key questions:
+
+1.  Are childcare centres randomly distributed across Singapore?
+
+2.  If not, where are the areas with higher concentrations?
+
+## The data
+
+As also used in 1st order SPPA, the following datasets were downloaded from publicly available websites, and both are available in KML and GeoJSON format.
+
+| Dataset Name | Source | Discrption |
+|------------------------|------------------------|------------------------|
+| Child Care Services | [data.gov.sg](data.gov.sg) | **Point feature data**: contains the locations and attributes of childcare centres. |
+| Master plan 2019 Subzone Boundary (No Sea) | [singstat](https://www.singstat.gov.sg/) | **Polygon feature data**: represents the URA 2019 Master Plan planning subzone boundaries. |
+
+## Installing and Loading the R packages
+
+In addition to *spatstat*, a total of five R packages will be used in this exercise.
+
+| Package | Discription |
+|------------------------------------|:-----------------------------------|
+| [sf](https://r-spatial.github.io/sf/) | Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data. |
+| [spatstat](https://spatstat.org/) | Provides useful functions for SPPA, which will be called to conduct both 1st and 2nd SPPA and KDE. |
+| [tmap](https://cran.r-project.org/web/packages/tmap/index.html) | Creates high quality static or interactive choropleth maps via [leaflet](https://leafletjs.com/). |
+| [rvest](https://rvest.tidyverse.org/) | Scrapes and extracts data from web pages. |
+
+After installation, we load them into R environment using the code below.
+
+```{r}
+pacman:: p_load(sf, spatstat, tmap, rvest, tidyverse)
+```
+
+## Data Import and Preparation
+
+###importing data
+
+:::panel-tabset
+
+#### Importing Master plan 2019 Subzone Boundary (No Sea) Polygon Data
+
+The following code chunk shows the steps to first import the `Master plan 2019 Subzone Boundary (No Sea)` data using st_read, extract the required 4 columns from the `Description` field, filter out the nearby islands, and finally save the file as `mpsz_cl` for further analysis.
+
+```{r}
+mpsz_sf <- st_read("data/MasterPlan2019SubzoneBoundaryNoSeaKML.kml") %>%
+  st_zm(drop = TRUE, what = "ZM") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+extract_kml_field <- function(html_text, field_name) {
+  if (is.na(html_text) || html_text == "") return(NA_character_)
+  
+  page <- read_html(html_text)
+  rows <- page %>% html_elements("tr")
+  
+  value <- rows %>%
+    keep(~ html_text2(html_element(.x, "th")) == field_name) %>%
+    html_element("td") %>%
+    html_text2()
+  
+  if (length(value) == 0) NA_character_ else value
+}
+```
+
+```{r}
+# map_chr of purr (tidyverse) applies a function to each element of a list/vector and returns a character vector.
+mpsz_sf <- mpsz_sf %>%
+  mutate(
+    REGION_N = map_chr(Description, extract_kml_field, "REGION_N"),
+    PLN_AREA_N = map_chr(Description, extract_kml_field, "PLN_AREA_N"),
+    SUBZONE_N = map_chr(Description, extract_kml_field, "SUBZONE_N"),
+    SUBZONE_C = map_chr(Description, extract_kml_field, "SUBZONE_C")
+  ) %>%
+  select(-Name, -Description) %>%
+  relocate(geometry, .after = last_col())
+```
+
+```{r}
+mpsz_cl <- mpsz_sf %>%
+  filter(SUBZONE_N != "SOUTHERN GROUP",
+         PLN_AREA_N != "WESTERN ISLANDS",
+         PLN_AREA_N != "NORTH-EASTERN ISLANDS")
+```
+
+```{r}
+write_rds(mpsz_cl,
+          "data/mpsz_cl.rds")
+```
+
+#### Importing Child Care Services Point Data
+
+The code chuck below imports downloaded `ChildCareServices` data to R as sf data frame as `childcare_sf` by using st_read, coverts 3d to 2d (st_zm) and finally transform the CRS from WGS84 to SVY21.
+
+```{r}
+childcare_sf <- st_read("data/ChildCareServices.geojson") %>%
+  st_zm(drop = TRUE, what = "ZM") %>% # Drop Z and M to convert from multi-dimensional to 2d (XY)
+  st_transform(crs = 3414)
+
+```
+
+#### Mapping the Geospatial Data Sets
+
+Using the tmap mapping methods, the code chunk below creates a map combining `childcare_sf` and `mpsz_cl`.
+
+```{r}
+tm_shape(mpsz_cl)+
+  tm_polygons() +
+  tm_shape(childcare_sf) +
+  tm_dots(size = 0.3)
+```
+
+Alternatively, an interactive thematic map can be plotted using the code below. The interactive map is easy to navigate and query intuitively. It is optional to change the background map layer(choices: ESRI.WorldGrayCanvas(default), OpenStreetMap, ESRI.WorldTopoMap).
+
+```{r}
+tmap_mode('view')
+tm_shape(childcare_sf) +
+  tm_dots() #creates a layer of dots to visualise point data on a map.
+```
+
+```{r}
+tmap_mode('plot') #switch back static maps
+```
+
+::: callout-warning
+It is advised to always switch back to plot mode to save connection consumption and limit the number of interactive maps to 10 in one documents when publishing.
+:::
+
+:::
+
+### Geospatial Data Wrangling
+
+In this section, the data (sf objects) will be converted to spatstat data structure: **ppp** (for point data) and **owin** for observation window.
+
+:::panel-tabset
+
+#### Converting sf Data Frames to PPP
+
+Here we use `as.ppp()` of spatstat package to covert the point data `childcare_sf` to ppp file, confirm the change using `class()` and have a quick overview of the data statistics via `summary()`.
+
+```{r}
+childcare_ppp <- as.ppp(childcare_sf)
+class(childcare_ppp)
+```
+
+```{r}
+summary(childcare_ppp)
+```
+
+```{r}
+plot(unmark(childcare_ppp, main = "childcare_ppp")) #drops the marks, since simple plot() is not displaying properly showing broken tags <th>, <td>, <table> etc
+```
+
+Before moving forwards, let's check if there are any duplicated points.
+
+```{r}
+any(duplicated(childcare_ppp))
+```
+
+#### Creating Owin Object
+
+Similarly, the owin object can be created using the function as.owin() for polygon data. After the conversion, the class() and plot() functions can be used to verify that the object is of the correct class and that the data retains its original shape.
+
+```{r}
+sg_owin <- as.owin(mpsz_cl)
+class(sg_owin)
+plot(sg_owin)
+```
+
+#### Combining Point Events object and Owin Object
+
+The code chunk below combines ppp and owin into one ppp file which means it updates the window of childcare_ppp to sg_owin and keeps the points that fall inside.
+
+```{r}
+childcareSG_PPP = childcare_ppp[sg_owin]
+class(childcareSG_PPP)
+childcareSG_PPP
+```
+
+```{r}
+summary(childcareSG_PPP)
+plot(unmark(childcareSG_PPP), main = "childcare_SG_PPP")
+```
+
+:::
+
+### Extracting the Study Area
+
+We focus on the childcare centres in the four areas: Punggol, Tampines, Choa Chu Kang and Jurong West.
+
+:::panel-subset 
+
+#### Filtering
+The code chunk uses filter() to create a new variable for each area and plot() for quick preview.
+
+```{r}
+pg <- mpsz_cl %>%
+  filter(PLN_AREA_N == "PUNGGOL")
+tm <- mpsz_cl %>%
+  filter(PLN_AREA_N == "TAMPINES")
+ck <- mpsz_cl %>%
+  filter(PLN_AREA_N == "CHOA CHU KANG")
+jw <- mpsz_cl %>%
+  filter(PLN_AREA_N == "JURONG WEST")
+```
+
+#### Plotting the area
+
+```{r, fig.width=16, fig.height=12}
+par(mfrow=c(2,2))
+plot(st_geometry(pg), main = "Ponggol")
+plot(st_geometry(tm), main = "Tampines")
+plot(st_geometry(ck), main = "Choa Chu Kang")
+plot(st_geometry(jw), main = "Jurong West")
+```
+
+#### Creating owin Object Using `as.owin()` (subzone window)
+
+```{r}
+pg_owin = as.owin(pg)
+tm_owin = as.owin(tm)
+ck_owin = as.owin(ck)
+jw_owin = as.owin(jw)
+```
+
+#### Combining point event Object (whole) and owin object (subzone)
+
+The code chunk below subsets the dataset to the study areas, rescales the unit of measurement from metre to kilometre and finally plot the areas with childcare points.
+
+```{r}
+childcare_pg_ppp = childcare_ppp[pg_owin] #crop childcare points to Punggol
+childcare_tm_ppp = childcare_ppp[tm_owin]
+childcare_ck_ppp = childcare_ppp[ck_owin]
+childcare_jw_ppp = childcare_ppp[jw_owin]
+```
+
+#### Rescaling to km
+
+```{r}
+childcare_pg_ppp.km = rescale.ppp(childcare_pg_ppp, 1000, "km")
+childcare_tm_ppp.km = rescale.ppp(childcare_tm_ppp, 1000, "km")
+childcare_ck_ppp.km = rescale.ppp(childcare_ck_ppp, 1000, "km")
+childcare_jw_ppp.km = rescale.ppp(childcare_jw_ppp, 1000, "km")
+```
+
+#### Plotting the regional ppp 
+
+```{r, fig.width=16, fig.height=12}
+par(mfrow=c(2,2))
+plot(unmark(childcare_pg_ppp.km),
+  main = "Punggol")
+plot(unmark(childcare_tm_ppp.km),
+  main = "Tampines")
+plot(unmark(childcare_ck_ppp.km),
+  main = "Choa Chu Kang")
+plot(unmark(childcare_jw_ppp.km),
+  main = "Jurong West")
+```
+
+## Second-order Spatial Point Patterns Analysis
+
+Let us examine the relationships between points at subzone level.
+
+## Analysing Spatial Point Process Using G-Function
+
+
+
+
+### Choa Chu Kang planning area
+
+### Tampines planning area
+
+## Analysing Spatial Point Process Using F-Function
+
+### Choa Chu Kang planning area
+
+### Performing Complete Spatial Randomness Test
+
+### Tampines planning area
+
+## Analysing Spatial Point Process Using K-Function
+
+### Choa Chu Kang planning area
+
+### Tampines planning area
+
+## Analysing Spatial Point Process Using L-Function
+
+### Choa Chu Kang planning area
+
+### Tampines planning area
+
+## Reference
+
+Kam, T. S. 2nd Order Spatial Point Patterns Analysis Methods. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap05
+

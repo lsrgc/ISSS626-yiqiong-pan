@@ -133,7 +133,7 @@ Using the tmap mapping methods, the code chunk below creates a map combining `ch
 tm_shape(mpsz_cl)+
   tm_polygons() +
   tm_shape(childcare_sf) +
-  tm_dots(size = 0.5)
+  tm_dots(size = 0.3)
 ```
 
 Alternatively, an interactive thematic map can be plotted using the code below. The interactive map is easy to navigate and query intuitively. It is optional to change the background map layer(choices: ESRI.WorldGrayCanvas(default), OpenStreetMap, ESRI.WorldTopoMap).
@@ -174,7 +174,7 @@ summary(childcare_ppp)
 ```
 
 ```{r}
-plot(childcare_ppp)
+plot(unmark(childcare_ppp, main = "childcare_ppp")) #drops the marks, since simple plot() is not displaying properly showing broken tags <th>, <td>, <table> etc
 ```
 
 Before moving forwards, let's check if there are any duplicated points.
@@ -205,14 +205,92 @@ childcareSG_PPP
 
 ```{r}
 summary(childcareSG_PPP)
-plot(childcareSG_PPP)
+plot(unmark(childcareSG_PPP), main = "childcare_SG_PPP")
 ```
 
 :::
 
+### Extracting the Study Area
+
+We focus on the childcare centres in the four areas: Punggol, Tampines, Choa Chu Kang and Jurong West.
+
+:::panel-subset 
+
+#### Filtering
+The code chunk uses filter() to create a new variable for each area and plot() for quick preview.
+
+```{r}
+pg <- mpsz_cl %>%
+  filter(PLN_AREA_N == "PUNGGOL")
+tm <- mpsz_cl %>%
+  filter(PLN_AREA_N == "TAMPINES")
+ck <- mpsz_cl %>%
+  filter(PLN_AREA_N == "CHOA CHU KANG")
+jw <- mpsz_cl %>%
+  filter(PLN_AREA_N == "JURONG WEST")
+```
+
+#### Plotting the area
+
+```{r, fig.width=16, fig.height=12}
+par(mfrow=c(2,2))
+plot(st_geometry(pg), main = "Ponggol")
+plot(st_geometry(tm), main = "Tampines")
+plot(st_geometry(ck), main = "Choa Chu Kang")
+plot(st_geometry(jw), main = "Jurong West")
+```
+
+#### Creating owin Object Using `as.owin()` (subzone window)
+
+```{r}
+pg_owin = as.owin(pg)
+tm_owin = as.owin(tm)
+ck_owin = as.owin(ck)
+jw_owin = as.owin(jw)
+```
+
+#### Combining point event Object (whole) and owin object (subzone)
+
+The code chunk below subsets the dataset to the study areas, rescales the unit of measurement from metre to kilometre and finally plot the areas with childcare points.
+
+```{r}
+childcare_pg_ppp = childcare_ppp[pg_owin] #crop childcare points to Punggol
+childcare_tm_ppp = childcare_ppp[tm_owin]
+childcare_ck_ppp = childcare_ppp[ck_owin]
+childcare_jw_ppp = childcare_ppp[jw_owin]
+```
+
+#### Rescaling to km
+
+```{r}
+childcare_pg_ppp.km = rescale.ppp(childcare_pg_ppp, 1000, "km")
+childcare_tm_ppp.km = rescale.ppp(childcare_tm_ppp, 1000, "km")
+childcare_ck_ppp.km = rescale.ppp(childcare_ck_ppp, 1000, "km")
+childcare_jw_ppp.km = rescale.ppp(childcare_jw_ppp, 1000, "km")
+```
+
+#### Plotting the regional ppp 
+
+```{r, fig.width=16, fig.height=12}
+par(mfrow=c(2,2))
+plot(unmark(childcare_pg_ppp.km),
+  main = "Punggol")
+plot(unmark(childcare_tm_ppp.km),
+  main = "Tampines")
+plot(unmark(childcare_ck_ppp.km),
+  main = "Choa Chu Kang")
+plot(unmark(childcare_jw_ppp.km),
+  main = "Jurong West")
+```
+
 ## Second-order Spatial Point Patterns Analysis
 
+Let us examine the relationships between points at subzone level.
+
 ## Analysing Spatial Point Process Using G-Function
+
+
+
 
 ### Choa Chu Kang planning area
 
