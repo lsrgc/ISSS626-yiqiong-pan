@@ -16,7 +16,6 @@ execute:
   warning: false
   freeze: true # not render if nothing edited
 editor: visual
-    
 ---
 
 execute: echo: true #display the code eval: true message: false warning: false freeze: false \# true: not render if nothing edited editor: visual ---
@@ -59,10 +58,9 @@ pacman:: p_load(sf, spatstat, tmap, rvest, tidyverse)
 
 ## Data Import and Preparation
 
-###importing data
+### importing data
 
-:::panel-tabset
-
+:::: panel-tabset
 #### Importing Master plan 2019 Subzone Boundary (No Sea) Polygon Data
 
 The following code chunk shows the steps to first import the `Master plan 2019 Subzone Boundary (No Sea)` data using st_read, extract the required 4 columns from the `Description` field, filter out the nearby islands, and finally save the file as `mpsz_cl` for further analysis.
@@ -152,14 +150,13 @@ tmap_mode('plot') #switch back static maps
 It is advised to always switch back to plot mode to save connection consumption and limit the number of interactive maps to 10 in one documents when publishing.
 :::
 
-:::
+::::
 
 ### Geospatial Data Wrangling
 
 In this section, the data (sf objects) will be converted to spatstat data structure: **ppp** (for point data) and **owin** for observation window.
 
-:::panel-tabset
-
+:::: panel-tabset
 #### a. Converting sf Data Frames to PPP
 
 Here we use `as.ppp()` of spatstat package to covert the point data `childcare_sf` to ppp file, confirm the change using `class()` and have a quick overview of the data statistics via `summary()`.
@@ -208,16 +205,15 @@ summary(childcareSG_PPP)
 plot(unmark(childcareSG_PPP), main = "childcare_SG_PPP")
 ```
 
-:::
+::::
 
 ### Extracting the Study Area
 
 We focus on the childcare centres in the four areas: Punggol, Tampines, Choa Chu Kang and Jurong West.
 
-
-:::panel-subset 
-
+:::: panel-subset
 #### a. Filtering
+
 The code chunk uses filter() to create a new variable for each area and plot() for quick preview.
 
 ```{r}
@@ -261,7 +257,7 @@ childcare_ck_ppp = childcare_ppp[ck_owin]
 childcare_jw_ppp = childcare_ppp[jw_owin]
 ```
 
-#### e. Plotting the subzone childcare ppp 
+#### e. Plotting the subzone childcare ppp
 
 ```{r, fig.width=16, fig.height=12}
 par(mfrow=c(2,2))
@@ -275,7 +271,7 @@ plot(unmark(childcare_jw_ppp),
   main = "Jurong West")
 ```
 
-:::
+::::
 
 ## Second-order Spatial Point Patterns Analysis
 
@@ -291,11 +287,10 @@ First we set a fixed random seed to ensure reproducibility.
 set.seed(1234)
 ```
 
-:::panel-subset
-
+:::: panel-subset
 ### Choa Chu Kang planning area
 
-a. The code chunk below calculates the G-function. The plot shows childcare centres are clustered within 300 metres but rather random beyond the scale.
+a.  The code chunk below calculates the G-function. The plot shows childcare centres are clustered within 300 metres but rather random beyond the scale.
 
 ```{r}
 G_CK = Gest(childcare_ck_ppp, correction = "border") #correction is border
@@ -303,7 +298,7 @@ G_CK
 plot(G_CK,xlim= c(0,500)) #xlim zooms the x-axis, CDF rises above csr before 300 and crosses after 300
 ```
 
-b. the code chunk below test Complete Spatial Randomness.
+b.  the code chunk below test Complete Spatial Randomness.
 
 H0 = The distribution of childcare services at Choa Chu Kang are randomly distributed.
 
@@ -311,16 +306,14 @@ H1 = The distribution of childcare services at Choa Chu Kang are not randomly di
 
 The null hypothesis will be rejected is p-value is smaller than alpha value of 0.001.
 
-Since the number of simulations is 999, for two-sided test, `nrank` = (`nsim` + 1) * 0.001 / 2 = 0.5?
+Since the number of simulations is 999, for two-sided test, `nrank` = (`nsim` + 1) \* 0.001 / 2 = 0.5?
 
 `nrank` must be an integer.
-
 
 ```{r}
 G_CK.csr <- envelope(childcare_ck_ppp, Gest, nsim= 999)
 G_CK.csr
 ```
-
 
 ```{r}
 plot(G_CK.csr, xlim= c(0,500))
@@ -330,7 +323,7 @@ The plot of Monte Carlo simulations (999 CSR sims, KM correction, 99.8% confiden
 
 ### Tampines planning area
 
-a. The code chunk below calculates the G-function.
+a.  The code chunk below calculates the G-function.
 
 ```{r}
 G_TM = Gest(childcare_tm_ppp, correction = "best") #correction is selected by package
@@ -338,7 +331,7 @@ G_TM
 plot(G_TM,xlim = c(0,800)) #xlim changes the scale
 ```
 
-b. the code chunk below test Complete Spatial Randomness.
+b.  the code chunk below test Complete Spatial Randomness.
 
 Ho = The distribution of childcare services at Tampines are randomly distributed.
 
@@ -346,34 +339,41 @@ H1 = The distribution of childcare services at Tampines are not randomly distrib
 
 The null hypothesis will be rejected is p-value is smaller than alpha value of 0.001.
 
-Since the number of simulations is 999, for two-sided test, `nrank` = (`nsim` + 1) * 0.001 / 2 = 0.5?
+Since the number of simulations is 999, for two-sided test, `nrank` = (`nsim` + 1) * 0.001 / 2 = 0.5??
 
 `nrank` must be an integer.
-
+*
 ```{r}
 G_TM.csr <- envelope(childcare_tm_ppp, Gest, Correction = "all", nsim = 999)
 G_TM.csr
 ```
+
 ```{r}
 plot(G_TM.csr, xlim = c(0,800))
 ```
 
 Similarly, the plot of Monte Carlo simulations (999 CSR sims, KM correction, 99.8% confidence) show the observed G in Tampines is above the band of 258m, which implies clustering at short distances.
-
-:::
+::::
 
 ## Analysing Spatial Point Process Using F-Function
 
 The F-function `Fest()` estimates the distribution of empty-space distances, which means the distance from a random location to the nearest event. It tells about the gaps. Additionally Monte Carlo envelopes are used to assess complete spatial randomness.
 
+::::panel-subset
+
 ### Choa Chu Kang planning area
 
+a. Computing F-function estimation
 
-
-
-### Performing Complete Spatial Randomness Test
+b. Performing Complete Spatial Randomness Test
 
 ### Tampines planning area
+
+a. Computing F-function estimation
+
+b. Performing Complete Spatial Randomness Test
+
+::::
 
 ## Analysing Spatial Point Process Using K-Function
 
