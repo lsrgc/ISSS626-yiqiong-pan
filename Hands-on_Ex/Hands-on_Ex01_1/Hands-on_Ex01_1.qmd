@@ -127,6 +127,7 @@ cyclingpath = st_read(dsn = "data/geospatial",
 ```
 
 ### 2.3 Importing Point Data Frame
+
 The code below uses st_read() to import the Pre-Schools Location in KML format as **point** feature data frame into R. When importing a KML file, the .kml extension must be **included**.
 
 svy21 vs wgs84?
@@ -254,7 +255,7 @@ plot(st_geometry(preschool), add = TRUE)
 
 ## 6. Importing and Converting an Aspatial Data
 
-### 6.1 Importing CSV 
+### 6.1 Importing CSV
 
 The chunk below first uses **read_csv()** from readr to import listing.csv into R as a tibble data frame, and then applies **list() from base R** to preview the first 10 records, similar to **glimpse() of dplyr.**
 
@@ -497,4 +498,7 @@ ggplot(data=mpsz,
        y = "Pre-school count")
 ```
 
-The End.
+## 8 Reference
+
+Kam, T. S. Thematic Mapping and GeoVisualisation with R. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap01.html
+

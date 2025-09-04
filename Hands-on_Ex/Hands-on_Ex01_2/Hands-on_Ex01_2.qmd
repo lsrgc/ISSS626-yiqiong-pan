@@ -667,4 +667,6 @@ tm_shape(region_selected,
 tmap_mode("plot")
 ```
 
-The end.
+## 9 Reference
+
+Kam, T. S. Thematic Mapping and GeoVisualisation with R. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap02.html

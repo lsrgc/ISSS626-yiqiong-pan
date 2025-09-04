@@ -22,6 +22,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -343,13 +378,33 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">overview</a>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview"><span class="header-section-number">1</span> Overview</a></li>
+  <li><a href="#the-data" id="toc-the-data" class="nav-link" data-scroll-target="#the-data"><span class="header-section-number">2</span> The data</a></li>
+  <li><a href="#installing-and-loading-the-r-packages" id="toc-installing-and-loading-the-r-packages" class="nav-link" data-scroll-target="#installing-and-loading-the-r-packages"><span class="header-section-number">3</span> Installing and Loading the R packages</a></li>
+  <li><a href="#data-import-and-preparation" id="toc-data-import-and-preparation" class="nav-link" data-scroll-target="#data-import-and-preparation"><span class="header-section-number">4</span> Data Import and Preparation</a></li>
+  <li><a href="#second-order-spatial-point-patterns-analysis" id="toc-second-order-spatial-point-patterns-analysis" class="nav-link" data-scroll-target="#second-order-spatial-point-patterns-analysis"><span class="header-section-number">5</span> Second-order Spatial Point Patterns Analysis</a></li>
+  <li><a href="#analysing-spatial-point-process-using-g-function" id="toc-analysing-spatial-point-process-using-g-function" class="nav-link" data-scroll-target="#analysing-spatial-point-process-using-g-function"><span class="header-section-number">6</span> Analysing Spatial Point Process Using G-Function</a>
   <ul>
-  <li><a href="#new" id="toc-new" class="nav-link" data-scroll-target="#new">new</a>
+  <li><a href="#choa-chu-kang-planning-area" id="toc-choa-chu-kang-planning-area" class="nav-link" data-scroll-target="#choa-chu-kang-planning-area"><span class="header-section-number">6.1</span> Choa Chu Kang planning area</a></li>
+  <li><a href="#tampines-planning-area" id="toc-tampines-planning-area" class="nav-link" data-scroll-target="#tampines-planning-area"><span class="header-section-number">6.2</span> Tampines planning area</a></li>
+  </ul></li>
+  <li><a href="#analysing-spatial-point-process-using-f-function" id="toc-analysing-spatial-point-process-using-f-function" class="nav-link" data-scroll-target="#analysing-spatial-point-process-using-f-function"><span class="header-section-number">7</span> Analysing Spatial Point Process Using F-Function</a>
   <ul>
-  <li><a href="#new-new" id="toc-new-new" class="nav-link" data-scroll-target="#new-new">new new</a></li>
+  <li><a href="#choa-chu-kang-planning-area-1" id="toc-choa-chu-kang-planning-area-1" class="nav-link" data-scroll-target="#choa-chu-kang-planning-area-1"><span class="header-section-number">7.1</span> Choa Chu Kang planning area</a></li>
+  <li><a href="#performing-complete-spatial-randomness-test" id="toc-performing-complete-spatial-randomness-test" class="nav-link" data-scroll-target="#performing-complete-spatial-randomness-test"><span class="header-section-number">7.2</span> Performing Complete Spatial Randomness Test</a></li>
+  <li><a href="#tampines-planning-area-1" id="toc-tampines-planning-area-1" class="nav-link" data-scroll-target="#tampines-planning-area-1"><span class="header-section-number">7.3</span> Tampines planning area</a></li>
   </ul></li>
+  <li><a href="#analysing-spatial-point-process-using-k-function" id="toc-analysing-spatial-point-process-using-k-function" class="nav-link" data-scroll-target="#analysing-spatial-point-process-using-k-function"><span class="header-section-number">8</span> Analysing Spatial Point Process Using K-Function</a>
+  <ul>
+  <li><a href="#choa-chu-kang-planning-area-2" id="toc-choa-chu-kang-planning-area-2" class="nav-link" data-scroll-target="#choa-chu-kang-planning-area-2"><span class="header-section-number">8.1</span> Choa Chu Kang planning area</a></li>
+  <li><a href="#tampines-planning-area-2" id="toc-tampines-planning-area-2" class="nav-link" data-scroll-target="#tampines-planning-area-2"><span class="header-section-number">8.2</span> Tampines planning area</a></li>
   </ul></li>
+  <li><a href="#analysing-spatial-point-process-using-l-function" id="toc-analysing-spatial-point-process-using-l-function" class="nav-link" data-scroll-target="#analysing-spatial-point-process-using-l-function"><span class="header-section-number">9</span> Analysing Spatial Point Process Using L-Function</a>
+  <ul>
+  <li><a href="#choa-chu-kang-planning-area-3" id="toc-choa-chu-kang-planning-area-3" class="nav-link" data-scroll-target="#choa-chu-kang-planning-area-3"><span class="header-section-number">9.1</span> Choa Chu Kang planning area</a></li>
+  <li><a href="#tampines-planning-area-3" id="toc-tampines-planning-area-3" class="nav-link" data-scroll-target="#tampines-planning-area-3"><span class="header-section-number">9.2</span> Tampines planning area</a></li>
+  </ul></li>
+  <li><a href="#reference" id="toc-reference" class="nav-link" data-scroll-target="#reference"><span class="header-section-number">10</span> 10 Reference</a></li>
   </ul>
 </nav>
     </div>
@@ -394,16 +449,125 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="overview" class="level1">
-<h1>overview</h1>
-<section id="new" class="level2">
-<h2 class="anchored" data-anchor-id="new">new</h2>
-<section id="new-new" class="level3">
-<h3 class="anchored" data-anchor-id="new-new">new new</h3>
-
-
+<p>execute: echo: true #display the code eval: true message: false warning: false freeze: false # true: not render if nothing edited editor: visual —</p>
+<section id="overview" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Overview</h1>
+<p>This exercise uses <strong>second-order spatial point pattern analysis</strong> and <code>spatstat</code> package to study childcare centres in Singapore. Unlike first-order analysis, which looks only at overall density independently, second-order methods reveal relationships and influences between centres (points) based on distance.</p>
+<p>We aim to answer two key questions:</p>
+<ol type="1">
+<li><p>Are childcare centres randomly distributed across Singapore?</p></li>
+<li><p>If not, where are the areas with higher concentrations?</p></li>
+</ol>
+</section>
+<section id="the-data" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> The data</h1>
+<p>As also used in 1st order SPPA, the following datasets were downloaded from publicly available websites, and both are available in KML and GeoJSON format.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Dataset Name</th>
+<th>Source</th>
+<th>Discrption</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Child Care Services</td>
+<td><a href="data.gov.sg">data.gov.sg</a></td>
+<td><strong>Point feature data</strong>: contains the locations and attributes of childcare centres.</td>
+</tr>
+<tr class="even">
+<td>Master plan 2019 Subzone Boundary (No Sea)</td>
+<td><a href="https://www.singstat.gov.sg/">singstat</a></td>
+<td><strong>Polygon feature data</strong>: represents the URA 2019 Master Plan planning subzone boundaries.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="installing-and-loading-the-r-packages" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Installing and Loading the R packages</h1>
+<p>In addition to <em>spatstat</em>, a total of five R packages will be used in this exercise.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Package</th>
+<th style="text-align: left;">Discription</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="https://r-spatial.github.io/sf/">sf</a></td>
+<td style="text-align: left;">Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data.</td>
+</tr>
+<tr class="even">
+<td><a href="https://spatstat.org/">spatstat</a></td>
+<td style="text-align: left;">Provides useful functions for SPPA, which will be called to conduct both 1st and 2nd SPPA and KDE.</td>
+</tr>
+<tr class="odd">
+<td><a href="https://cran.r-project.org/web/packages/tmap/index.html">tmap</a></td>
+<td style="text-align: left;">Creates high quality static or interactive choropleth maps via <a href="https://leafletjs.com/">leaflet</a>.</td>
+</tr>
+<tr class="even">
+<td><a href="https://rvest.tidyverse.org/">rvest</a></td>
+<td style="text-align: left;">Scrapes and extracts data from web pages.</td>
+</tr>
+</tbody>
+</table>
+<p>After installation, we load them into R environment using the code below.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span> <span class="fu">p_load</span>(sf, spatstat, tmap, rvest, tidyverse)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="data-import-and-preparation" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Data Import and Preparation</h1>
+</section>
+<section id="second-order-spatial-point-patterns-analysis" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Second-order Spatial Point Patterns Analysis</h1>
+</section>
+<section id="analysing-spatial-point-process-using-g-function" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Analysing Spatial Point Process Using G-Function</h1>
+<section id="choa-chu-kang-planning-area" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="choa-chu-kang-planning-area"><span class="header-section-number">6.1</span> Choa Chu Kang planning area</h2>
+</section>
+<section id="tampines-planning-area" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="tampines-planning-area"><span class="header-section-number">6.2</span> Tampines planning area</h2>
 </section>
 </section>
+<section id="analysing-spatial-point-process-using-f-function" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> Analysing Spatial Point Process Using F-Function</h1>
+<section id="choa-chu-kang-planning-area-1" class="level2" data-number="7.1">
+<h2 data-number="7.1" class="anchored" data-anchor-id="choa-chu-kang-planning-area-1"><span class="header-section-number">7.1</span> Choa Chu Kang planning area</h2>
+</section>
+<section id="performing-complete-spatial-randomness-test" class="level2" data-number="7.2">
+<h2 data-number="7.2" class="anchored" data-anchor-id="performing-complete-spatial-randomness-test"><span class="header-section-number">7.2</span> Performing Complete Spatial Randomness Test</h2>
+</section>
+<section id="tampines-planning-area-1" class="level2" data-number="7.3">
+<h2 data-number="7.3" class="anchored" data-anchor-id="tampines-planning-area-1"><span class="header-section-number">7.3</span> Tampines planning area</h2>
+</section>
+</section>
+<section id="analysing-spatial-point-process-using-k-function" class="level1" data-number="8">
+<h1 data-number="8"><span class="header-section-number">8</span> Analysing Spatial Point Process Using K-Function</h1>
+<section id="choa-chu-kang-planning-area-2" class="level2" data-number="8.1">
+<h2 data-number="8.1" class="anchored" data-anchor-id="choa-chu-kang-planning-area-2"><span class="header-section-number">8.1</span> Choa Chu Kang planning area</h2>
+</section>
+<section id="tampines-planning-area-2" class="level2" data-number="8.2">
+<h2 data-number="8.2" class="anchored" data-anchor-id="tampines-planning-area-2"><span class="header-section-number">8.2</span> Tampines planning area</h2>
+</section>
+</section>
+<section id="analysing-spatial-point-process-using-l-function" class="level1" data-number="9">
+<h1 data-number="9"><span class="header-section-number">9</span> Analysing Spatial Point Process Using L-Function</h1>
+<section id="choa-chu-kang-planning-area-3" class="level2" data-number="9.1">
+<h2 data-number="9.1" class="anchored" data-anchor-id="choa-chu-kang-planning-area-3"><span class="header-section-number">9.1</span> Choa Chu Kang planning area</h2>
+</section>
+<section id="tampines-planning-area-3" class="level2" data-number="9.2">
+<h2 data-number="9.2" class="anchored" data-anchor-id="tampines-planning-area-3"><span class="header-section-number">9.2</span> Tampines planning area</h2>
+</section>
+</section>
+<section id="reference" class="level1" data-number="10">
+<h1 data-number="10"><span class="header-section-number">10</span> 10 Reference</h1>
+<p>Kam, T. S. 2nd Order Spatial Point Patterns Analysis Methods. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap05</p>
+
+
 </section>
 
 </main> <!-- /main -->
