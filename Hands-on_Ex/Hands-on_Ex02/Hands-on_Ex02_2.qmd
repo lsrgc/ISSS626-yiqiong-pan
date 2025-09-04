@@ -317,19 +317,20 @@ G_CK.csr
 ```
 
 ```{r}
-plot(G_CK.csr, xlim= c(0,500))
+plot(G_CK.csr, xlim= c(0,300))
 ```
+The G-function for Choa Chu Kang (KM correction; 999 CSR simulations; pointwise α = 0.002) shows significant short-range clustering for distances below 100 m. From 100 to 220 m, curve hovers near the upper edge but stays inside, that indicates a tendency toward clustering but not statistically significant.
 
-**The plot of Monte Carlo simulations (999 CSR sims, KM correction, 99.8% confidence) show the observed G in Choa Chu Kang is above the band of 220m, which implies clustering at short distances, especially the one out-of-band part could be significant clustering**
+In Choa Chu Kang, centres are significantly more clustered than random within about 100 m. Between 100 and 220 m, the pattern looks random.
 
 ### G-function - Tampines
 
 The code chunk below calculates the G-function.
 
 ```{r}
-G_TM = Gest(childcare_tm_ppp, correction = "best") #correction is selected by package
-G_TM
-plot(G_TM,xlim = c(0,800)) #xlim changes the scale
+G_tm = Gest(childcare_tm_ppp, correction = "best") #correction is selected by package
+G_tm
+plot(G_tm, xlim = c(0,300)) #xlim changes the scale
 ```
 
 ### G-function with CSR - Tampines
@@ -342,20 +343,22 @@ H1 = The distribution of childcare services at Tampines are not randomly distrib
 
 The null hypothesis will be rejected is p-value is smaller than alpha value of 0.001.
 
-Since the number of simulations is 999, for two-sided test, `nrank` = (`nsim` + 1) \* 0.002 /2
+Since the number of simulations is 999, for two-sided test, `nrank` = (`nsim` + 1) * 0.002 /2
 
-`nrank` is 1 at default. This is also applicable to the following tests. \*
+`nrank` is 1 at default. This is also applicable to the following tests.
 
 ```{r}
-G_TM.csr <- envelope(childcare_tm_ppp, Gest, Correction = "all", nsim = 999)
-G_TM.csr
+G_tm.csr <- envelope(childcare_tm_ppp, Gest, Correction = "all", nsim = 999)
+G_tm.csr
 ```
 
 ```{r}
-plot(G_TM.csr, xlim = c(0,800))
+plot(G_tm.csr, xlim = c(0,300))
 ```
 
-The plot of Monte Carlo simulations (999 CSR sims, KM correction, 99.8% confidence) show the observed G in Tampines is above the band of 258m, which implies clustering at short distances.
+The plot of Monte Carlo simulations (999 CSR sims, KM correction, 99.8% confidence) show the observed G in Tampines is mostly above the significance band, which implies centres concentrate within 258m, especially packed within 60m.
+
+
 :::
 
 ## Analysing Spatial Point Process Using F-Function
@@ -389,9 +392,8 @@ plot(F_CK.csr, xlim=c(0,500))
 a.  Computing F-function estimation
 
 ```{r}
-F_TM = Fest(childcare_tm_ppp, correction = "best")
-F_TM
-Plot(F_TM)
+F_tm = Fest(childcare_tm_ppp, correction = "best")
+F_tm
 ```
 
 b.  Performing Complete Spatial Randomness Test
