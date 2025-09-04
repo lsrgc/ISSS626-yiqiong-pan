@@ -125,8 +125,8 @@ Using the tmap mapping methods, the code chunk below creates a map combining `ch
 
 ```{r}
 tm_shape(mpsz_cl)+
-  tm_polygons()
-tm_shape(childcare_sf) +
+  tm_polygons() +
+  tm_shape(childcare_sf) +
   tm_dots(size = 0.01, alpha=0.5)
 ```
 
