@@ -59,10 +59,11 @@ pacman:: p_load(sf, spatstat, tmap, rvest, tidyverse)
 
 ## Data Import and Preparation
 
+###importing data
+
 :::panel-tabset
 
-### Importing Master plan 2019 Subzone Boundary (No Sea) Polygon Data
-
+#### Importing Master plan 2019 Subzone Boundary (No Sea) Polygon Data
 
 The following code chunk shows the steps to first import the `Master plan 2019 Subzone Boundary (No Sea)` data using st_read, extract the required 4 columns from the `Description` field, filter out the nearby islands, and finally save the file as `mpsz_cl` for further analysis.
 
@@ -113,8 +114,7 @@ write_rds(mpsz_cl,
           "data/mpsz_cl.rds")
 ```
 
-
-### Importing Child Care Services Point Data
+#### Importing Child Care Services Point Data
 
 The code chuck below imports downloaded `ChildCareServices` data to R as sf data frame as `childcare_sf` by using st_read, coverts 3d to 2d (st_zm) and finally transform the CRS from WGS84 to SVY21.
 
@@ -125,9 +125,7 @@ childcare_sf <- st_read("data/ChildCareServices.geojson") %>%
 
 ```
 
-
-
-### Mapping the Geospatial Data Sets
+#### Mapping the Geospatial Data Sets
 
 Using the tmap mapping methods, the code chunk below creates a map combining `childcare_sf` and `mpsz_cl`.
 
@@ -135,7 +133,7 @@ Using the tmap mapping methods, the code chunk below creates a map combining `ch
 tm_shape(mpsz_cl)+
   tm_polygons() +
   tm_shape(childcare_sf) +
-  tm_dots(size = 0.01, alpha=0.5)
+  tm_dots(size = 0.5)
 ```
 
 Alternatively, an interactive thematic map can be plotted using the code below. The interactive map is easy to navigate and query intuitively. It is optional to change the background map layer(choices: ESRI.WorldGrayCanvas(default), OpenStreetMap, ESRI.WorldTopoMap).
@@ -173,6 +171,10 @@ class(childcare_ppp)
 
 ```{r}
 summary(childcare_ppp)
+```
+
+```{r}
+plot(childcare_ppp)
 ```
 
 Before moving forwards, let's check if there are any duplicated points.
