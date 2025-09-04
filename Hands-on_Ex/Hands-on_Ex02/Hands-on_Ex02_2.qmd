@@ -60,7 +60,7 @@ pacman:: p_load(sf, spatstat, tmap, rvest, tidyverse)
 
 ### importing data
 
-:::{.panel-tabset}
+:::: panel-tabset
 #### Importing Master plan 2019 Subzone Boundary (No Sea) Polygon Data
 
 The following code chunk shows the steps to first import the `Master plan 2019 Subzone Boundary (No Sea)` data using st_read, extract the required 4 columns from the `Description` field, filter out the nearby islands, and finally save the file as `mpsz_cl` for further analysis.
@@ -149,15 +149,13 @@ tmap_mode('plot') #switch back static maps
 ::: callout-warning
 It is advised to always switch back to plot mode to save connection consumption and limit the number of interactive maps to 10 in one documents when publishing.
 :::
-
 ::::
 
 ### Geospatial Data Wrangling
 
 In this section, the data (sf objects) will be converted to spatstat data structure: **ppp** (for point data) and **owin** for observation window.
 
-:::{.panel-tabset}
-
+::: panel-tabset
 #### A Converting sf Data Frames to PPP
 
 Here we use `as.ppp()` of spatstat package to covert the point data `childcare_sf` to ppp file, confirm the change using `class()` and have a quick overview of the data statistics via `summary()`.
@@ -205,15 +203,13 @@ childcareSG_PPP
 summary(childcareSG_PPP)
 plot(unmark(childcareSG_PPP), main = "childcare_SG_PPP")
 ```
-
 :::
 
 ### Extracting the Study Area
 
 We focus on the childcare centres in the four areas: Punggol, Tampines, Choa Chu Kang and Jurong West.
 
-:::{.panel-tabset}
-
+::: panel-tabset
 #### A Filtering
 
 The code chunk uses filter() to create a new variable for each area and plot() for quick preview.
@@ -272,7 +268,6 @@ plot(unmark(childcare_ck_ppp),
 plot(unmark(childcare_jw_ppp),
   main = "Jurong West")
 ```
-
 :::
 
 ## Second-order Spatial Point Patterns Analysis
@@ -289,11 +284,12 @@ First we set a fixed random seed to ensure reproducibility.
 set.seed(1234)
 ```
 
-:::{.panel-tabset}
+::: panel-tabset
+### G- Function - CKK
 
-### Choa Chu Kang planning area
+The code chunk below calculates the G-function.
 
-a.  The code chunk below calculates the G-function. The plot shows childcare centres are clustered within 300 metres but rather random beyond the scale.
+**The plot shows childcare centres are clustered within 300 metres but rather random beyond the scale.**
 
 ```{r}
 G_CK = Gest(childcare_ck_ppp, correction = "border") #correction is border
@@ -301,7 +297,9 @@ G_CK
 plot(G_CK,xlim= c(0,500)) #xlim zooms the x-axis, CDF rises above csr before 300 and crosses after 300
 ```
 
-b.  the code chunk below test Complete Spatial Randomness.
+### G-Function with CSR - CCK
+
+The code chunk below test Complete Spatial Randomness.
 
 H0 = The distribution of childcare services at Choa Chu Kang are randomly distributed.
 
@@ -309,7 +307,7 @@ H1 = The distribution of childcare services at Choa Chu Kang are not randomly di
 
 The null hypothesis will be rejected is p-value is smaller than alpha value of 0.001.
 
-Since the number of simulations is 999, for two-sided test, `nrank` = (`nsim` + 1) * 0.002 /2 
+Since the number of simulations is 999, for two-sided test, `nrank` = (`nsim` + 1) \* 0.002 /2
 
 `nrank` is 1 at default. This is also applicable to the following tests.
 
@@ -322,11 +320,11 @@ G_CK.csr
 plot(G_CK.csr, xlim= c(0,500))
 ```
 
-The plot of Monte Carlo simulations (999 CSR sims, KM correction, 99.8% confidence) show the observed G in Choa Chu Kang is above the band of 220m, which implies clustering at short distances.
+**The plot of Monte Carlo simulations (999 CSR sims, KM correction, 99.8% confidence) show the observed G in Choa Chu Kang is above the band of 220m, which implies clustering at short distances, especially the one out-of-band part could be significant clustering**
 
-### Tampines planning area
+### G-function - Tampines
 
-a.  The code chunk below calculates the G-function.
+The code chunk below calculates the G-function.
 
 ```{r}
 G_TM = Gest(childcare_tm_ppp, correction = "best") #correction is selected by package
@@ -334,7 +332,9 @@ G_TM
 plot(G_TM,xlim = c(0,800)) #xlim changes the scale
 ```
 
-b.  the code chunk below test Complete Spatial Randomness.
+### G-function with CSR - Tampines
+
+The code chunk below test Complete Spatial Randomness.
 
 Ho = The distribution of childcare services at Tampines are randomly distributed.
 
@@ -342,10 +342,10 @@ H1 = The distribution of childcare services at Tampines are not randomly distrib
 
 The null hypothesis will be rejected is p-value is smaller than alpha value of 0.001.
 
-Since the number of simulations is 999, for two-sided test, `nrank` = (`nsim` + 1) * 0.002 /2 
+Since the number of simulations is 999, for two-sided test, `nrank` = (`nsim` + 1) \* 0.002 /2
 
-`nrank` is 1 at default. This is also applicable to the following tests.
-*
+`nrank` is 1 at default. This is also applicable to the following tests. \*
+
 ```{r}
 G_TM.csr <- envelope(childcare_tm_ppp, Gest, Correction = "all", nsim = 999)
 G_TM.csr
@@ -355,26 +355,25 @@ G_TM.csr
 plot(G_TM.csr, xlim = c(0,800))
 ```
 
-Similarly, the plot of Monte Carlo simulations (999 CSR sims, KM correction, 99.8% confidence) show the observed G in Tampines is above the band of 258m, which implies clustering at short distances.
-
+The plot of Monte Carlo simulations (999 CSR sims, KM correction, 99.8% confidence) show the observed G in Tampines is above the band of 258m, which implies clustering at short distances.
 :::
 
 ## Analysing Spatial Point Process Using F-Function
 
 The F-function `Fest()` estimates the distribution of empty-space distances, which means the distance from a random location to the nearest event. It tells about the gaps. Additionally Monte Carlo envelopes are used to assess complete spatial randomness.
 
-:::{.panel-tabset}
-
+::: panel-tabset
 ### Choa Chu Kang planning area
 
-a. Computing F-function estimation
+a.  Computing F-function estimation
+
 ```{r}
 F_CK = Fest(childcare_ck_ppp)
 F_CK
 plot(F_CK, xlim= c(0,500))
 ```
 
-b. Performing Complete Spatial Randomness Test
+b.  Performing Complete Spatial Randomness Test
 
 ```{r}
 F_CK.csr <- envelope(childcare_ck_ppp, Fest, nsim = 999)
@@ -387,10 +386,15 @@ plot(F_CK.csr, xlim=c(0,500))
 
 ### Tampines planning area
 
-a. Computing F-function estimation
+a.  Computing F-function estimation
 
-b. Performing Complete Spatial Randomness Test
+```{r}
+F_TM = Fest(childcare_tm_ppp, correction = "best")
+F_TM
+Plot(F_TM)
+```
 
+b.  Performing Complete Spatial Randomness Test
 :::
 
 ## Analysing Spatial Point Process Using K-Function
