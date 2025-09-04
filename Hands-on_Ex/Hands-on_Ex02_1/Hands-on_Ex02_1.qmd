@@ -12,11 +12,11 @@ execute:
   eval: true 
   message: false
   warning: false
-  freeze: false # not render if nothing edited
+  freeze: true # not render if nothing edited
 editor: visual
 ---
 
-## 1. Overview 
+## 1. Overview
 
 **Spatial Point Pattern Analysis** (SPPA) refers to the study of how points are arranged or distributed across a given surface. There points may represent:
 
@@ -405,7 +405,7 @@ plot(kde_childcareSG_ab)
 
 We can compare both side by side.Adaptive KDE reduces visual contrast in hotspots because it balances smoothing between dense and sparse areas, whereas fixed bandwidth highlights dense clusters more strongly.
 
-```{r}
+```{r, fig.width=16, fig.height=12}
 par(mfrow = c(1,2))
 plot(kde_childcare_fb, main = "Fixed bandwidth")
 plot(kde_childcareSG_ab, main = "Adaptive bandwidth")
