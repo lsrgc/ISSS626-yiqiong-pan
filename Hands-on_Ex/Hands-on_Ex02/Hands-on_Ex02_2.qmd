@@ -60,7 +60,7 @@ pacman:: p_load(sf, spatstat, tmap, rvest, tidyverse)
 
 ### importing data
 
-:::: panel-tabset
+:::{.panel-tabset}
 #### Importing Master plan 2019 Subzone Boundary (No Sea) Polygon Data
 
 The following code chunk shows the steps to first import the `Master plan 2019 Subzone Boundary (No Sea)` data using st_read, extract the required 4 columns from the `Description` field, filter out the nearby islands, and finally save the file as `mpsz_cl` for further analysis.
@@ -157,7 +157,8 @@ It is advised to always switch back to plot mode to save connection consumption 
 In this section, the data (sf objects) will be converted to spatstat data structure: **ppp** (for point data) and **owin** for observation window.
 
 :::{.panel-tabset}
-#### a. Converting sf Data Frames to PPP
+
+#### A Converting sf Data Frames to PPP
 
 Here we use `as.ppp()` of spatstat package to covert the point data `childcare_sf` to ppp file, confirm the change using `class()` and have a quick overview of the data statistics via `summary()`.
 
@@ -180,7 +181,7 @@ Before moving forwards, let's check if there are any duplicated points.
 any(duplicated(childcare_ppp))
 ```
 
-#### b. Creating Owin Object
+#### B Creating Owin Object
 
 Similarly, the owin object can be created using the function as.owin() for polygon data. After the conversion, the class() and plot() functions can be used to verify that the object is of the correct class and that the data retains its original shape.
 
@@ -190,7 +191,7 @@ class(sg_owin)
 plot(sg_owin)
 ```
 
-#### c. Combining Point Events object and Owin Object
+#### C Combining Point Events object and Owin Object
 
 The code chunk below combines ppp and owin into one ppp file which means it updates the window of childcare_ppp to sg_owin and keeps the points that fall inside.
 
@@ -211,8 +212,9 @@ plot(unmark(childcareSG_PPP), main = "childcare_SG_PPP")
 
 We focus on the childcare centres in the four areas: Punggol, Tampines, Choa Chu Kang and Jurong West.
 
-:::{.panel-subset}
-#### a. Filtering
+:::{.panel-tabset}
+
+#### A Filtering
 
 The code chunk uses filter() to create a new variable for each area and plot() for quick preview.
 
@@ -227,7 +229,7 @@ jw <- mpsz_cl %>%
   filter(PLN_AREA_N == "JURONG WEST")
 ```
 
-#### b. Plotting the area
+#### B Plotting the area
 
 ```{r, fig.width=16, fig.height=12}
 par(mfrow=c(2,2))
@@ -237,7 +239,7 @@ plot(st_geometry(ck), main = "Choa Chu Kang")
 plot(st_geometry(jw), main = "Jurong West")
 ```
 
-#### c. Creating owin Object Using `as.owin()` (subzone window)
+#### C Creating owin Object Using `as.owin()` (subzone window)
 
 ```{r}
 pg_owin = as.owin(pg)
@@ -246,7 +248,7 @@ ck_owin = as.owin(ck)
 jw_owin = as.owin(jw)
 ```
 
-#### d. Combining point event Object (whole) and owin object (subzone)
+#### D Combining point event Object (whole) and owin object (subzone)
 
 The code chunk below subsets the dataset to the study areas, rescales the unit of measurement from metre to kilometre and finally plot the areas with childcare points.
 
@@ -257,7 +259,7 @@ childcare_ck_ppp = childcare_ppp[ck_owin]
 childcare_jw_ppp = childcare_ppp[jw_owin]
 ```
 
-#### e. Plotting the subzone childcare ppp
+#### E Plotting the subzone childcare ppp
 
 ```{r, fig.width=16, fig.height=12}
 par(mfrow=c(2,2))
@@ -287,7 +289,8 @@ First we set a fixed random seed to ensure reproducibility.
 set.seed(1234)
 ```
 
-:::{.panel-subset}
+:::{.panel-tabset}
+
 ### Choa Chu Kang planning area
 
 a.  The code chunk below calculates the G-function. The plot shows childcare centres are clustered within 300 metres but rather random beyond the scale.
@@ -353,13 +356,14 @@ plot(G_TM.csr, xlim = c(0,800))
 ```
 
 Similarly, the plot of Monte Carlo simulations (999 CSR sims, KM correction, 99.8% confidence) show the observed G in Tampines is above the band of 258m, which implies clustering at short distances.
+
 :::
 
 ## Analysing Spatial Point Process Using F-Function
 
 The F-function `Fest()` estimates the distribution of empty-space distances, which means the distance from a random location to the nearest event. It tells about the gaps. Additionally Monte Carlo envelopes are used to assess complete spatial randomness.
 
-:::{.panel-subset}
+:::{.panel-tabset}
 
 ### Choa Chu Kang planning area
 
