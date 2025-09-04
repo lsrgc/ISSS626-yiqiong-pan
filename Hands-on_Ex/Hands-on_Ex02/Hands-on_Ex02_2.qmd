@@ -160,7 +160,7 @@ In this section, the data (sf objects) will be converted to spatstat data struct
 
 :::panel-tabset
 
-#### Converting sf Data Frames to PPP
+#### a. Converting sf Data Frames to PPP
 
 Here we use `as.ppp()` of spatstat package to covert the point data `childcare_sf` to ppp file, confirm the change using `class()` and have a quick overview of the data statistics via `summary()`.
 
@@ -174,7 +174,7 @@ summary(childcare_ppp)
 ```
 
 ```{r}
-plot(unmark(childcare_ppp, main = "childcare_ppp")) #drops the marks, since simple plot() is not displaying properly showing broken tags <th>, <td>, <table> etc
+plot(unmark(childcare_ppp), main = "childcare_ppp") #drops the marks, since simple plot() is not displaying properly showing broken tags <th>, <td>, <table> etc
 ```
 
 Before moving forwards, let's check if there are any duplicated points.
@@ -183,7 +183,7 @@ Before moving forwards, let's check if there are any duplicated points.
 any(duplicated(childcare_ppp))
 ```
 
-#### Creating Owin Object
+#### b. Creating Owin Object
 
 Similarly, the owin object can be created using the function as.owin() for polygon data. After the conversion, the class() and plot() functions can be used to verify that the object is of the correct class and that the data retains its original shape.
 
@@ -193,7 +193,7 @@ class(sg_owin)
 plot(sg_owin)
 ```
 
-#### Combining Point Events object and Owin Object
+#### c. Combining Point Events object and Owin Object
 
 The code chunk below combines ppp and owin into one ppp file which means it updates the window of childcare_ppp to sg_owin and keeps the points that fall inside.
 
@@ -216,7 +216,7 @@ We focus on the childcare centres in the four areas: Punggol, Tampines, Choa Chu
 
 :::panel-subset 
 
-#### Filtering
+#### a. Filtering
 The code chunk uses filter() to create a new variable for each area and plot() for quick preview.
 
 ```{r}
@@ -230,7 +230,7 @@ jw <- mpsz_cl %>%
   filter(PLN_AREA_N == "JURONG WEST")
 ```
 
-#### Plotting the area
+#### b. Plotting the area
 
 ```{r, fig.width=16, fig.height=12}
 par(mfrow=c(2,2))
@@ -240,7 +240,7 @@ plot(st_geometry(ck), main = "Choa Chu Kang")
 plot(st_geometry(jw), main = "Jurong West")
 ```
 
-#### Creating owin Object Using `as.owin()` (subzone window)
+#### c. Creating owin Object Using `as.owin()` (subzone window)
 
 ```{r}
 pg_owin = as.owin(pg)
@@ -249,7 +249,7 @@ ck_owin = as.owin(ck)
 jw_owin = as.owin(jw)
 ```
 
-#### Combining point event Object (whole) and owin object (subzone)
+#### d. Combining point event Object (whole) and owin object (subzone)
 
 The code chunk below subsets the dataset to the study areas, rescales the unit of measurement from metre to kilometre and finally plot the areas with childcare points.
 
@@ -260,7 +260,7 @@ childcare_ck_ppp = childcare_ppp[ck_owin]
 childcare_jw_ppp = childcare_ppp[jw_owin]
 ```
 
-#### Rescaling to km
+#### f. Rescaling to km
 
 ```{r}
 childcare_pg_ppp.km = rescale.ppp(childcare_pg_ppp, 1000, "km")
@@ -269,7 +269,7 @@ childcare_ck_ppp.km = rescale.ppp(childcare_ck_ppp, 1000, "km")
 childcare_jw_ppp.km = rescale.ppp(childcare_jw_ppp, 1000, "km")
 ```
 
-#### Plotting the regional ppp 
+#### g. Plotting the subzone childcare ppp 
 
 ```{r, fig.width=16, fig.height=12}
 par(mfrow=c(2,2))
@@ -282,6 +282,7 @@ plot(unmark(childcare_ck_ppp.km),
 plot(unmark(childcare_jw_ppp.km),
   main = "Jurong West")
 ```
+:::
 
 ## Second-order Spatial Point Patterns Analysis
 
