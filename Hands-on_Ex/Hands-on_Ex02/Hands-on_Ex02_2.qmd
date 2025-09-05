@@ -276,7 +276,7 @@ Let us examine the relationships between points at subzone level.
 
 ## Analysing Spatial Point Process Using G-Function
 
-The G-function `Gest()` shows distance from an event to its nearest event, with Monte Carlo simulation `envelop()` used to test against complete spatial randomness.
+The G-function `Gest()` shows distance from an event to its nearest event, with Monte Carlo simulation `envelop()` used to test against complete spatial randomness (CSR).
 
 First we set a fixed random seed to ensure reproducibility.
 
@@ -319,9 +319,10 @@ G_CK.csr
 ```{r}
 plot(G_CK.csr, xlim= c(0,300))
 ```
-The G-function for Choa Chu Kang (KM correction; 999 CSR simulations; pointwise α = 0.002) shows significant short-range clustering for distances below 100 m. From 100 to 220 m, curve hovers near the upper edge but stays inside, that indicates a tendency toward clustering but not statistically significant.
 
-In Choa Chu Kang, centres are significantly more clustered than random within about 100 m. Between 100 and 220 m, the pattern looks random.
+**Interpretation**: The G-function for Choa Chu Kang (KM correction; 999 CSR simulations; two-sided α = 0.002) shows small significant short-range clustering for distances below 100 m. From 100 to 220 m, curve hovers near the upper edge but stays inside, that indicates a tendency toward clustering but not statistically significant.
+
+In Choa Chu Kang, centres are significantly more clustered than random within about 100 m. Between 100 and 220 m, the pattern looks random. Overall the centres are mostly **randomly distributed** with tendency to clustering.
 
 ### G-function - Tampines
 
@@ -356,7 +357,8 @@ G_tm.csr
 plot(G_tm.csr, xlim = c(0,300))
 ```
 
-The plot of Monte Carlo simulations (999 CSR sims, KM correction, 99.8% confidence) show the observed G in Tampines is mostly above the significance band, which implies centres concentrate within 258m, especially packed within 60m.
+
+**Interpretation**: The plot of Monte Carlo simulations (999 CSR sims, KM correction, two sided, 99.8% confidence) show the observed G in Tampines is mostly above the significance band, which implies centres **concentrate** within recommended range 258m, especially packed within first **60m**.
 
 
 :::
@@ -366,20 +368,22 @@ The plot of Monte Carlo simulations (999 CSR sims, KM correction, 99.8% confiden
 The F-function `Fest()` estimates the distribution of empty-space distances, which means the distance from a random location to the nearest event. It tells about the gaps. Additionally Monte Carlo envelopes are used to assess complete spatial randomness.
 
 ::: panel-tabset
-### Choa Chu Kang planning area
 
-a.  Computing F-function estimation
+### F-function for CCK 
 
 ```{r}
-F_CK = Fest(childcare_ck_ppp)
+F_CK = Fest(childcare_ck_ppp, correction = "best")
 F_CK
 plot(F_CK, xlim= c(0,500))
 ```
 
-b.  Performing Complete Spatial Randomness Test
+### F-function with CSR -CCK
 
 ```{r}
-F_CK.csr <- envelope(childcare_ck_ppp, Fest, nsim = 999)
+F_CK.csr <- envelope(childcare_ck_ppp, Fest, correction = "all", nsim = 999)
+```
+
+```{r}
 F_CK.csr
 ```
 
@@ -387,29 +391,213 @@ F_CK.csr
 plot(F_CK.csr, xlim=c(0,500))
 ```
 
-### Tampines planning area
+**Interpretation**: 
+ Choa Chu Kang: F-function (KM correction; 999 CSR simulations; pointwise 99.8% envelope, α = 0.002): 
 
-a.  Computing F-function estimation
+The observed curve lies below the CSR line but remains inside the envelope across the recommended range (0,304m), which indicates **no** statistically significant departure from CSR. Overall, the centres are broadly consistent with a random (CSR) pattern, with only a mild tendency toward larger empty-space distances.
+
+
+### F-function - Tampines
+
+The code chunk below calculates the F-function.
 
 ```{r}
 F_tm = Fest(childcare_tm_ppp, correction = "best")
 F_tm
 ```
+```{r}
+plot(F_tm)
+```
 
-b.  Performing Complete Spatial Randomness Test
+
+###  F-function with CSR - Tampines
+
+
+The code chunk below test Complete Spatial Randomness.
+
+Ho = The distribution of childcare services at Tampines are randomly distributed.
+
+H1 = The distribution of childcare services at Tampines are not randomly distributed.
+
+The null hypothesis will be rejected is p-value is smaller than alpha value of 0.001.
+
+
+```{r}
+F_tm.csr = envelope(childcare_tm_ppp, Fest, correction = "all", nsim = 999)
+F_tm.csr
+```
+
+```{r}
+plot(F_tm.csr)
+```
+
+
+**Interpretation**: 
+Tampines: The F-function (KM; 999 CSR sims; pointwise α = 0.002):
+
+From 250m onward, the observed F curve drops below the lower envelope (pointwise a = 0.002) which means it is highly likely there are large caps from any centre over 250m. Together with the G-function evidence of significant short-range clustering, the results suggest a cluster–hole pattern: centres concentrate around a few hotspots, leaving larger under-covered areas farther from any centre.
+
 :::
+
 
 ## Analysing Spatial Point Process Using K-Function
 
-### Choa Chu Kang planning area
+K-function measures the number of points found up to a given distance of any particular point. Similarly here we first compute the K-function estimates using `Kest()` then test the K-function against CSR.
 
-### Tampines planning area
+:::{.panel-tabset}
+
+### K-function - CCK
+The code chunk below calculates the K-function.
+
+```{r}
+K_CK = Kest(childcare_ck_ppp, correction = "Ripley")
+K_CK
+plot(K_CK, .-r ~ r, ylab = "K(d) - r", xlab = "d(m)") #plot (each y-series minus r) against r.
+```
+
+### K-function with CSR - CCK
+
+
+The code chunk below test Complete Spatial Randomness.
+
+Ho = The distribution of childcare services at Tampines are randomly distributed.
+
+H1 = The distribution of childcare services at Tampines are not randomly distributed.
+
+The null hypothesis will be rejected is p-value is smaller than alpha value of 0.001.
+
+```{r}
+K_CK.csr <- envelope(childcare_ck_ppp, Kest, nsim = 99)
+K_CK.csr
+plot(K_CK.csr, . -r ~ r, xlab = "d", ylab = "K(d) - r") #plot (each y-series minus r) against r.
+```
+
+**Interpretation**: 
+Choa Chu Kang: K-function,isotropic edge correction; 99 CSR simulations; pointwise α = 0.02
+The black curve remains close within the envelope over 0 to 500 m, so we do not detect a significant departure from CSR; from 500m to 800m, we find the slight positive deviation. Overall it suggests only a weak, non-significant clustering tendency.
+
+
+### K-function - Tampines
+
+```{r}
+K_tm = Kest(childcare_tm_ppp, correction = "Ripley")
+plot(K_tm, . -r ~ r, 
+     ylab= "K(d)-r", xlab = "d(m)",  #plot (each y-series minus r) against r.
+     xlim=c(0,1000))
+```
+
+### K-function with CSR - Tampines
+
+The code chunk below test Complete Spatial Randomness.
+
+Ho = The distribution of childcare services at Tampines are randomly distributed.
+
+H1 = The distribution of childcare services at Tampines are not randomly distributed.
+
+The null hypothesis will be rejected is p-value is smaller than alpha value of 0.001.
+
+```{r}
+K_tm.csr <- envelope(childcare_tm_ppp, Kest, nsim = 99, rank = 1)
+K_tm.csr
+```
+```{r}
+plot(K_tm.csr, .- r~ r, xlab = "d", ylab = "K(d) - r", xlim = c(0, 1700)) #plot (each y-series minus r) against r.
+``` 
+**Interpretation**: 
+Tampines: K-function,isotropic edge correction; 99 CSR simulations; pointwise α = 0.02
+
+The black curve rises above the envelope over 0 to 1665 m, which shows a significant departure from CSR. K suggests **clustering** across many scales,
+
+
+:::
 
 ## Analysing Spatial Point Process Using L-Function
 
-### Choa Chu Kang planning area
+Here we use K function- normalised version L-function `Lest()` and test against CSR `envelope()`.
 
-### Tampines planning area
+:::{.panel-tabset}
+
+### L-function - CCK
+
+The code chunk below calculates the L-function.
+
+```{r}
+L_CK = Lest(childcare_ck_ppp, correction = "Ripley")
+L_CK
+plot(L_CK, .- r~ r,  ylab = "L(d) - r", xlab = "d(m)")
+```
+
+### L-function with CSR - CCK
+
+The code chunk below test Complete Spatial Randomness.
+
+Ho = The distribution of childcare services at Tampines are randomly distributed.
+
+H1 = The distribution of childcare services at Tampines are not randomly distributed.
+
+The null hypothesis will be rejected is p-value is smaller than alpha value of 0.001.
+
+```{r}
+L_CK.csr <- envelope(childcare_ck_ppp, Lest, nsim = 99)
+L_CK.csr
+```
+
+```{r, fig.width=7.6, fig.height=5.5}
+plot(L_CK.csr, . - r ~ r, xlab="d", ylab="L(d)-r")
+```
+
+**Interpretation**: 
+
+Choa Chu Kang: L-function,isotropic edge correction; 99 CSR simulations; pointwise α = 0.02
+
+The black curve is mostly **inside** the envelope across r within 795m, except one upside shape deviation around 60m. F function esitmates is mostly positive and within the pointwise envelope, so Choa Chu Kang shows no significant departure from CSR (only a slight clustering tendency).
+
+
+### L-function - Tampines
+
+The code chunk below calculates the L-function.
+
+```{r}
+L_tm = Lest(childcare_tm_ppp, correction = "Ripley")
+L_tm
+plot(L_tm, .- r~ r,  ylab = "L(d) - r", xlab = "d(m)", xlim = c(0,1000))
+```
+
+
+### L-function with CSR - Tampines
+
+The code chunk below test Complete Spatial Randomness.
+
+Ho = The distribution of childcare services at Tampines are randomly distributed.
+
+H1 = The distribution of childcare services at Tampines are not randomly distributed.
+
+The null hypothesis will be rejected is p-value is smaller than alpha value of 0.001.
+
+```{r}
+L_tm.csr <- envelope(childcare_tm_ppp,Lest, nsim = 99, nrank = 1)
+L_tm.csr
+```
+
+```{r, fig.weight = 7, fig.height= 6.8}
+plot(L_tm.csr, .- r~ r,  ylab = "L(d) - r", xlab = "d", xlim = c(0,1700))
+```
+
+
+**Interpretation**: 
+
+Tampines: L-function,isotropic edge correction; 99 CSR simulations; pointwise α = 0.02
+
+The black line lies above the simulation envelope, indicating strong clustering at scales; in view of F showing large gaps, this likely reflects hotspot-driven inhomogeneity.
+
+:::
+
+## Summary
+
+There is also another test mentioned in the lecture videos called J-function `Jest()`, which is combination of G and F. J(r) = [1 - G(r)]/ [1 - F(r)]. When the observed line is below envelope suggests clustering, when it is over envelope suggests regular pattern.
+
+Through multiple tests (GFKL functions) against complete spatial randomness, we can conclude the childcare centres in Choa Chu Kang are highly like randomly distributed whereas the centres in Tampines are largely clustered.
+
 
 ## Reference
 
