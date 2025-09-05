@@ -167,6 +167,7 @@ class(childcare_ppp)
 
 ```{r}
 summary(childcare_ppp)
+plot(unmark(childcare_ppp), main = "childcare_ppp")
 ```
 
 Before moving forwards, let's check if there are any duplicated points.
@@ -199,7 +200,7 @@ childcareSG_PPP
 
 ```{r}
 summary(childcareSG_PPP)
-plot(childcareSG_PPP)
+plot(unmark(childcareSG_PPP), main = "childcareSG_PPP")
 ```
 
 ## 6. Clark-Evans Test for Nearest Neighbour Anaylysis (NNA)
@@ -677,6 +678,4 @@ plot(adaptive.density(childcare_jw_ppp.km,
 
 KDE results show that childcare distribution patterns differ across planning areas, but none are evenly distributed. At this stage, we cannot confirm whether the clusters align with residential areas. Further analysis with population and housing data is needed to assess whether the current supply matches local demand to identify under-served areas.
 
-
-##11 Reference
-Kam, T. S. 1st Order Spatial Point Patterns Analysis Methods. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap04
+##11 Reference Kam, T. S. 1st Order Spatial Point Patterns Analysis Methods. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap04
