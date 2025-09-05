@@ -592,9 +592,92 @@ The black line lies above the simulation envelope, indicating strong clustering 
 
 :::
 
-## Summary
 
-There is also another test mentioned in the lecture videos called J-function `Jest()`, which is combination of G and F. J(r) = [1 - G(r)]/ [1 - F(r)]. When the observed line is below envelope suggests clustering, when it is over envelope suggests regular pattern.
+## Analysing Spatial Point Process Using J-Function
+
+There is also another test mentioned in the lecture videos called J-function `Jest()`, which is combination of G and F. J(r) = [1 - G(r)]/ [1 - F(r)]. J(r) > 1 implies regluar, = 1 CSR, < 1 cluster. When the observed line is below envelope suggests clustering, when it is over envelope suggests regular pattern.
+
+Here we try out `Jest()` and test against CSR `envelope()`.
+
+:::{.panel-tabset}
+
+### J-function - CCK
+
+The code chunk below calculates the J-function.
+
+```{r}
+J_CK = Jest(childcare_ck_ppp, correction = "best")
+J_CK
+plot(J_CK)
+```
+
+### J-function with CSR - CCK
+
+The code chunk below test Complete Spatial Randomness.
+
+Ho = The distribution of childcare services at Tampines are randomly distributed.
+
+H1 = The distribution of childcare services at Tampines are not randomly distributed.
+
+The null hypothesis will be rejected is p-value is smaller than alpha value of 0.001.
+
+```{r}
+J_CK.csr <- envelope(childcare_ck_ppp, Jest, nsim = 999)
+J_CK.csr
+```
+
+```{r, fig.width=7.6, fig.height=5.5}
+plot(J_CK.csr, xlim = c(0,300))
+```
+
+**Interpretation**: 
+
+Choa Chu Kang: J-function, KM edge correction; 999 CSR simulations; pointwise α = 0.002
+
+The black curve is mostly **inside** the envelope but it is hard to interpret. 
+
+
+### L-function - Tampines
+
+The code chunk below calculates the J-function.
+
+```{r}
+J_tm = Jest(childcare_tm_ppp, correction = "best")
+J_tm
+plot(J_tm)
+```
+
+
+### L-function with CSR - Tampines
+
+The code chunk below test Complete Spatial Randomness.
+
+Ho = The distribution of childcare services at Tampines are randomly distributed.
+
+H1 = The distribution of childcare services at Tampines are not randomly distributed.
+
+The null hypothesis will be rejected is p-value is smaller than alpha value of 0.001.
+
+```{r}
+J_tm.csr <- envelope(childcare_tm_ppp, Jest, nsim = 999, nrank = 1)
+J_tm.csr
+```
+
+```{r, fig.weight = 7, fig.height= 6.8}
+plot(J_tm.csr)
+```
+
+
+**Interpretation**: 
+
+Tampines: J-function, KM edge correction; 999 CSR simulations; pointwise α = 0.002
+
+It is hard to interpret. 
+
+:::
+
+
+## Summary
 
 Through multiple tests (GFKL functions) against complete spatial randomness, we can conclude the childcare centres in Choa Chu Kang are highly like randomly distributed whereas the centres in Tampines are largely clustered.
 
