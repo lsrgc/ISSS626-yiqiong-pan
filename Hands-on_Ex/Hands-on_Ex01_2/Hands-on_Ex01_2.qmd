@@ -16,6 +16,8 @@ execute:
 
 **Geovisualisation**: the combination of cartography, computer science, and visualisation to enhance spatial understanding and support knowledge discovery.
 
+In R, we could use `%>%` (namely **piping**) to chain together multiple operations or function calls in order.
+
 ## 2 Getting tarted
 
 Packages used:
@@ -62,7 +64,7 @@ mpsz$Description[1:10]
 #first 10: each has a small table of key–value rows like SUBZONE_N:DEPOT ROAD, REGION_N:CENTRAL REGION, etc.
 ```
 
-The code chunk below create **function** extract_kml_field to extract values from the HTML description.
+The code chunk below create **function** extract_kml_field to extract values from the HTML description. # The code also can be used to other data files like sml or geojson.
 
 ```{r}
 extract_kml_field <- function(html_text, field_name) {
@@ -200,12 +202,12 @@ qtm(shp = mpsz_pop2024,
 
 ### 4.2 Creating a choropleth map by using *tmap*’s elements
 
-**tmap elements**: for detailed, highly customisable maps.
+**tmap elements**: for detailed, highly customisable maps (with multiple Cartographic furniture)
 
 ```{r}
 tm_shape(mpsz_pop2024) +
   tm_polygons(fill = "DEPENDENCY",
-              fill.scale = tm_scale_intervals(
+              fill.scale = tm_scale_intervals(  #it depends nature of the map, choose appropriate one from tm_scale family, tm_scale_rgb() etc.
                 style = "quantile",
                 n = 5,
                 values = "brewer.blues"),
@@ -478,7 +480,8 @@ tm_shape(mpsz_pop2024) +
 
 *Why my maps are arranged vertically but the ones in example are shown horizontally?*
 
-```{r, fig.width=16}
+```{r, fig.width=16} 
+#| fig-width: 10 #{r} and use #| both can adjust the figure settings.
 # assigning two variables to the visual variable (fill)
 tm_shape(mpsz_pop2024) + 
   tm_polygons(

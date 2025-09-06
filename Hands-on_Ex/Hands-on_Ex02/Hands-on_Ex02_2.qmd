@@ -19,7 +19,6 @@ format:
 
 ---
 
-execute: echo: true #display the code eval: true message: false warning: false freeze: false \# true: not render if nothing edited editor: visual ---
 
 ## Overview
 
