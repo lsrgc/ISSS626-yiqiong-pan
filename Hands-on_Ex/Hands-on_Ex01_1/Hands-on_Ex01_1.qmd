@@ -137,6 +137,15 @@ preschool = st_read("data/geospatial/PreSchoolsLocation.kml")
 
 ```
 
+
+Alternatively, we can combine `st_read` with `st_transform` together via **nested** functions `%>%`.
+
+```{r}
+preschool = st_read("data/geospatial/PreSchoolsLocation.kml") %>%
+  st_transform(crs = 3414)
+
+```
+
 ## 3. Checking the Content of a Simple Feature Data Frame
 
 Both **two** code chunks display the basic information about the dataset. However, it is more common to use the second approach.
@@ -501,4 +510,3 @@ ggplot(data=mpsz,
 ## 8 Reference
 
 Kam, T. S. Thematic Mapping and GeoVisualisation with R. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap01.html
-
