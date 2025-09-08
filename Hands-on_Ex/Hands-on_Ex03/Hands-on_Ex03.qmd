@@ -1,0 +1,198 @@
+---
+title: "03: Spatio-Temporal Point Patterns Analysis"
+author: "Yiqiong PAN"
+date: "Sep 08, 2025"
+date-modified: "last-modified"
+execute:
+  echo: true #display the code
+  eval: true #run the code
+  message: false
+  warning: false
+  freeze: true # not render if nothing edited
+editor: visual
+format: 
+  html:
+    number-sections: true
+    number-depth: 4
+---
+
+## Overview
+
+A **spatio-temporal point process** is a random set of points, each showing when and where an event happens. Examples include disease cases, animal sightings, or natural disasters such as fires and earthquakes.
+
+As more data is collected with both time and location, analysing spatio-temporal patterns has become more important. In recent years, several R packages have been developed for this purpose.
+
+This exercise demonstrates how to apply the process through a case study of **forest fires** in Kepulauan Bangka Belitung, Indonesia, from 1 January to 31 December 2023.
+
+## Learning Outcome
+
+The key questions we aim to address are:
+
+1.  Are forest fire locations in Kepulauan Bangka Belitung independent in space and time?
+
+2.  If not, in which areas and during which periods do the forest fires tend to cluster?
+
+## The Data
+
+For this exercise, the two datasets used are as follows:
+
+1.  forestfires (CSV) contains forest fire locations detected by the Moderate Resolution Imaging Spectroradiometer (MODIS) sensor, obtained from the [Fire Information for Resource Management System](https://firms.modaps.eosdis.nasa.gov/download/). Only records within Kepulauan Bangka Belitung are used.
+
+2.  [Kepulauan_Bangka_Belitung](https://id.wikipedia.org/wiki/Kepulauan_Bangka_Belitung) (Shapefile) contains sub-district ([kelurahan](https://en.wikipedia.org/wiki/Villages_of_Indonesia)) boundaries of Kepulauan Bangka Belitung, extracted from the national dataset available on the [Indonesia Geospatial Portal](https://www.indonesia-geospasial.com/2023/05/download-shapefile-batas-administrasi.html).
+
+## Installing and Loading the R Packages
+
+A total of **six** R packages will be used in this exercise.
+
+| Package | Discription |
+|------------------------------------|:-----------------------------------|
+| [sf](https://r-spatial.github.io/sf/) | Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data. |
+
+| [raster](https://rspatial.org/raster/) | Tools for reading, writing, and analyzing raster (gridded) spatial data in R |
+| [spatstat](https://spatstat.org/) | Provides useful functions for SPPA, including kcross, Lcross etc. |
+| [sparr](https://tilmandavies.github.io/sparr/index.html) | Functions for fixed/adaptive kernel density estimation and relative risk mapping via density ratios; also supports fixed-bandwidth space-time density and risk estimation with inference. |
+| [tmap](https://r-tmap.github.io/tmap/) | Creates cartographic quality static or interactive choropleth maps. |
+| [tidyverse](https://www.tidyverse.org/) |A collection of R packages for data import, cleaning, transformation, and visualization (e.g., readr, dplyr, tidyr, ggplot2). |
+
+After installation via `install.packages()`, we load them into R environment using the code below.
+
+```{r}
+pacman:: p_load(sf, raster, spatstat, sparr, tmap, tidyverse)
+```
+
+## Importing and Preparing Study Area
+
+:::{.panel-tabset}
+
+### Importing Study Area
+
+First the code chunk below imports study area into R environment.
+```{r}
+kbb <- st_read(dsn = "data/rawdata",
+               layer = "Kepulauan_Bangka_Belitung")
+```
+```{r}
+tm_shape(kbb) +
+  tm_borders()
+```
+
+After checking the summary and plot, we merge all sub-districts into a single boundary and remove unnecessary Z coordinates. The dataset’s CRS is WGS 84 with units in degrees, which is not suitable for spatial analysis. Therefore, it is transformed into a projected CRS in metres, specifically EPSG:32748 (UTM Zone 48S, WGS 84), which is appropriate for Indonesia.
+
+The R console message indicates that the Z/M coordinates were already dropped when applying st_union(). The st_zm() step is retained here for clarity and consistency.
+
+```{r}
+kbb_sf <- kbb %>%
+  st_union() %>%  
+  st_zm(drop = TRUE, what = "ZM") %>%
+  st_transform(crs = 32748)
+
+kbb_sf
+
+class(kbb_sf)
+
+tm_shape(kbb_sf) +
+  tm_borders()
+
+tm_shape(kbb_sf) +
+  tm_polygons()
+
+```
+
+### Converting to `owin` Object
+
+We convert `kbb_sf`, an `sfc_POLYGON` boundary, to an `owin` object to represent the polygonal study area.`owin` objects are required for spatial point pattern analysis (SPPA) with the `spatstat` package and can be visualised using base R plotting functions. For mapping with `tmap`, however, the boundary should remain as an `sf` object.
+
+```{r}
+kbb_owin <- as.owin(kbb_sf)
+
+class(kbb_owin)
+
+summary(kbb_owin)
+
+plot(kbb_owin, main = "Kepulauan Bangka Belitung — study window (owin)")
+```
+:::
+
+## Importing and Peparing Forest Fire Data
+
+We first import `forestfires.csv` into R with `read_csv()`, which creates a regular `tibble` (non-spatial, no CRS). Next, we convert the longitude/latitude columns into an `sf` object by creating a geometry column of type `sfc_POINT` and assigning `EPSG:4326` (WGS 84). Finally, we reproject to a projected CRS in metres, `EPSG:32748` (UTM Zone 48S, WGS 84) for spatial analysis.
+
+```{r}
+fire_tbl <- read_csv("data/rawdata/forestfires.csv")
+st_crs(fire_tbl)
+
+fire_sf <- fire_tbl %>%
+  st_as_sf(coords = c("longitude", "latitude"),
+           crs = 4326) %>%
+  st_transform(crs = 32748)
+
+st_crs(fire_sf)
+
+str(fire_sf)
+```
+
+
+The code below converts the `acq_date` column from `Date` format into a `numeric` variable. This step is needed because a `ppp` object in `spatstat` only accepts numeric or character variables as marks, not Date objects. Therefore, functions from lubridate are used to create time-based variables and a 12-level ordered factor (Month_fac) for grouping and plotting.
+
+```{r}
+fire_sf <- fire_sf %>%
+  mutate (DayofYear = yday(acq_date)) %>%
+  mutate(Month_num = month(acq_date)) %>%
+  mutate(Month_fac = month(acq_date,
+                           label = TRUE,
+                           abbr = FALSE))
+str(fire_sf)
+```
+
+## Visualsing the Fire Points
+
+:::{.panel-tabset}
+### Overrall Plot
+
+The code chunk below overlays the polygonal study area `kbb_sf` with the forest file points `fire_sf` using `tmap` package.
+
+```{r}
+tm_shape(kbb_sf) +
+  tm_polygons() +
+tm_shape(fire_sf) +
+  tm_dots()
+```
+### Visuaising by Month
+
+The code chunk below produces a grid of maps, with one map for each month of 2023, to visualise the spatial distribution of forest fires. Each facet uses the same geographic frame, so that it is easy to obverse how fire patterns vary over time and space.
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+tm_shape(kbb_sf) +
+  tm_polygons() +
+tm_shape(fire_sf) +
+  tm_dots(size = 0.1) +
+tm_facets(by = "Month_fac", #split the map into multiple panels by month factors
+          free.coords = FALSE, # all panels share the same coordinate system / map extent.
+          drop.units = TRUE)  # drop if some months have no data,
+```
+
+:::
+
+## Computing STKDE by Month
+
+In this section, we use `spattemp.density()` to build spatio-temporal `ppp` (with x, y, time) from the `fire_sf` to show when and where forest files are more likely.
+
+- `pp`: spatio-temporal point pattern.
+
+- `h`: spatial bandwidth (how smooth in space).
+
+- `tt`: temporal bandwidth (how smooth in time).
+
+- `tlim`: time range to consider.
+
+-`sedge` / `tedge`: edge corrections for space / time.
+
+- `sres` / `tres`: resolution of spatial grid / temporal bins.
+
+
+## Computing STKDE by Day of Year
+
+
+## Computing STKE by Day of Year: Improved Method
