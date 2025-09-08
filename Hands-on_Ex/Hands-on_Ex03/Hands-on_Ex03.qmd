@@ -44,15 +44,14 @@ For this exercise, the two datasets used are as follows:
 
 A total of **six** R packages will be used in this exercise.
 
-| Package | Discription |
-|------------------------------------|:-----------------------------------|
+| Package | Description |
+|------------------------------------|------------------------------------|
 | [sf](https://r-spatial.github.io/sf/) | Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data. |
-
 | [raster](https://rspatial.org/raster/) | Tools for reading, writing, and analyzing raster (gridded) spatial data in R |
 | [spatstat](https://spatstat.org/) | Provides useful functions for SPPA, including kcross, Lcross etc. |
 | [sparr](https://tilmandavies.github.io/sparr/index.html) | Functions for fixed/adaptive kernel density estimation and relative risk mapping via density ratios; also supports fixed-bandwidth space-time density and risk estimation with inference. |
 | [tmap](https://r-tmap.github.io/tmap/) | Creates cartographic quality static or interactive choropleth maps. |
-| [tidyverse](https://www.tidyverse.org/) |A collection of R packages for data import, cleaning, transformation, and visualization (e.g., readr, dplyr, tidyr, ggplot2). |
+| [tidyverse](https://www.tidyverse.org/) | A collection of R packages for data import, cleaning, transformation, and visualization (e.g., readr, dplyr, tidyr, ggplot2). |
 
 After installation via `install.packages()`, we load them into R environment using the code below.
 
@@ -62,15 +61,16 @@ pacman:: p_load(sf, raster, spatstat, sparr, tmap, tidyverse)
 
 ## Importing and Preparing Study Area
 
-:::{.panel-tabset}
-
+::: panel-tabset
 ### Importing Study Area
 
 First the code chunk below imports study area into R environment.
+
 ```{r}
 kbb <- st_read(dsn = "data/rawdata",
                layer = "Kepulauan_Bangka_Belitung")
 ```
+
 ```{r}
 tm_shape(kbb) +
   tm_borders()
@@ -140,7 +140,6 @@ st_crs(fire_sf)
 str(fire_sf)
 ```
 
-
 The code below converts the `acq_date` column from `Date` format into a `numeric` variable. This step is needed because a `ppp` object in `spatstat` only accepts numeric or character variables as marks, not Date objects. Therefore, functions from lubridate are used to create time-based variables and a 12-level ordered factor (Month_fac) for grouping and plotting.
 
 ```{r}
@@ -155,7 +154,7 @@ str(fire_sf)
 
 ## Visualsing the Fire Points
 
-:::{.panel-tabset}
+::: panel-tabset
 ### Overrall Plot
 
 The code chunk below overlays the polygonal study area `kbb_sf` with the forest file points `fire_sf` using `tmap` package.
@@ -166,6 +165,7 @@ tm_shape(kbb_sf) +
 tm_shape(fire_sf) +
   tm_dots()
 ```
+
 ### Visuaising by Month
 
 The code chunk below produces a grid of maps, with one map for each month of 2023, to visualise the spatial distribution of forest fires. Each facet uses the same geographic frame, so that it is easy to obverse how fire patterns vary over time and space.
@@ -181,24 +181,23 @@ tm_facets(by = "Month_fac", #split the map into multiple panels by month factors
           free.coords = FALSE, # all panels share the same coordinate system / map extent.
           drop.units = TRUE)  # drop if some months have no data,
 ```
-
 :::
 
 ## Computing STKDE by Month
 
 In this section, we use `spattemp.density()` to build spatio-temporal `ppp` (with x, y, time) from the `fire_sf` to show when and where forest fires are more likely.
 
-- `pp`: spatio-temporal point pattern.
+-   `pp`: spatio-temporal point pattern.
 
-- `h`: spatial bandwidth (how smooth in space).
+-   `h`: spatial bandwidth (how smooth in space).
 
-- `tt`: temporal bandwidth (how smooth in time).
+-   `tt`: temporal bandwidth (how smooth in time).
 
-- `tlim`: time range to consider.
+-   `tlim`: time range to consider.
 
-- `sedge` / `tedge`: edge corrections for space / time.
+-   `sedge` / `tedge`: edge corrections for space / time.
 
-- `sres` / `tres`: resolution of spatial grid / temporal bins.
+-   `sres` / `tres`: resolution of spatial grid / temporal bins.
 
 TBC
 
@@ -211,4 +210,5 @@ TBC
 TBC
 
 ## Reference
-Kam, T. S. 6  Spatio-Temporal Point Patterns Analysis. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap06
+
+Kam, T. S. 6 Spatio-Temporal Point Patterns Analysis. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap06

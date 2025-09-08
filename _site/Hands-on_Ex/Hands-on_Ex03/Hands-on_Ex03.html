@@ -494,21 +494,36 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <thead>
 <tr class="header">
 <th>Package</th>
-<th style="text-align: left;">Discription</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><a href="https://r-spatial.github.io/sf/">sf</a></td>
-<td style="text-align: left;">Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data.</td>
+<td>Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data.</td>
+</tr>
+<tr class="even">
+<td><a href="https://rspatial.org/raster/">raster</a></td>
+<td>Tools for reading, writing, and analyzing raster (gridded) spatial data in R</td>
+</tr>
+<tr class="odd">
+<td><a href="https://spatstat.org/">spatstat</a></td>
+<td>Provides useful functions for SPPA, including kcross, Lcross etc.</td>
+</tr>
+<tr class="even">
+<td><a href="https://tilmandavies.github.io/sparr/index.html">sparr</a></td>
+<td>Functions for fixed/adaptive kernel density estimation and relative risk mapping via density ratios; also supports fixed-bandwidth space-time density and risk estimation with inference.</td>
+</tr>
+<tr class="odd">
+<td><a href="https://r-tmap.github.io/tmap/">tmap</a></td>
+<td>Creates cartographic quality static or interactive choropleth maps.</td>
+</tr>
+<tr class="even">
+<td><a href="https://www.tidyverse.org/">tidyverse</a></td>
+<td>A collection of R packages for data import, cleaning, transformation, and visualization (e.g., readr, dplyr, tidyr, ggplot2).</td>
 </tr>
 </tbody>
 </table>
-<div class="line-block"><a href="https://rspatial.org/raster/">raster</a> | Tools for reading, writing, and analyzing raster (gridded) spatial data in R |<br>
-<a href="https://spatstat.org/">spatstat</a> | Provides useful functions for SPPA, including kcross, Lcross etc. |<br>
-<a href="https://tilmandavies.github.io/sparr/index.html">sparr</a> | Functions for fixed/adaptive kernel density estimation and relative risk mapping via density ratios; also supports fixed-bandwidth space-time density and risk estimation with inference. |<br>
-<a href="https://r-tmap.github.io/tmap/">tmap</a> | Creates cartographic quality static or interactive choropleth maps. |<br>
-<a href="https://www.tidyverse.org/">tidyverse</a> |A collection of R packages for data import, cleaning, transformation, and visualization (e.g., readr, dplyr, tidyr, ggplot2). |</div>
 <p>After installation via <code>install.packages()</code>, we load them into R environment using the code below.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span> <span class="fu">p_load</span>(sf, raster, spatstat, sparr, tmap, tidyverse)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
