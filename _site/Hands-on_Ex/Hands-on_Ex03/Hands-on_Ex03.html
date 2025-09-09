@@ -420,7 +420,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#computing-stkde-by-month" id="toc-computing-stkde-by-month" class="nav-link" data-scroll-target="#computing-stkde-by-month"><span class="header-section-number">8</span> Computing STKDE by Month</a></li>
   <li><a href="#computing-stkde-by-day-of-year" id="toc-computing-stkde-by-day-of-year" class="nav-link" data-scroll-target="#computing-stkde-by-day-of-year"><span class="header-section-number">9</span> Computing STKDE by Day of Year</a></li>
   <li><a href="#computing-stke-by-day-of-year-improved-method" id="toc-computing-stke-by-day-of-year-improved-method" class="nav-link" data-scroll-target="#computing-stke-by-day-of-year-improved-method"><span class="header-section-number">10</span> Computing STKE by Day of Year: Improved Method</a></li>
-  <li><a href="#reference" id="toc-reference" class="nav-link" data-scroll-target="#reference"><span class="header-section-number">11</span> Reference</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">11</span> Summary</a></li>
+  <li><a href="#reference" id="toc-reference" class="nav-link" data-scroll-target="#reference"><span class="header-section-number">12</span> Reference</a></li>
   </ul>
 </nav>
     </div>
@@ -474,23 +475,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="learning-outcome" class="level2" data-number="2">
 <h2 data-number="2" class="anchored" data-anchor-id="learning-outcome"><span class="header-section-number">2</span> Learning Outcome</h2>
 <p>The key questions we aim to address are:</p>
-<ol type="1">
-<li><p>Are forest fire locations in Kepulauan Bangka Belitung independent in space and time?</p></li>
-<li><p>If not, in which areas and during which periods do the forest fires tend to cluster?</p></li>
-</ol>
+<p><strong>1. Are forest fire locations in Kepulauan Bangka Belitung independent in space and time?</strong></p>
+<p><strong>2. If not, in which areas and during which periods do the forest fires tend to cluster?</strong></p>
 </section>
 <section id="the-data" class="level2" data-number="3">
 <h2 data-number="3" class="anchored" data-anchor-id="the-data"><span class="header-section-number">3</span> The Data</h2>
 <p>For this exercise, the two datasets used are as follows:</p>
 <ol type="1">
 <li><p>forestfires (CSV) contains forest fire locations detected by the Moderate Resolution Imaging Spectroradiometer (MODIS) sensor, obtained from the <a href="https://firms.modaps.eosdis.nasa.gov/download/">Fire Information for Resource Management System</a>. Only records within Kepulauan Bangka Belitung are used.</p></li>
-<li><p><a href="https://id.wikipedia.org/wiki/Kepulauan_Bangka_Belitung">Kepulauan_Bangka_Belitung</a> (Shapefile) contains sub-district (<a href="https://en.wikipedia.org/wiki/Villages_of_Indonesia">kelurahan</a>) boundaries of Kepulauan Bangka Belitung, extracted from the national dataset available on the <a href="https://www.indonesia-geospasial.com/2023/05/download-shapefile-batas-administrasi.html">Indonesia Geospatial Portal</a>.</p></li>
+<li><p><a href="https://id.wikipedia.org/wiki/Kepulauan_Bangka_Belitung">Kepulauan_Bangka_Belitung</a> (Shapefile) contains sub-district (<a href="https://en.wikipedia.org/wiki/Villages_of_Indonesia">kelurahan</a>) boundaries of Kepulauan Bangka Belitung, extracted from the national dataset available on the <a href="https://www.indonesia-geospasial.com/2023/05/download-shapefile-batas-administrasi.html">Indonesia Geospatial Portal</a>. The region’s dry season is May-October and rainy season is October-April.</p></li>
 </ol>
 </section>
 <section id="installing-and-loading-the-r-packages" class="level2" data-number="4">
 <h2 data-number="4" class="anchored" data-anchor-id="installing-and-loading-the-r-packages"><span class="header-section-number">4</span> Installing and Loading the R Packages</h2>
 <p>A total of <strong>six</strong> R packages will be used in this exercise.</p>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 85%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Package</th>
@@ -934,7 +937,8 @@ Fraction of frame area: 0.334</code></pre>
 <p>The code chunk below calculate the STKDE using <code>spattemp.density()</code>.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>st_kde <span class="ot">&lt;-</span> <span class="fu">spattemp.density</span>(fire_month_owin)</span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(st_kde)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(st_kde)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Spatiotemporal Kernel Density Estimate
 
@@ -965,8 +969,13 @@ Evaluation
 <div id="tabset-3-5" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-5-tab">
 <p>The class of <code>st_kde</code> is <code>stden</code> which stores a stack of KDE surfaces, one for each time slice. Using <code>plot(st_kde)</code> alone, plots 12 monthly KDE. The code chunk below first creates a list for then plots 6 KDE maps between July 23 and December 23 in a 2 * 3 grid.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">3</span>))</span>
-<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(st_kde)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>tims <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">7</span><span class="sc">:</span><span class="dv">12</span>)</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfcol =</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">3</span>))</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> tims){</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(st_kde, i, <span class="at">override.par=</span> <span class="cn">FALSE</span>,</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">fix.range=</span> <span class="cn">TRUE</span>,</span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">main =</span> <span class="fu">paste</span>(<span class="st">"KDE at month"</span>, i))</span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -974,80 +983,15 @@ Evaluation
 </figure>
 </div>
 </div>
+</div>
+<p>Here we quickly plot the monthly KDE.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">3</span>))</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(st_kde, <span class="at">override.par =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Hands-on_Ex03_files/figure-html/unnamed-chunk-17-2.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="Hands-on_Ex03_files/figure-html/unnamed-chunk-17-3.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="Hands-on_Ex03_files/figure-html/unnamed-chunk-17-4.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="Hands-on_Ex03_files/figure-html/unnamed-chunk-17-5.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="Hands-on_Ex03_files/figure-html/unnamed-chunk-17-6.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="Hands-on_Ex03_files/figure-html/unnamed-chunk-17-7.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="Hands-on_Ex03_files/figure-html/unnamed-chunk-17-8.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="Hands-on_Ex03_files/figure-html/unnamed-chunk-17-9.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="Hands-on_Ex03_files/figure-html/unnamed-chunk-17-10.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="Hands-on_Ex03_files/figure-html/unnamed-chunk-17-11.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="Hands-on_Ex03_files/figure-html/unnamed-chunk-17-12.png" class="img-fluid figure-img" width="1152"></p>
+<p><img src="Hands-on_Ex03_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="1152"></p>
 </figure>
 </div>
 </div>
@@ -1058,14 +1002,300 @@ Evaluation
 </section>
 <section id="computing-stkde-by-day-of-year" class="level2" data-number="9">
 <h2 data-number="9" class="anchored" data-anchor-id="computing-stkde-by-day-of-year"><span class="header-section-number">9</span> Computing STKDE by Day of Year</h2>
-<p>TBC</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true" href="">A Creating <code>ppp</code> Object</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false" href="">B Adding <code>owin</code> Ojbect</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-3" role="tab" aria-controls="tabset-4-3" aria-selected="false" href="">C Computing STKDE</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-4" role="tab" aria-controls="tabset-4-4" aria-selected="false" href="">D Visualising STKDE in gif</a></li></ul>
+<div class="tab-content">
+<div id="tabset-4-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-4-1-tab">
+<p>Similar to the steps for computing STKDE by month, the code chunk below selects numeric mark <code>DayofYear</code> and coverts the <code>sf</code> object to a <code>ppp</code> object using the piper operator.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>fire_yday_ppp <span class="ot">&lt;-</span> fire_sf <span class="sc">%&gt;%</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(DayofYear) <span class="sc">%&gt;%</span></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.ppp</span>()</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fire_yday_ppp)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Marked planar point pattern:  741 points
+Average intensity 2.49258e-08 points per square unit
+
+Coordinates are given to 10 decimal places
+
+marks are numeric, of type 'double'
+Summary:
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+   10.0   213.0   258.0   245.9   287.0   352.0 
+
+Window: rectangle = [521564.1, 695791] x [9658137, 9828767] units
+                    (174200 x 170600 units)
+Window area = 29728200000 square units</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fire_yday_ppp)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Hands-on_Ex03_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-4-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-2-tab">
+<p>The code chunk below restricts the point events to observation window, runs a few sanity checks, such as <code>summary()</code> and <code>duplicated()</code>, and plotz the new <code>ppp</code> object for a quick review.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>fire_yday_owin <span class="ot">&lt;-</span> fire_yday_ppp[kbb_owin]</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fire_yday_owin)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Marked planar point pattern:  741 points
+Average intensity 6.42469e-08 points per square unit
+
+Coordinates are given to 10 decimal places
+
+marks are numeric, of type 'double'
+Summary:
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+   10.0   213.0   258.0   245.9   287.0   352.0 
+
+Window: polygonal boundary
+single connected closed polygon with 47493 vertices
+enclosing rectangle: [512066.8, 705559.4] x [9655398, 9834006] units
+                     (193500 x 178600 units)
+Window area = 11533600000 square units
+Fraction of frame area: 0.334</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">any</span>(<span class="fu">duplicated</span>(fire_yday_owin))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] FALSE</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fire_yday_owin)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Hands-on_Ex03_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-4-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-3-tab">
+<p>The code chunk below perform the STKDE using <code>spattemp.density</code>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>kde_day <span class="ot">&lt;-</span> <span class="fu">spattemp.density</span>(</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>  fire_yday_owin)</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(kde_day)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Spatiotemporal Kernel Density Estimate
+
+Bandwidths
+  h = 15102.47 (spatial)
+  lambda = 6.3198 (temporal)
+
+No. of observations
+  741 
+
+Spatial bound
+  Type: polygonal
+  2D enclosure: [512066.8, 705559.4] x [9655398, 9834006]
+
+Temporal bound
+  [10, 352]
+
+Evaluation
+  128 x 128 x 343 trivariate lattice
+  Density range: [3.959516e-27, 2.751287e-12]</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(kde_day <span class="sc">$</span>tgrid) <span class="co">#check the number of temporal slices</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 343</code></pre>
+</div>
+</div>
+</div>
+<div id="tabset-4-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-4-tab">
+<p>If we plot <code>kde_day</code> directly it will produce 343 KDE maps ( one per day), which is too many to view at once.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_day)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Here we install the <code>magick</code> package and animate the <code>kde_day</code> file.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(magick)</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a><span class="co"># pick all days, or thin with step=7 for weekly</span></span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>sel <span class="ot">&lt;-</span> <span class="fu">seq_along</span>(kde_day<span class="sc">$</span>tgrid)   <span class="co"># all 343 days</span></span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a><span class="co"># sel &lt;- seq(1, length(kde_day$tgrid), by = 7)  # weekly thinning</span></span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a>frames <span class="ot">&lt;-</span> <span class="fu">lapply</span>(sel, <span class="cf">function</span>(i) {</span>
+<span id="cb59-8"><a href="#cb59-8" aria-hidden="true" tabindex="-1"></a>  tsel <span class="ot">&lt;-</span> kde_day<span class="sc">$</span>tgrid[i]</span>
+<span id="cb59-9"><a href="#cb59-9" aria-hidden="true" tabindex="-1"></a>  img  <span class="ot">&lt;-</span> <span class="fu">image_graph</span>(<span class="at">width =</span> <span class="dv">800</span>, <span class="at">height =</span> <span class="dv">700</span>, <span class="at">res =</span> <span class="dv">96</span>) <span class="co"># open a plot device</span></span>
+<span id="cb59-10"><a href="#cb59-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-11"><a href="#cb59-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(kde_day, <span class="at">tselect =</span> tsel, <span class="at">override.par =</span> <span class="cn">TRUE</span>, <span class="at">fix.range =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb59-12"><a href="#cb59-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">main =</span> <span class="fu">paste</span>(<span class="st">"STKDE – Day"</span>, tsel))</span>
+<span id="cb59-13"><a href="#cb59-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-14"><a href="#cb59-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dev.off</span>()</span>
+<span id="cb59-15"><a href="#cb59-15" aria-hidden="true" tabindex="-1"></a>  img</span>
+<span id="cb59-16"><a href="#cb59-16" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb59-17"><a href="#cb59-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-18"><a href="#cb59-18" aria-hidden="true" tabindex="-1"></a><span class="co"># combine frames into gif</span></span>
+<span id="cb59-19"><a href="#cb59-19" aria-hidden="true" tabindex="-1"></a>anim <span class="ot">&lt;-</span> <span class="fu">image_animate</span>(<span class="fu">image_join</span>(frames), <span class="at">delay =</span> <span class="dv">20</span>, <span class="at">loop =</span> <span class="dv">0</span>)</span>
+<span id="cb59-20"><a href="#cb59-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-21"><a href="#cb59-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-22"><a href="#cb59-22" aria-hidden="true" tabindex="-1"></a><span class="co"># save to file</span></span>
+<span id="cb59-23"><a href="#cb59-23" aria-hidden="true" tabindex="-1"></a><span class="fu">image_write</span>(anim, <span class="st">"stkde_day.gif"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Please see the comparison in summary.</p>
+</div>
+</div>
+</div>
 </section>
 <section id="computing-stke-by-day-of-year-improved-method" class="level2" data-number="10">
 <h2 data-number="10" class="anchored" data-anchor-id="computing-stke-by-day-of-year-improved-method"><span class="header-section-number">10</span> Computing STKE by Day of Year: Improved Method</h2>
-<p>TBC</p>
+<p>In this section, we use <code>BOOT.spattemp()</code> from <code>sparr</code> package to select optimal bandwidths for spatio-temporal kernel density estimation. The function use bootstrap estimation of Mean Integrated Squared Error (MISE) to product an isotropic scalar spatial bandwidth (h) and a scalar temporal bandwidth (lambda).</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-5-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-1" role="tab" aria-controls="tabset-5-1" aria-selected="true" href="">A Computing STKDE</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-2" role="tab" aria-controls="tabset-5-2" aria-selected="false" href="">B Plotting STKDE in <code>gif</code> Format</a></li></ul>
+<div class="tab-content">
+<div id="tabset-5-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-5-1-tab">
+<p>When using plug-in rule in <code>spattemp.density()</code>, the spatio-temporal bandwidths are 15km and 6.3 days.</p>
+<p>The code chunk below applies <code>boot.spattemp()</code> generated optimal bandwidths 9km and 19 day to STKDE computation.</p>
+<p>We shall get a clear view of fire seasonality and hotspots than the default bandwidths.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a><span class="fu">BOOT.spattemp</span>(fire_yday_owin)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Initialising...Done.
+Optimising...
+h = 15102.47 ; lambda = 16.84806 
+h = 16612.72 ; lambda = 16.84806 
+h = 15102.47 ; lambda = 1527.095 
+h = 15480.03 ; lambda = 771.9715 
+h = 15668.81 ; lambda = 394.4098 
+h = 15763.2 ; lambda = 205.6289 
+h = 15810.4 ; lambda = 111.2385 
+h = 15833.99 ; lambda = 64.04328 
+h = 15845.79 ; lambda = 40.44567 
+h = 15851.69 ; lambda = 28.64687 
+h = 15863.49 ; lambda = 5.049258 
+h = 15854.64 ; lambda = 22.74746 
+h = 15860.54 ; lambda = 10.94866 
+h = 15859.07 ; lambda = 13.89836 
+h = 14348.82 ; lambda = 13.89836 
+h = 13216.87 ; lambda = 12.42351 
+h = 12460.27 ; lambda = 15.37321 
+h = 10760.88 ; lambda = 16.11064 
+h = 8875.282 ; lambda = 11.68608 
+h = 10432.08 ; lambda = 12.97658 
+h = 7976.084 ; lambda = 16.66371 
+h = 9286.281 ; lambda = 15.60366 
+h = 9615.08 ; lambda = 18.73771 
+h = 9206.581 ; lambda = 21.61828 
+h = 8140.483 ; lambda = 18.23073 
+h = 8795.582 ; lambda = 17.70071 
+h = 9124.381 ; lambda = 20.83477 
+h = 9164.856 ; lambda = 19.52699 
+h = 8345.358 ; lambda = 18.48998 
+h = 9297.65 ; lambda = 18.67578 
+h = 8928.375 ; lambda = 16.8495 
+h = 9105.736 ; lambda = 18.85762 
+Done.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>         h     lambda 
+9105.73611   18.85762 </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>kde_yday_boot <span class="ot">&lt;-</span> <span class="fu">spattemp.density</span>(fire_yday_owin,</span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">h =</span> <span class="dv">9000</span>,</span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">lambda =</span> <span class="dv">19</span>)</span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(kde_yday_boot)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Spatiotemporal Kernel Density Estimate
+
+Bandwidths
+  h = 9000 (spatial)
+  lambda = 19 (temporal)
+
+No. of observations
+  741 
+
+Spatial bound
+  Type: polygonal
+  2D enclosure: [512066.8, 705559.4] x [9655398, 9834006]
+
+Temporal bound
+  [10, 352]
+
+Evaluation
+  128 x 128 x 343 trivariate lattice
+  Density range: [2.001642e-19, 2.445724e-12]</code></pre>
+</div>
+</div>
+</div>
+<div id="tabset-5-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-5-2-tab">
+<p>Here we create animated STKDE using <code>magick</code> package.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_yday_boot)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pick all days, or thin with step=7 for weekly</span></span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>sel <span class="ot">&lt;-</span> <span class="fu">seq_along</span>(kde_yday_boot<span class="sc">$</span>tgrid)   <span class="co"># all 343 days</span></span>
+<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a><span class="co"># sel &lt;- seq(1, length(kde_day$tgrid), by = 7)  # weekly thinning</span></span>
+<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-5"><a href="#cb66-5" aria-hidden="true" tabindex="-1"></a>frames <span class="ot">&lt;-</span> <span class="fu">lapply</span>(sel, <span class="cf">function</span>(i) {</span>
+<span id="cb66-6"><a href="#cb66-6" aria-hidden="true" tabindex="-1"></a>  tsel <span class="ot">&lt;-</span> kde_yday_boot<span class="sc">$</span>tgrid[i]</span>
+<span id="cb66-7"><a href="#cb66-7" aria-hidden="true" tabindex="-1"></a>  img  <span class="ot">&lt;-</span> <span class="fu">image_graph</span>(<span class="at">width =</span> <span class="dv">800</span>, <span class="at">height =</span> <span class="dv">700</span>, <span class="at">res =</span> <span class="dv">96</span>) <span class="co"># open a plot device</span></span>
+<span id="cb66-8"><a href="#cb66-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-9"><a href="#cb66-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(kde_yday_boot, <span class="at">tselect =</span> tsel, <span class="at">override.par =</span> <span class="cn">TRUE</span>, <span class="at">fix.range =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb66-10"><a href="#cb66-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">main =</span> <span class="fu">paste</span>(<span class="st">"STKDE – Day"</span>, tsel))</span>
+<span id="cb66-11"><a href="#cb66-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-12"><a href="#cb66-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dev.off</span>()</span>
+<span id="cb66-13"><a href="#cb66-13" aria-hidden="true" tabindex="-1"></a>  img</span>
+<span id="cb66-14"><a href="#cb66-14" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb66-15"><a href="#cb66-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-16"><a href="#cb66-16" aria-hidden="true" tabindex="-1"></a><span class="co"># combine frames into gif</span></span>
+<span id="cb66-17"><a href="#cb66-17" aria-hidden="true" tabindex="-1"></a>anim_bt <span class="ot">&lt;-</span> <span class="fu">image_animate</span>(<span class="fu">image_join</span>(frames), <span class="at">delay =</span>  <span class="dv">20</span>, <span class="at">loop =</span> <span class="dv">0</span>)</span>
+<span id="cb66-18"><a href="#cb66-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-19"><a href="#cb66-19" aria-hidden="true" tabindex="-1"></a><span class="co"># save to file</span></span>
+<span id="cb66-20"><a href="#cb66-20" aria-hidden="true" tabindex="-1"></a><span class="fu">image_write</span>(anim, <span class="st">"stkde_day_bt.gif"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Please see the comparison in summary.</p>
+</div>
+</div>
+</div>
 </section>
-<section id="reference" class="level2" data-number="11">
-<h2 data-number="11" class="anchored" data-anchor-id="reference"><span class="header-section-number">11</span> Reference</h2>
+<section id="summary" class="level2" data-number="11">
+<h2 data-number="11" class="anchored" data-anchor-id="summary"><span class="header-section-number">11</span> Summary</h2>
+<p>Here we provide some preliminary answers to the two questions introduced at the start of this exercise.</p>
+<p><strong>1. Are fires independent in space and time?</strong></p>
+<ul>
+<li>No.&nbsp;The daily marks show spatial clustering and temporal seasonality, concentrated around Day 200–320.</li>
+</ul>
+<p><strong>2. Where and when do they cluster?</strong></p>
+<ul>
+<li><p>When: During the late dry season <strong>Aug–Oct</strong>, peaking around mid-Sep.</p></li>
+<li><p>Where: Activity begins in the <strong>north-west</strong>, intensifies in the <strong>south</strong>, and persists into the <strong>south-east</strong>.</p></li>
+</ul>
+<p>The animated maps below compare STKDE using default bandwidths (left) versus bandwidths selected via bootstrap resampling (right).</p>
+<div class="cell quarto-layout-panel" data-layout-ncol="2" data-layout-align="center">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="fig/stkde_day.gif" class="img-fluid figure-img"></p>
+<figcaption>STKDE Default</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="fig/stkde_day_bt.gif" class="img-fluid figure-img"></p>
+<figcaption>STKDE BOOT</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="reference" class="level2" data-number="12">
+<h2 data-number="12" class="anchored" data-anchor-id="reference"><span class="header-section-number">12</span> Reference</h2>
 <p>Kam, T. S. 6 Spatio-Temporal Point Patterns Analysis. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap06</p>
 
 

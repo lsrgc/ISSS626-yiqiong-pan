@@ -28,9 +28,9 @@ This exercise demonstrates how to apply the process through a case study of **fo
 
 The key questions we aim to address are:
 
-1.  Are forest fire locations in Kepulauan Bangka Belitung independent in space and time?
+**1. Are forest fire locations in Kepulauan Bangka Belitung independent in space and time?**
 
-2.  If not, in which areas and during which periods do the forest fires tend to cluster?
+**2. If not, in which areas and during which periods do the forest fires tend to cluster?**
 
 ## The Data
 
@@ -38,7 +38,7 @@ For this exercise, the two datasets used are as follows:
 
 1.  forestfires (CSV) contains forest fire locations detected by the Moderate Resolution Imaging Spectroradiometer (MODIS) sensor, obtained from the [Fire Information for Resource Management System](https://firms.modaps.eosdis.nasa.gov/download/). Only records within Kepulauan Bangka Belitung are used.
 
-2.  [Kepulauan_Bangka_Belitung](https://id.wikipedia.org/wiki/Kepulauan_Bangka_Belitung) (Shapefile) contains sub-district ([kelurahan](https://en.wikipedia.org/wiki/Villages_of_Indonesia)) boundaries of Kepulauan Bangka Belitung, extracted from the national dataset available on the [Indonesia Geospatial Portal](https://www.indonesia-geospasial.com/2023/05/download-shapefile-batas-administrasi.html).
+2.  [Kepulauan_Bangka_Belitung](https://id.wikipedia.org/wiki/Kepulauan_Bangka_Belitung) (Shapefile) contains sub-district ([kelurahan](https://en.wikipedia.org/wiki/Villages_of_Indonesia)) boundaries of Kepulauan Bangka Belitung, extracted from the national dataset available on the [Indonesia Geospatial Portal](https://www.indonesia-geospasial.com/2023/05/download-shapefile-batas-administrasi.html). The region's dry season is May-October and rainy season is October-April.
 
 ## Installing and Loading the R Packages
 
@@ -52,6 +52,9 @@ A total of **six** R packages will be used in this exercise.
 | [sparr](https://tilmandavies.github.io/sparr/index.html) | Functions for fixed/adaptive kernel density estimation and relative risk mapping via density ratios; also supports fixed-bandwidth space-time density and risk estimation with inference. |
 | [tmap](https://r-tmap.github.io/tmap/) | Creates cartographic quality static or interactive choropleth maps. |
 | [tidyverse](https://www.tidyverse.org/) | A collection of R packages for data import, cleaning, transformation, and visualization (e.g., readr, dplyr, tidyr, ggplot2). |
+
+: {tbl-colwidths="\[15,85\]"}
+
 
 After installation via `install.packages()`, we load them into R environment using the code below.
 
@@ -199,16 +202,15 @@ In this section, we use `spattemp.density()` to build spatio-temporal `ppp` (wit
 
 -   `sres` / `tres`: resolution of spatial grid / temporal bins.
 
-:::panel-tabset
-
+::: panel-tabset
 ### A Extracting `Month_num` field
 
 Since `as.ppp()` from spatstat only needs a mark field (e.g numeric field Month_num) and the geometry, this step ensures the data frame is reduced to just what is necessary.
 
 As mentioned above, in `spatstat`, the marks of a `ppp` object could be:
 
-- numeric mark,quantitative values, which is used for intensity or regression analysis
-- character marks, converted to `factor`, which are then used for for categorical analysis  
+-   numeric mark,quantitative values, which is used for intensity or regression analysis
+-   character marks, converted to `factor`, which are then used for for categorical analysis
 
 ```{r}
 fire_month <- fire_sf %>%
@@ -254,37 +256,211 @@ fire_month_owin <- fire_month_ppp[kbb_owin]
 summary(fire_month_owin)
 plot(fire_month_owin)
 ```
+
 ### D computing Spatio-temporal KDE
 
-The code chunk below calculate the STKDE using `spattemp.density()`. 
+The code chunk below calculate the STKDE using `spattemp.density()`.
+
 ```{r}
 st_kde <- spattemp.density(fire_month_owin)
+
 summary(st_kde)
 class(st_kde)
 ```
 
-
-
 ### E Ploting the STKDE Ojbect
 
-The class of `st_kde` is `stden` which stores a stack of KDE surfaces, one for each time slice. Using `plot(st_kde)` alone, plots 12 monthly KDE. The code chunk below first creates a list for then plots 6 KDE maps between July 23 and December 23 in a 2 * 3 grid.
+The class of `st_kde` is `stden` which stores a stack of KDE surfaces, one for each time slice. Using `plot(st_kde)` alone, plots 12 monthly KDE. The code chunk below first creates a list for then plots 6 KDE maps between July 23 and December 23 in a 2 \* 3 grid.
 
-```{r, fig.width=12, fig.height=10}
-par(mfrow = c(4,3))
-plot(st_kde)
+```{r, fig.width= 12, fig.height= 8}
+tims <- c(7:12)
+par(mfcol = c(2,3))
+for (i in tims){
+  plot(st_kde, i, override.par= FALSE,
+       fix.range= TRUE,
+       main = paste("KDE at month", i))
+}
 ```
 
+Here we quickly plot the monthly KDE.
 
+```{r, fig.width=12, fig.height=16}
+par(mfrow = c(4,3))
+plot(st_kde, override.par = FALSE)
+```
 :::
-
 
 ## Computing STKDE by Day of Year
 
-TBC
+::: panel-tabset
+After conducting the STKDE by month, we proceed to perform the STKDE by day.
+
+### A Creating `ppp` Object
+
+Similar to the steps for computing STKDE by month, the code chunk below selects numeric mark `DayofYear` and coverts the `sf` object to a `ppp` object using the piper operator.
+
+```{r}
+fire_yday_ppp <- fire_sf %>%
+  select(DayofYear) %>%
+  as.ppp()
+
+summary(fire_yday_ppp)
+plot(fire_yday_ppp)
+```
+
+### B Adding `owin` Ojbect
+
+The code chunk below restricts the point events to observation window, runs a few sanity checks, such as `summary()` and `duplicated()`, and plotz the new `ppp` object for a quick review.
+
+```{r}
+fire_yday_owin <- fire_yday_ppp[kbb_owin]
+summary(fire_yday_owin)
+
+any(duplicated(fire_yday_owin))
+plot(fire_yday_owin)
+
+```
+
+### C Computing STKDE
+
+The code chunk below perform the STKDE using `spattemp.density`.
+
+```{r}
+kde_day <- spattemp.density(
+  fire_yday_owin)
+
+summary(kde_day)
+
+length(kde_day $tgrid) #check the number of temporal slices
+```
+
+### D Visualising STKDE in gif
+
+If we plot `kde_day` directly it will produce 343 KDE maps ( one per day), which is too many to view at once.
+
+```{r}
+#| eval: false
+plot(kde_day)
+```
+
+Here we install the `magick` package and animate the `kde_day` file.
+
+```{r}
+#| eval: false
+
+pacman::p_load(magick)
+
+# pick all days, or thin with step=7 for weekly
+sel <- seq_along(kde_day$tgrid)   # all 343 days
+# sel <- seq(1, length(kde_day$tgrid), by = 7)  # weekly thinning
+
+frames <- lapply(sel, function(i) {
+  tsel <- kde_day$tgrid[i]
+  img  <- image_graph(width = 800, height = 700, res = 96) # open a plot device
+
+  plot(kde_day, tselect = tsel, override.par = TRUE, fix.range = TRUE,
+       main = paste("STKDE – Day", tsel))
+
+  dev.off()
+  img
+})
+
+# combine frames into gif
+anim <- image_animate(image_join(frames), delay = 20, loop = 0)
+
+
+# save to file
+image_write(anim, "stkde_day.gif")
+```
+
+Please see the comparison in summary.
+:::
 
 ## Computing STKE by Day of Year: Improved Method
 
-TBC
+In this section, we use `BOOT.spattemp()` from `sparr` package to select optimal bandwidths for spatio-temporal kernel density estimation. The function use bootstrap estimation of Mean Integrated Squared Error (MISE) to product an isotropic scalar spatial bandwidth (h) and a scalar temporal bandwidth (lambda).
+
+::: panel-tabset
+### A Computing STKDE
+
+When using plug-in rule in `spattemp.density()`, the spatio-temporal bandwidths are 15km and 6.3 days.
+
+The code chunk below applies `boot.spattemp()` generated optimal bandwidths 9km and 19 day to STKDE computation.
+
+We shall get a clear view of fire seasonality and hotspots than the default bandwidths.
+
+```{r}
+set.seed(1234)
+BOOT.spattemp(fire_yday_owin)
+```
+
+```{r}
+kde_yday_boot <- spattemp.density(fire_yday_owin,
+                                  h = 9000,
+                                  lambda = 19)
+summary(kde_yday_boot)
+```
+
+### B Plotting STKDE in `gif` Format
+
+Here we create animated STKDE using `magick` package.
+
+```{r}
+#| eval: false
+plot(kde_yday_boot)
+```
+
+```{r}
+#| eval: false
+# pick all days, or thin with step=7 for weekly
+sel <- seq_along(kde_yday_boot$tgrid)   # all 343 days
+# sel <- seq(1, length(kde_day$tgrid), by = 7)  # weekly thinning
+
+frames <- lapply(sel, function(i) {
+  tsel <- kde_yday_boot$tgrid[i]
+  img  <- image_graph(width = 800, height = 700, res = 96) # open a plot device
+
+  plot(kde_yday_boot, tselect = tsel, override.par = TRUE, fix.range = TRUE,
+       main = paste("STKDE – Day", tsel))
+
+  dev.off()
+  img
+})
+
+# combine frames into gif
+anim_bt <- image_animate(image_join(frames), delay =  20, loop = 0)
+
+# save to file
+image_write(anim, "stkde_day_bt.gif")
+```
+
+Please see the comparison in summary.
+:::
+
+## Summary
+
+Here we provide some preliminary answers to the two questions introduced at the start of this exercise.
+
+**1. Are fires independent in space and time?**
+
+- No. The daily marks show spatial clustering and temporal seasonality, concentrated around Day 200–320.
+
+**2. Where and when do they cluster?**
+
+- When: During the late dry season **Aug–Oct**, peaking around mid-Sep.
+
+- Where: Activity begins in the **north-west**, intensifies in the **south**, and persists into the **south-east**.
+
+The animated maps below compare STKDE using default bandwidths (left) versus bandwidths selected via bootstrap resampling (right).
+
+
+```{r}
+#| echo: false 
+#| fig-subcap: ["STKDE Default","STKDE BOOT"] 
+#| layout-ncol: 2 
+#| fig-align: center 
+knitr::include_graphics(c("fig/stkde_day.gif","fig/stkde_day_bt.gif"))
+```
 
 ## Reference
 
