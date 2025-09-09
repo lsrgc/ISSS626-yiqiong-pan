@@ -199,7 +199,84 @@ In this section, we use `spattemp.density()` to build spatio-temporal `ppp` (wit
 
 -   `sres` / `tres`: resolution of spatial grid / temporal bins.
 
-TBC
+:::panel-tabset
+
+### A Extracting `Month_num` field
+
+Since `as.ppp()` from spatstat only needs a mark field (e.g numeric field Month_num) and the geometry, this step ensures the data frame is reduced to just what is necessary.
+
+As mentioned above, in `spatstat`, the marks of a `ppp` object could be:
+
+- numeric mark,quantitative values, which is used for intensity or regression analysis
+- character marks, converted to `factor`, which are then used for for categorical analysis  
+
+```{r}
+fire_month <- fire_sf %>%
+  select(Month_num)
+
+str(fire_month)
+plot(fire_month)
+```
+
+### B Creating `ppp`
+
+The code chunk below converts sf data frame to `ppp` object.
+
+```{r}
+fire_month_ppp <- as.ppp(fire_month)
+fire_month_ppp
+```
+
+The code chunk below check the summary statistics including object class.
+
+```{r}
+summary(fire_month_ppp)
+```
+
+The code chunk below performs a quick sanity check to ensure there are no duplicate points, which could avoid biased results or errors.
+
+```{r}
+any(duplicated(fire_month_ppp))
+```
+
+The code chunk below draws the points for a quick look.
+
+```{r}
+plot(fire_month_ppp)
+```
+
+### C Adding `owin` Object
+
+`ppp[owin]` in `spatstat` clips the point pattern to a given window. That means only points of e.g. `fire_month_ppp` that fall in the study area `kbb_owin` are kept and outputs a new `ppp` object.
+
+```{r}
+fire_month_owin <- fire_month_ppp[kbb_owin]
+summary(fire_month_owin)
+plot(fire_month_owin)
+```
+### D computing Spatio-temporal KDE
+
+The code chunk below calculate the STKDE using `spattemp.density()`. 
+```{r}
+st_kde <- spattemp.density(fire_month_owin)
+summary(st_kde)
+class(st_kde)
+```
+
+
+
+### E Ploting the STKDE Ojbect
+
+The class of `st_kde` is `stden` which stores a stack of KDE surfaces, one for each time slice. Using `plot(st_kde)` alone, plots 12 monthly KDE. The code chunk below first creates a list for then plots 6 KDE maps between July 23 and December 23 in a 2 * 3 grid.
+
+```{r, fig.width=12, fig.height=10}
+par(mfrow = c(4,3))
+plot(st_kde)
+```
+
+
+:::
+
 
 ## Computing STKDE by Day of Year
 

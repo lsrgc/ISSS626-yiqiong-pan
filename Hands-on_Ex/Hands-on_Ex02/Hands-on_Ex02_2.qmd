@@ -5,7 +5,7 @@ date: "Sep 04, 2025"
 date-modified: "last-modified"
 execute:
   echo: true #display the code
-  eval: true 
+  eval: true #run the code
   message: false
   warning: false
   freeze: true # not render if nothing edited
@@ -16,9 +16,7 @@ format:
     toc-depth: 6
     number-sections: true
     number-depth: 4
-
 ---
-
 
 ## Overview
 
@@ -275,7 +273,7 @@ plot(unmark(childcare_jw_ppp),
 Let us examine the relationships between points at subzone level.
 
 | Function | Description | Interpretation |
-|-----------|-----------------------------------------------|---------------------------------------------------------|
+|---------------|--------------------------|--------------------------------|
 | Gest() | Nearest-neighbour CDF | Above band: Clustering; Below: Regular; Best for very small r. |
 | Fest() | Empty-space CDF | Above band: Regular; Below: Clustering (coverage gaps) |
 | Kest() | Cumulative neighbours within distance per unit intensity) | Above band: Clustering; Below: Regular |
