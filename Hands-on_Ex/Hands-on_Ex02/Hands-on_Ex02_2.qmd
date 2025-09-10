@@ -281,7 +281,7 @@ Let us examine the relationships between points at subzone level.
 
 ## Analysing Spatial Point Process Using G-Function
 
-The G-function `Gest()` Nearest-neighbour CDF. It’s the proportion of points whose nearest neighbour is within distance r (a distribution, not a count). With Monte Carlo simulation `envelop()`, we test against complete spatial randomness (CSR).
+The G-function `Gest()` Nearest-neighbour CDF. It’s the proportion of points whose nearest neighbour is within distance r (a distribution, not a count). With Monte Carlo simulation `envelope()`, we test against complete spatial randomness (CSR).
 
 First we set a fixed random seed to ensure reproducibility.
 
