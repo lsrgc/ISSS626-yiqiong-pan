@@ -273,7 +273,7 @@ plot(unmark(childcare_jw_ppp),
 Let us examine the relationships between points at subzone level.
 
 | Function | Description | Interpretation |
-|---------------|--------------------------|--------------------------------|
+|-----------------|-------------------------|------------------------------|
 | Gest() | Nearest-neighbour CDF | Above band: Clustering; Below: Regular; Best for very small r. |
 | Fest() | Empty-space CDF | Above band: Regular; Below: Clustering (coverage gaps) |
 | Kest() | Cumulative neighbours within distance per unit intensity) | Above band: Clustering; Below: Regular |
@@ -617,7 +617,7 @@ Choa Chu Kang: J-function, KM edge correction; 999 CSR simulations; pointwise α
 
 The black curve is mostly **inside** the envelope but it is hard to interpret.
 
-### L-function - Tampines
+### J-function - Tampines
 
 The code chunk below calculates the J-function.
 
@@ -627,7 +627,7 @@ J_tm
 plot(J_tm)
 ```
 
-### L-function with CSR - Tampines
+### J-function with CSR - Tampines
 
 The code chunk below test Complete Spatial Randomness.
 
