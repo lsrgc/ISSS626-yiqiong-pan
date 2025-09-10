@@ -4,7 +4,6 @@ project:
 website:
   title: "ISSS626-yiqiong-pan"
   navbar:
-    #background: "#dafad4"
     left:
       - text: "Hands-on Exercise"
         menu: 
@@ -16,7 +15,7 @@ website:
             href: "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02_1.html"
           - text: "02-2: 2nd Order Spatial Point Patterns Analysis Methods"
             href: "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02_2.html"            
-          - text: "03: 2nd Order Spatial Point Patterns Analysis Methods"
+          - text: "03: Spatio-Temporal Point Patterns Analysis"
             href: "Hands-on_Ex/Hands-on_Ex03/Hands-on_Ex03.html"
           - text: "04: "
             href: "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html"           
