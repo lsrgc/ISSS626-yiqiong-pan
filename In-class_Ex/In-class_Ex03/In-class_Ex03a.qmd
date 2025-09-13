@@ -1,5 +1,5 @@
 ---
-title: "In-class Exercise 3: Interactive K-function"
+title: "In-class Exercise 3a: Interactive K-function"
 author: "Yiqiong PAN"
 date: "September 13, 2025"
 date-modified: "last-modified"

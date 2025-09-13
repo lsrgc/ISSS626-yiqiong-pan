@@ -23,3 +23,7 @@ file_list <- list.files(path = folder_path,
 acra_data <- file_list %>%
   map_dfr(read_csv)
 ```
+
+```{r}
+write_rds(acra_data, "data/rds/acra_data.rds") #rds not csv to avoid changing of field names..
+```
