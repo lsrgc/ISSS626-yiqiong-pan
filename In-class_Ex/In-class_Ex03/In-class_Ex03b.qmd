@@ -18,12 +18,68 @@ pacman::p_load(tidyverse, sf, tmap, httr)
 ```{r}
 folder_path <- "data/aspatial/acra"
 file_list <- list.files(path = folder_path,
-                        pattern = "^ARCA*.*\\.csv$",
-                        full.name = TRUE)
+                        pattern = "^ACRA.*\\csv$",
+                        full.names = TRUE)
+
 acra_data <- file_list %>%
   map_dfr(read_csv)
 ```
 
 ```{r}
 write_rds(acra_data, "data/rds/acra_data.rds") #rds not csv to avoid changing of field names..
+```
+
+make sure the month ends at June.
+
+```{r}
+biz_56111 <- acra_data %>%
+  select(1:24) %>%
+  filter(primary_ssic_code == 56111) %>%
+  rename(date = registration_incorporation_date) %>%
+  mutate(date = as.Date(date),
+         YEAR = year(date),
+         MONTH_NUM = month(date),
+         MONTH_ABBR = month(date, label = TRUE, abbr = TRUE),
+         postal_code = str_pad(postal_code, width = 6, side = "left", pad = "0")) %>%
+  filter(YEAR == 2025, MONTH_NUM <= 6)     
+```
+
+```{r}
+postcodes <- unique(biz_56111$postal_code)
+url <- "https://onemap.gov.sg/api/common/elastic/search"
+
+found <- data.frame()
+not_found <- data.frame(postcode = character())
+
+for (pc in postcodes) {
+  query <- list(
+    searchVal = pc,
+    returnGeom = "Y",
+    getAddrDetails = "Y",
+    pageNum = "1"
+  )
+  
+  res <- GET(url, query = query)
+  json <- content(res)
+  
+  if (json$found != 0) {
+    df<- as.data.frame(json$results, stringsAsFactors = FALSE)
+    df$input_postcode <- pc
+    found <- bind_rows(found,df)
+  } else {
+    not_found <- bind_rows(not_found, data.frame(postcode = pc))
+  }
+}
+```
+
+```{r}
+biz_56111 = biz_56111 %>%
+  left_join (found,
+             by = c('postal_code'= 'POSTAL'))
+```
+
+```{r}
+biz_56111 <- st_as_sf(biz_56111,
+                      coords = c("X","Y"),
+                      crs = 3414)
 ```
