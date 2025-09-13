@@ -1,5 +1,5 @@
 ---
-title: "In-class Exercise 3b: Exploring Government Date"
+title: "In-class Exercise 3b: Tidy Government Data"
 author: "Yiqiong PAN"
 date: "September 13, 2025"
 date-modified: "last-modified"
