@@ -1,0 +1,195 @@
+---
+title: "Hands-on Exercise 1"
+author: "Yiqiong PAN"
+date: "Aug 28, 2025"
+date-modified: "last-modified"
+format: 
+  html:
+    toc-depth: 4
+    toc-expand: true
+---
+
+```{r}
+pacman:: p_load(sf, raster, spatstat, sparr, tmap, tidyverse, terra, stopp, stpp, magick, fs, vroom, readxl)
+```
+
+we realise that `preimiarly ssic code has missing leading 0 probably due to transmission and registartion date date type is ymd.
+
+Inside map_dfr(), vroom(.x) → reads each CSV
+filter(between(...)) → keeps only rows in the date window.
+map_dfr() → row-binds all filtered CSVs into one tibble (files_fl).
+
+```{r}
+dir <- "data/aspatial/rawdata" 
+files <- dir_ls(dir, glob = "*.csv") #ls: list command, glob wild card
+#one_file <- vroom(files[1]) #check one file 
+#spec(one_file)
+files_fl <- files %>%
+  map_dfr(~ vroom(.x) %>% #return data frames
+          filter(between(registration_incorporation_date,
+                        as.Date("2024-01-01"),
+                        as.Date("2025-06-30"))))
+```
+
+
+quick review on the column types
+
+```{r}
+files_fl
+spec(files_fl)
+```
+
+sanity check
+
+```{r}
+any(files_fl$registration_incorporation_date < ymd("2024-01-01") |files_fl$registration_incorporation_date > ymd("2025-06-30"))
+any(duplicated(files_fl))
+```
+
+we realise that `preimiarly ssic code has missing leading 0 probably due to nuemvic type. so we pad the 0 to the code and 
+create new column where 2d is extracted per row.
+
+
+```{r}
+files_ssic <-files_fl%>%
+  mutate(`ssic_5d` = str_pad(.[[22]], width = 5, side = "left", pad = "0")) %>%
+  mutate(`ssic_2d` = str_sub(`ssic_5d`,1, 2))
+```
+
+it is time to rerragnet the columsn since there were 55 columsns after the ssic_2d, we select the following columns. 
+uen, name, reg date, type, post code, and ssic 5d, ssic 2d
+
+```{r}
+files_sl <- files_ssic %>%
+  select(c(1,3:4,6,8:9,17,54,55))
+```
+
+load the colasifiaction file, and skip top 4 columns to locate the correct the collumn. select the 2d only and its depscrition.
+
+```{r}
+ssic_lookup <- read_excel("data/aspatial/ssic2020-classification-structure.xlsx", skip = 4)%>%
+  select(ssic_code = `SSIC 2020`, ssic_title = `SSIC 2020 Title`) %>%
+  filter(!is.na(ssic_code)) %>%
+  filter(str_length(ssic_code) == 2)
+```
+
+
+
+left join with main data.
+```{r}
+files_sl_jn <- files_sl%>%
+  left_join(ssic_lookup, by = c("ssic_2d" = "ssic_code"))
+```
+
+```{r}
+files_sl_ct<- files_sl_jn %>%
+  group_by(`ssic_2d`,`ssic_title`) %>% 
+  summarise(n = n(), .groups = "drop") %>%
+  arrange(desc(n))
+
+
+top_10 <-head(files_sl_ct, 10)
+```
+plot a bar chart
+
+```{r, fig.width=14}
+top_10 %>%
+  mutate(ssic_type = paste(ssic_2d,str_sub(ssic_title, 1,25), sep=":")) %>%
+  ggplot(aes(x = reorder(ssic_2d, n), y = n, fill = ssic_type)) +
+  geom_col() +
+  #coord_filp() +
+  labs(title =" Top 10 Business Registeration (1/1/2024- 30/6/2025)",
+       x = "SSIC 2 Digits",
+       y = "Number of Registeration",
+       fill = "Business Type")+
+  theme(plot.title = element_text(size = 16, face = "bold"))
+```
+
+```{r}
+any(duplicated(files_sl$postal_code))
+```
+```{r}
+files_ssic <- 
+```
+
+files_fl <- files %>%
+  filter(between(`registration_incorporation_date`, ymd("2024-01-01"), ymd("2025-06-30")))
+
+```
+counts <- map_dfr(files, ~ tibble(
+  file   = path_file(.x),
+  n_rows = read_csv(.x, show_col_types = FALSE) %>%
+    nrow()))
+```
+
+```{r}
+counts
+sum(counts$n_rows)
+```
+
+```{r}
+all_entities <- map_dfr(
+  files,
+  ~ read_csv(.x, show_col_types = FALSE) %>%
+      mutate(source_file = path_file(.x))
+)
+```
+
+```{r}
+summary(all_entities)
+```
+
+```{r}
+
+write_csv(all_entities, "data/aspatial/entities.csv")
+```
+
+load new file
+
+```{r}
+entities <- read_csv("data/aspatial/entities.csv" )
+```
+
+fliter 1/1/24-30/6/25
+
+```{r}
+entities_fl <- entities %>%
+  filter(between(`registration_incorporation_date`, ymd("2024-01-01"), ymd("2025-06-30")))
+
+head(entities_fl,15)
+summary(entities_fl)
+```
+
+```{r}
+any(entities_fl$registration_incorporation_date < ymd("2024-01-01") | entities_fl$registration_incorporation_date > ymd("2025-06-30"))
+
+any(duplicated(entities_fl))
+```
+
+```{r}
+entities_fl <-entities_fl %>%
+  mutate(`ssic_5d` = str_pad(.[[22]], width = 5, side = "left", pad = "0")          
+  )
+
+all(nchar(entities_fl$ssic_5d[!is.na(entities_fl$ssic_5d)]) == 5)
+
+```
+
+```{r}
+entities_fl <-entities_fl %>%
+  mutate(`ssic_2d` = str_sub(`ssic_5d`,1, 2)          
+  )
+```
+
+```{r}
+str(entities_fl$ssic_2d)
+entities_fl_count <-entities_fl %>%
+   count(ssic_2d, sort = TRUE)
+entities_fl_count
+```
+
+```{r}
+entities_fl_data <- entities_fl %>%
+```
+
+Extract group code

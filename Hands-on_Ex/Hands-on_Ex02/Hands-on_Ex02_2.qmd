@@ -273,7 +273,7 @@ plot(unmark(childcare_jw_ppp),
 Let us examine the relationships between points at subzone level.
 
 | Function | Description | Interpretation |
-|-----------------|-------------------------|------------------------------|
+|------------------|-------------------------|-----------------------------|
 | Gest() | Nearest-neighbour CDF | Above band: Clustering; Below: Regular; Best for very small r. |
 | Fest() | Empty-space CDF | Above band: Regular; Below: Clustering (coverage gaps) |
 | Kest() | Cumulative neighbours within distance per unit intensity) | Above band: Clustering; Below: Regular |
@@ -537,7 +537,7 @@ plot(L_CK.csr, . - r ~ r, xlab="d", ylab="L(d)-r")
 
 Choa Chu Kang: L-function,isotropic edge correction; 99 CSR simulations; pointwise α = 0.02
 
-The black curve is mostly **inside** the envelope across r within 795m, except one upside shape deviation around 60m. F function esitmates is mostly positive and within the pointwise envelope, so Choa Chu Kang shows no significant departure from CSR (only a slight clustering tendency).
+The black curve is mostly **inside** the envelope under 400m. But it shows the significant clustering beyond 400m.
 
 ### L-function - Tampines
 
@@ -655,7 +655,7 @@ It is hard to interpret.
 
 ## Summary
 
-Through multiple tests (GFKL functions) against complete spatial randomness, we can conclude the childcare centres in Choa Chu Kang are highly like randomly distributed whereas the centres in Tampines are largely clustered.
+Through multiple tests (GFKL functions) against complete spatial randomness, we can conclude the childcare centres in Choa Chu Kang are highly like clustered below 400m whereas the centres in Tampines are largely clustered since short distances.
 
 ## Reference
 

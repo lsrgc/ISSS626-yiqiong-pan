@@ -137,7 +137,6 @@ preschool = st_read("data/geospatial/PreSchoolsLocation.kml")
 
 ```
 
-
 Alternatively, we can combine `st_read` with `st_transform` together via **nested** functions `%>%`.
 
 ```{r}

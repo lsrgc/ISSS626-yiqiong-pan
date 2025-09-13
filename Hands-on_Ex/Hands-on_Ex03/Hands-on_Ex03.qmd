@@ -55,11 +55,10 @@ A total of **six** R packages will be used in this exercise.
 
 : {tbl-colwidths="\[15,85\]"}
 
-
 After installation via `install.packages()`, we load them into R environment using the code below.
 
 ```{r}
-pacman:: p_load(sf, raster, spatstat, sparr, tmap, tidyverse)
+pacman:: p_load(sf, raster, spatstat, sparr, tmap, tidyverse, stpp)
 ```
 
 ## Importing and Preparing Study Area
@@ -443,16 +442,15 @@ Here we provide some preliminary answers to the two questions introduced at the 
 
 **1. Are fires independent in space and time?**
 
-- No. The daily marks show spatial clustering and temporal seasonality, concentrated around Day 200–320.
+-   No. The daily marks show spatial intensity and temporal seasonality, concentrated around Day 200–320.
 
 **2. Where and when do they cluster?**
 
-- When: During the late dry season **Aug–Oct**, peaking around mid-Sep.
+-   When: During the late dry season **Aug–Oct**, peaking around mid-Sep.
 
-- Where: Activity begins in the **north-west**, intensifies in the **south**, and persists into the **south-east**.
+-   Where: Activity begins in the **north-west**, intensifies in the **south**, and persists into the **south-east**.
 
 The animated maps below compare STKDE using default bandwidths (left) versus bandwidths selected via bootstrap resampling (right).
-
 
 ```{r}
 #| echo: false 
@@ -461,6 +459,50 @@ The animated maps below compare STKDE using default bandwidths (left) versus ban
 #| fig-align: center 
 knitr::include_graphics(c("fig/stkde_day.gif","fig/stkde_day_bt.gif"))
 ```
+
+## Spatio-temporal Point Patterns Analysis: stpp methods
+
+Here we try out the second order ST-SPPA under stpp methods. 
+
+###Preparing spatio-temporal point process object of stpp
+
+1. Extract fire event coordinates
+2. Construct a data frame with x, y, and an integer time index t
+3. Generate a spatio-temporal object by passing the matrix of x, y, t into as.3dpoints().
+
+```{r}
+coords <- st_coordinates(fire_sf)
+fire_df <- data.frame(
+  x = coords[, 1],  
+  y = coords[, 2],
+  t = fire_sf$`DayofYear`)
+fire_stpp <- as.3dpoints(fire_df)
+class(fire_stpp)
+plot(fire_stpp)
+
+```
+
+### Computing spatio-temporal k-function
+
+STIKhat() of stpp package is used to compute space-time inhomogeneous K-function.
+
+```{r}
+kbb_stik <- STIKhat(fire_stpp)
+plotK(kbb_stik)
+```
+
+
+### Intepration Rule
+
+- High contour values at small spatial (uu) and temporal (vv) distances:
+strong clustering (events occur close together in space and time).
+
+- Flat or low contour values :random distribution or weak clustering.
+
+- Shape of contours across axes:
+shows the extent of clustering: rapid changes indicate strong clustering over specific distances.
+
+In this plot, the contours are widely spaced and rise gradually, which suggests weaker clustering: events are more spread out and do not strongly cluster at short distances.
 
 ## Reference
 
