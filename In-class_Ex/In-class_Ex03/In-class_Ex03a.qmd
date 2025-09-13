@@ -60,9 +60,9 @@ childcare_ck_ppp = childcare_ppp[ck_owin]
 childcare_jw_ppp = childcare_ppp[jw_owin]
 ```
 
-### Tampines planning area
+## Tampines planning area
 
-#### Computing L-function estimate
+### Computing L-function estimate
 
 ```{r}
 L_tm = Lest(childcare_tm_ppp, correction = "Ripley")
@@ -87,7 +87,7 @@ plot(L_tm.csr, . - r ~ r,
      xlab="d", ylab="L(d)-r", xlim=c(0,500))
 ```
 
-## Building an interative plot with ggplotly
+### Building an interative plot with ggplotly
 
 The previous code chunks uses `plot()` to visualise the envelopes of the second-order summary statistics (such as L-function). The output is a static plot, therefore it can be difficult to make accurate guesstimates of the statistics and the corresponding distance, r.
 
@@ -157,9 +157,9 @@ if (nrow(Lcsr_df[Lcsr_df$obs > Lcsr_df$hi,])==0){
 ```
 
 
-### CHOA CHU KANG planning area
+## CHOA CHU KANG planning area
 
-#### Computing L-function estimate
+### Computing L-function estimate
 
 ```{r}
 L_ck = Lest(childcare_ck_ppp, correction = "Ripley")
@@ -184,7 +184,7 @@ plot(L_ck.csr, . - r ~ r,
      xlab="d", ylab="L(d)-r", xlim=c(0,500))
 ```
 
-## Building an interative plot with ggplotly
+### Building an interative plot with ggplotly
 
 The previous code chunks uses `plot()` to visualise the envelopes of the second-order summary statistics (such as L-function). The output is a static plot, therefore it can be difficult to make accurate guesstimates of the statistics and the corresponding distance, r.
 
