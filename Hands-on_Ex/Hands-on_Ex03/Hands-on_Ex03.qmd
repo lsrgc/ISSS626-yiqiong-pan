@@ -464,7 +464,7 @@ knitr::include_graphics(c("fig/stkde_day.gif","fig/stkde_day_bt.gif"))
 
 Here we try out the second order ST-SPPA under stpp methods. 
 
-###Preparing spatio-temporal point process object of stpp
+### Preparing spatio-temporal point process object of stpp
 
 1. Extract fire event coordinates
 2. Construct a data frame with x, y, and an integer time index t
