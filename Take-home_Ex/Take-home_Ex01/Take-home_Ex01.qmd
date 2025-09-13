@@ -42,11 +42,7 @@ As more data is collected with both time and location, analysing spatio-temporal
 
 This exercise demonstrates how to apply the process through a case study of **New Business** in Singapore, from 1 January to 30 June 2025.
 
-Since the period covers all of 2024 and first half of 2025, we split the data into two groups and compare them:
-Baseline: 2024 (Jan–Dec)
-Comparison: 2025 (Jan–Jun)
-This let us check whether some SSIC groups are growing faster in 2025, or whether patterns are stable.
-
+Since the period covers all of 2024 and first half of 2025, we split the data into two groups and compare them: Baseline: 2024 (Jan–Dec) Comparison: 2025 (Jan–Jun) This let us check whether some SSIC groups are growing faster in 2025, or whether patterns are stable.
 
 ## objective
 
@@ -69,7 +65,7 @@ For this exercise, the two datasets used are as follows:
 A total of **six** R packages will be used in this exercise.
 
 | Package | Description |
-|------------------------------------|------------------------------------|
+|----|----|
 | [sf](https://r-spatial.github.io/sf/) | Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data. |
 | [raster](https://rspatial.org/raster/) | Tools for reading, writing, and analyzing raster (gridded) spatial data in R |
 | [spatstat](https://spatstat.org/) | Provides useful functions for SPPA, including kcross, Lcross etc. |
@@ -78,16 +74,15 @@ A total of **six** R packages will be used in this exercise.
 | [tidyverse](https://www.tidyverse.org/) | A collection of R packages for data import, cleaning, transformation, and visualization (e.g., readr, dplyr, tidyr, ggplot2). |
 | [terra](https://rspatial.github.io/terra/index.html) | Modern package for raster/vector spatial data and will be used to convert spastat outputs into terra format. |
 
-| stopp for 2rd order ST SPPA |
+| stopp for 2rd order ST SPPA \|
 
-| stpp |
+| stpp \|
 
-| magick for animation |
+| magick for animation \|
 
+| fs for renaming \|
 
-| fs for renaming |
-
-:   {tbl-colwidths="\[15,85\]"}
+: {tbl-colwidths="\[15,85\]"}
 
 After installation via `install.packages()`, we load them into R environment using the code below.
 
@@ -155,8 +150,6 @@ write_rds(mpsz_cl,
           "data/geospatial/mpsz_cl.rds")
 ```
 
-
-
 ```{r}
 mpsz_cl <- read_rds("data/geospatial/mpsz_cl.rds")
 summary(mpsz_cl)
@@ -167,11 +160,9 @@ tm_shape(mpsz_cl) +
 
 ### Business registry
 
-we realise that `preimiarly ssic code has missing leading 0 probably due to transmission and registartion date date type is ymd.
+we realise that \`preimiarly ssic code has missing leading 0 probably due to transmission and registartion date date type is ymd.
 
-Inside map_dfr(), vroom(.x) → reads each CSV
-filter(between(...)) → keeps only rows in the date window.
-map_dfr() → row-binds all filtered CSVs into one tibble (files_fl).
+Inside map_dfr(), vroom(.x) → reads each CSV filter(between(...)) → keeps only rows in the date window. map_dfr() → row-binds all filtered CSVs into one tibble (files_fl).
 
 ```{r}
 dir <- "data/aspatial/rawdata" 
@@ -184,7 +175,6 @@ files_fl <- files %>%
                         as.Date("2024-01-01"),
                         as.Date("2025-06-30"))))
 ```
-
 
 quick review on the column types
 
@@ -200,9 +190,7 @@ any(files_fl$registration_incorporation_date < ymd("2024-01-01") |files_fl$regis
 any(duplicated(files_fl))
 ```
 
-we realise that `preimiarly ssic code has missing leading 0 probably due to nuemvic type. so we pad the 0 to the code and 
-create new column where 2d is extracted per row.
-
+we realise that \`preimiarly ssic code has missing leading 0 probably due to nuemvic type. so we pad the 0 to the code and create new column where 2d is extracted per row.
 
 ```{r}
 files_ssic <-files_fl%>%
@@ -210,8 +198,7 @@ files_ssic <-files_fl%>%
   mutate(`ssic_2d` = str_sub(`ssic_5d`,1, 2))
 ```
 
-it is time to rerragnet the columsn since there were 55 columsns after the ssic_2d, we select the following columns. 
-uen, name, reg date, type, post code, and ssic 5d, ssic 2d
+it is time to rerragnet the columsn since there were 55 columsns after the ssic_2d, we select the following columns. uen, name, reg date, type, post code, and ssic 5d, ssic 2d
 
 ```{r}
 files_sl <- files_ssic %>%
@@ -227,16 +214,12 @@ ssic_lookup <- read_excel("data/aspatial/ssic2020-classification-structure.xlsx"
   filter(str_length(ssic_code) == 2)
 ```
 
-
-
 left join with main data.
+
 ```{r}
 files_sl_jn <- files_sl%>%
   left_join(ssic_lookup, by = c("ssic_2d" = "ssic_code"))
 ```
-
-
-
 
 check the number of registeration per business group.
 
@@ -250,6 +233,7 @@ files_sl_ct<- files_sl_jn %>%
 top_10 <-head(files_sl_ct, 10)
 top_10
 ```
+
 plot a bar chart for the top 10 busienss type
 
 ```{r, fig.width=14}
@@ -265,9 +249,6 @@ top_10 %>%
   theme(plot.title = element_text(size = 16, face = "bold"))
 ```
 
-
-
-
 ```{r}
 write.csv(files_sl_jn,"data/aspatial/files_sl_jn.csv")
 ```
@@ -277,19 +258,13 @@ files_sl_jn <-vroom("data/aspatial/files_sl_jn.csv")
 glimpse(files_sl_jn)
 ```
 
-
-
-
-
-Narrow down to top 3–5 SSICs for deep-dive analysis SPPA/ST-SPPA 
-
-
-
+Narrow down to top 3–5 SSICs for deep-dive analysis SPPA/ST-SPPA
 :::
 
 ## Geospatial Data Wrangling
 
 first tidy up the postal code, some are missing lead "0"
+
 ```{r}
 files_geo<-files_sl_jn%>%
   mutate(`address` = str_pad(postal_code, width = 6, side = "left", pad = "0"))
@@ -324,15 +299,7 @@ glimspe()
 #cp_geo  <- get_geocode_by_ssic(files_geo, "62") #	COMPUTER PROGRAMMING
 ```
 
-
-
 ### Converting sf Point Data Frames to PPP
-
-
-
-
-
-
 
 Here we use `as.ppp()` of spatstat package to covert the point data `bsns_sf` to ppp file, confirm the change using `class()` and have a quick overview of the data statistics via `summary()`.
 
