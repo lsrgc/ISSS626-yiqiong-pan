@@ -428,8 +428,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">11</span> Summary</a></li>
   <li><a href="#spatio-temporal-point-patterns-analysis-stpp-methods" id="toc-spatio-temporal-point-patterns-analysis-stpp-methods" class="nav-link" data-scroll-target="#spatio-temporal-point-patterns-analysis-stpp-methods"><span class="header-section-number">12</span> Spatio-temporal Point Patterns Analysis: stpp methods</a>
   <ul class="collapse">
-  <li><a href="#computing-spatio-temporal-k-function" id="toc-computing-spatio-temporal-k-function" class="nav-link" data-scroll-target="#computing-spatio-temporal-k-function"><span class="header-section-number">12.1</span> Computing spatio-temporal k-function</a></li>
-  <li><a href="#intepration-rule" id="toc-intepration-rule" class="nav-link" data-scroll-target="#intepration-rule"><span class="header-section-number">12.2</span> Intepration Rule</a></li>
+  <li><a href="#preparing-spatio-temporal-point-process-object-of-stpp" id="toc-preparing-spatio-temporal-point-process-object-of-stpp" class="nav-link" data-scroll-target="#preparing-spatio-temporal-point-process-object-of-stpp"><span class="header-section-number">12.1</span> Preparing spatio-temporal point process object of stpp</a></li>
+  <li><a href="#computing-spatio-temporal-k-function" id="toc-computing-spatio-temporal-k-function" class="nav-link" data-scroll-target="#computing-spatio-temporal-k-function"><span class="header-section-number">12.2</span> Computing spatio-temporal k-function</a></li>
+  <li><a href="#intepration-rule" id="toc-intepration-rule" class="nav-link" data-scroll-target="#intepration-rule"><span class="header-section-number">12.3</span> Intepration Rule</a></li>
   </ul></li>
   <li><a href="#reference" id="toc-reference" class="nav-link" data-scroll-target="#reference"><span class="header-section-number">13</span> Reference</a></li>
   </ul>
@@ -1283,7 +1284,7 @@ Evaluation
 <li><p>Where: Activity begins in the <strong>north-west</strong>, intensifies in the <strong>south</strong>, and persists into the <strong>south-east</strong>.</p></li>
 </ul>
 <p>The animated maps below compare STKDE using default bandwidths (left) versus bandwidths selected via bootstrap resampling (right).</p>
-<div class="cell quarto-layout-panel" data-layout-align="center" data-layout-ncol="2">
+<div class="cell quarto-layout-panel" data-layout-ncol="2" data-layout-align="center">
 <div class="quarto-layout-row">
 <div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
 <div class="quarto-figure quarto-figure-center">
@@ -1307,7 +1308,8 @@ Evaluation
 <section id="spatio-temporal-point-patterns-analysis-stpp-methods" class="level2" data-number="12">
 <h2 data-number="12" class="anchored" data-anchor-id="spatio-temporal-point-patterns-analysis-stpp-methods"><span class="header-section-number">12</span> Spatio-temporal Point Patterns Analysis: stpp methods</h2>
 <p>Here we try out the second order ST-SPPA under stpp methods.</p>
-<p>###Preparing spatio-temporal point process object of stpp</p>
+<section id="preparing-spatio-temporal-point-process-object-of-stpp" class="level3" data-number="12.1">
+<h3 data-number="12.1" class="anchored" data-anchor-id="preparing-spatio-temporal-point-process-object-of-stpp"><span class="header-section-number">12.1</span> Preparing spatio-temporal point process object of stpp</h3>
 <ol type="1">
 <li>Extract fire event coordinates</li>
 <li>Construct a data frame with x, y, and an integer time index t</li>
@@ -1333,16 +1335,17 @@ Evaluation
 </div>
 </div>
 </div>
-<section id="computing-spatio-temporal-k-function" class="level3" data-number="12.1">
-<h3 data-number="12.1" class="anchored" data-anchor-id="computing-spatio-temporal-k-function"><span class="header-section-number">12.1</span> Computing spatio-temporal k-function</h3>
+</section>
+<section id="computing-spatio-temporal-k-function" class="level3" data-number="12.2">
+<h3 data-number="12.2" class="anchored" data-anchor-id="computing-spatio-temporal-k-function"><span class="header-section-number">12.2</span> Computing spatio-temporal k-function</h3>
 <p>STIKhat() of stpp package is used to compute space-time inhomogeneous K-function.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>kbb_stik <span class="ot">&lt;-</span> <span class="fu">STIKhat</span>(fire_stpp)</span>
 <span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plotK</span>(kbb_stik)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="intepration-rule" class="level3" data-number="12.2">
-<h3 data-number="12.2" class="anchored" data-anchor-id="intepration-rule"><span class="header-section-number">12.2</span> Intepration Rule</h3>
+<section id="intepration-rule" class="level3" data-number="12.3">
+<h3 data-number="12.3" class="anchored" data-anchor-id="intepration-rule"><span class="header-section-number">12.3</span> Intepration Rule</h3>
 <ul>
 <li><p>High contour values at small spatial (uu) and temporal (vv) distances: strong clustering (events occur close together in space and time).</p></li>
 <li><p>Flat or low contour values :random distribution or weak clustering.</p></li>
