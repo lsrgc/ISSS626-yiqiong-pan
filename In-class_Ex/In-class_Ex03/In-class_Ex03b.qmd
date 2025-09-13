@@ -1,0 +1,25 @@
+---
+title: "In-class Exercise 3b: Exploring Government Date"
+author: "Yiqiong PAN"
+date: "September 13, 2025"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  freeze: true
+---
+
+```{r}
+pacman::p_load(tidyverse, sf, tmap, httr)
+```
+
+
+```{r}
+folder_path <- "data/aspatial/acra"
+file_list <- list.files(path = folder_path,
+                        pattern = "^ARCA*.*\\.csv$",
+                        full.name = TRUE)
+acra_data <- file_list %>%
+  map_dfr(read_csv)
+```
