@@ -303,77 +303,77 @@
   {
     "objectID": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html",
     "href": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html",
-    "title": "04:Spatial Weights and Applications",
+    "title": "04: Spatial Weights and Applications",
     "section": "",
-    "text": "In this exercise, we apply spatial weights in a practical implementation in R. Properly defining and weighting neighbours is crucial because spatial data are rarely independent, often violating the independence assumptions of classical statistics (e.g., regression or ANOVA). By weighting spatial data appropriately, we can understand who influences whom and how strong the influence is, while also accounting for spatial autocorrelation and avoiding biased outcomes."
+    "text": "In this exercise, we apply spatial weights in a practical implementation in R.\nSpatial data are rarely independent which often violates the independence assumptions of classical statistics (e.g., regression or ANOVA).Properly defining and weighting neighbours is crucial to account for spatial autocorrelation and avoid biased outcomes. Through it, we can understand who influences whom and how strong the influence is."
   },
   {
     "objectID": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#overview",
     "href": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#overview",
-    "title": "04:Spatial Weights and Applications",
+    "title": "04: Spatial Weights and Applications",
     "section": "",
-    "text": "In this exercise, we apply spatial weights in a practical implementation in R. Properly defining and weighting neighbours is crucial because spatial data are rarely independent, often violating the independence assumptions of classical statistics (e.g., regression or ANOVA). By weighting spatial data appropriately, we can understand who influences whom and how strong the influence is, while also accounting for spatial autocorrelation and avoiding biased outcomes."
+    "text": "In this exercise, we apply spatial weights in a practical implementation in R.\nSpatial data are rarely independent which often violates the independence assumptions of classical statistics (e.g., regression or ANOVA).Properly defining and weighting neighbours is crucial to account for spatial autocorrelation and avoid biased outcomes. Through it, we can understand who influences whom and how strong the influence is."
   },
   {
     "objectID": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#the-study-area-and-data",
     "href": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#the-study-area-and-data",
-    "title": "04:Spatial Weights and Applications",
+    "title": "04: Spatial Weights and Applications",
     "section": "2 The Study Area and Data",
-    "text": "2 The Study Area and Data\nThe following two data sets are used here:\n\nGeospatial data: Hunan county boundary layer in Shapefile format\nAspatial data: Hunan_2012.csv for Hunan’s local development indicators in 2012.\n\n\n2.1 Getting started\nA total of five R packages will be used in this exercise.\n\n\n\n\n\n\n\nPackage\nDescription\n\n\n\n\nsf\nSimple Features, a new R package which handles importing, managing, and processing vector-based geospatial data.\n\n\nspdep\nTools for computing spatial weights and calculating spatially lagged variables.\n\n\nknitr\nProvides useful functions for dynamic document generation.\n\n\ntmap\nCreates cartographic quality static or interactive choropleth maps.\n\n\ntidyverse\nA collection of R packages for data import, cleaning, transformation, and visualisation (e.g., readr, dplyr, tidyr, ggplot2).\n\n\n\nAfter installation via install.packages(), we load them into R environment using the code below.\n\npacman:: p_load(sf, spdep, knitr, tmap, tidyverse)"
+    "text": "2 The Study Area and Data\nThe following two data sets are used here:\n\nGeospatial data: Hunan county boundary layer in shapefile format\nAspatial data: Hunan_2012.csv for Hunan’s local development indicators in 2012.\n\n\n2.1 Getting started\nA total of five R packages will be used in this exercise.\n\n\n\n\n\n\n\nPackage\nDescription\n\n\n\n\nsf\nSimple Features, a new R package which handles importing, managing, and processing vector-based geospatial data.\n\n\nspdep\nTools for computing spatial weights and calculating spatially lagged variables.\n\n\nknitr\nProvides useful functions for dynamic document generation.\n\n\ntmap\nCreates cartographic quality static or interactive choropleth maps.\n\n\ntidyverse\nA collection of R packages for data import, cleaning, transformation, and visualisation (e.g., readr, dplyr, tidyr, ggplot2).\n\n\n\nAfter installation via install.packages(), we load them into R environment using the code below.\n\npacman:: p_load(sf, spdep, knitr, tmap, tidyverse)"
   },
   {
     "objectID": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#importing-data-into-r",
     "href": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#importing-data-into-r",
-    "title": "04:Spatial Weights and Applications",
+    "title": "04: Spatial Weights and Applications",
     "section": "3 Importing Data into R",
-    "text": "3 Importing Data into R\nIn this section, we import above-mentioned two data sets into the R environment by using st_read() from sf package for geospatial data and read_csv() from readr of tiyeverse family.\n\n3.1 Importing sharefile File\nThe code chunk below uses st_read() to import the Hunan county layer in sharefile format to R as an sf object for spatial analysis.\n\nhunan &lt;- st_read(dsn = \"data/geospatial\",\n                layer = \"Hunan\")\n\nReading layer `Hunan' from data source \n  `C:\\lsrgc\\ISSS626-yiqiong-pan\\Hands-on_Ex\\Hands-on_Ex04\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 88 features and 7 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 108.7831 ymin: 24.6342 xmax: 114.2544 ymax: 30.12812\nGeodetic CRS:  WGS 84\n\nglimpse(hunan)\n\nRows: 88\nColumns: 8\n$ NAME_2     &lt;chr&gt; \"Changde\", \"Changde\", \"Changde\", \"Changde\", \"Changde\", \"Cha…\n$ ID_3       &lt;int&gt; 21098, 21100, 21101, 21102, 21103, 21104, 21109, 21110, 211…\n$ NAME_3     &lt;chr&gt; \"Anxiang\", \"Hanshou\", \"Jinshi\", \"Li\", \"Linli\", \"Shimen\", \"L…\n$ ENGTYPE_3  &lt;chr&gt; \"County\", \"County\", \"County City\", \"County\", \"County\", \"Cou…\n$ Shape_Leng &lt;dbl&gt; 1.869074, 2.360691, 1.425620, 3.474325, 2.289506, 4.171918,…\n$ Shape_Area &lt;dbl&gt; 0.10056190, 0.19978745, 0.05302413, 0.18908121, 0.11450357,…\n$ County     &lt;chr&gt; \"Anxiang\", \"Hanshou\", \"Jinshi\", \"Li\", \"Linli\", \"Shimen\", \"L…\n$ geometry   &lt;POLYGON [°]&gt; POLYGON ((112.0625 29.75523..., POLYGON ((112.2288 …\n\n\n\n\n3.2 Importing csv File\nThe code chunk uses read_csv() of readr to import the attribute table of local development indicators in 2012.\n\nhunan2012 &lt;- read_csv(\"data/aspatial/Hunan_2012.csv\")\nglimpse(hunan2012)\n\nRows: 88\nColumns: 29\n$ County      &lt;chr&gt; \"Anhua\", \"Anren\", \"Anxiang\", \"Baojing\", \"Chaling\", \"Changn…\n$ City        &lt;chr&gt; \"Yiyang\", \"Chenzhou\", \"Changde\", \"Hunan West\", \"Zhuzhou\", …\n$ avg_wage    &lt;dbl&gt; 30544, 28058, 31935, 30843, 31251, 28518, 54540, 28597, 33…\n$ deposite    &lt;dbl&gt; 10967.0, 4598.9, 5517.2, 2250.0, 8241.4, 10860.0, 24332.0,…\n$ FAI         &lt;dbl&gt; 6831.7, 6386.1, 3541.0, 1005.4, 6508.4, 7920.0, 33624.0, 1…\n$ Gov_Rev     &lt;dbl&gt; 456.72, 220.57, 243.64, 192.59, 620.19, 769.86, 5350.00, 1…\n$ Gov_Exp     &lt;dbl&gt; 2703.0, 1454.7, 1779.5, 1379.1, 1947.0, 2631.6, 7885.5, 11…\n$ GDP         &lt;dbl&gt; 13225.0, 4941.2, 12482.0, 4087.9, 11585.0, 19886.0, 88009.…\n$ GDPPC       &lt;dbl&gt; 14567, 12761, 23667, 14563, 20078, 24418, 88656, 10132, 17…\n$ GIO         &lt;dbl&gt; 9276.90, 4189.20, 5108.90, 3623.50, 9157.70, 37392.00, 513…\n$ Loan        &lt;dbl&gt; 3954.90, 2555.30, 2806.90, 1253.70, 4287.40, 4242.80, 4053…\n$ NIPCR       &lt;dbl&gt; 3528.3, 3271.8, 7693.7, 4191.3, 3887.7, 9528.0, 17070.0, 3…\n$ Bed         &lt;dbl&gt; 2718, 970, 1931, 927, 1449, 3605, 3310, 582, 2170, 2179, 1…\n$ Emp         &lt;dbl&gt; 494.310, 290.820, 336.390, 195.170, 330.290, 548.610, 670.…\n$ EmpR        &lt;dbl&gt; 441.4, 255.4, 270.5, 145.6, 299.0, 415.1, 452.0, 127.6, 21…\n$ EmpRT       &lt;dbl&gt; 338.0, 99.4, 205.9, 116.4, 154.0, 273.7, 219.4, 94.4, 174.…\n$ Pri_Stu     &lt;dbl&gt; 54.175, 33.171, 19.584, 19.249, 33.906, 81.831, 59.151, 18…\n$ Sec_Stu     &lt;dbl&gt; 32.830, 17.505, 17.819, 11.831, 20.548, 44.485, 39.685, 7.…\n$ Household   &lt;dbl&gt; 290.4, 104.6, 148.1, 73.2, 148.7, 211.2, 300.3, 76.1, 139.…\n$ Household_R &lt;dbl&gt; 234.5, 121.9, 135.4, 69.9, 139.4, 211.7, 248.4, 59.6, 110.…\n$ NOIP        &lt;dbl&gt; 101, 34, 53, 18, 106, 115, 214, 17, 55, 70, 44, 84, 74, 17…\n$ Pop_R       &lt;dbl&gt; 670.3, 243.2, 346.0, 184.1, 301.6, 448.2, 475.1, 189.6, 31…\n$ RSCG        &lt;dbl&gt; 5760.60, 2386.40, 3957.90, 768.04, 4009.50, 5220.40, 22604…\n$ Pop_T       &lt;dbl&gt; 910.8, 388.7, 528.3, 281.3, 578.4, 816.3, 998.6, 256.7, 45…\n$ Agri        &lt;dbl&gt; 4942.253, 2357.764, 4524.410, 1118.561, 3793.550, 6430.782…\n$ Service     &lt;dbl&gt; 5414.5, 3814.1, 14100.0, 541.8, 5444.0, 13074.6, 17726.6, …\n$ Disp_Inc    &lt;dbl&gt; 12373, 16072, 16610, 13455, 20461, 20868, 183252, 12379, 1…\n$ RORP        &lt;dbl&gt; 0.7359464, 0.6256753, 0.6549309, 0.6544614, 0.5214385, 0.5…\n$ ROREmp      &lt;dbl&gt; 0.8929619, 0.8782065, 0.8041262, 0.7460163, 0.9052651, 0.7…\n\n\n\n\n3.3 Performing Relational Join\nThe code chunk uses left_join() of dplyr package from tidyverse to append the attribute table of hunan the spatial polygon data frame with the attribute fields of hunan2012 data frame by = join_by(County) and selects required fields.\n\nhunan &lt;- left_join(hunan, hunan2012) %&gt;%\n   select(1:4, 7, 15)"
+    "text": "3 Importing Data into R\nIn this section, we import above-mentioned two data sets into the R environment by using st_read() from sf package for geospatial data and read_csv() from readr of tiyeverse family.\n\n3.1 Importing sharefile File\nThe code chunk below uses st_read() to import the Hunan county layer in sharefile format to R as an sf object for spatial analysis.\n\nhunan &lt;- st_read(dsn = \"data/geospatial\",\n                layer = \"Hunan\")\n\nReading layer `Hunan' from data source \n  `C:\\lsrgc\\ISSS626-yiqiong-pan\\Hands-on_Ex\\Hands-on_Ex04\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 88 features and 7 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 108.7831 ymin: 24.6342 xmax: 114.2544 ymax: 30.12812\nGeodetic CRS:  WGS 84\n\nglimpse(hunan)\n\nRows: 88\nColumns: 8\n$ NAME_2     &lt;chr&gt; \"Changde\", \"Changde\", \"Changde\", \"Changde\", \"Changde\", \"Cha…\n$ ID_3       &lt;int&gt; 21098, 21100, 21101, 21102, 21103, 21104, 21109, 21110, 211…\n$ NAME_3     &lt;chr&gt; \"Anxiang\", \"Hanshou\", \"Jinshi\", \"Li\", \"Linli\", \"Shimen\", \"L…\n$ ENGTYPE_3  &lt;chr&gt; \"County\", \"County\", \"County City\", \"County\", \"County\", \"Cou…\n$ Shape_Leng &lt;dbl&gt; 1.869074, 2.360691, 1.425620, 3.474325, 2.289506, 4.171918,…\n$ Shape_Area &lt;dbl&gt; 0.10056190, 0.19978745, 0.05302413, 0.18908121, 0.11450357,…\n$ County     &lt;chr&gt; \"Anxiang\", \"Hanshou\", \"Jinshi\", \"Li\", \"Linli\", \"Shimen\", \"L…\n$ geometry   &lt;POLYGON [°]&gt; POLYGON ((112.0625 29.75523..., POLYGON ((112.2288 …\n\ntm_shape(hunan) +\n  tm_polygons() +\n  tm_text(\"NAME_3\", size = 0.4)\n\n\n\n\n\n\n\n\n\n\n3.2 Importing csv File\nThe code chunk uses read_csv() of readr to import the attribute table of local development indicators in 2012.\n\nhunan2012 &lt;- read_csv(\"data/aspatial/Hunan_2012.csv\")\nglimpse(hunan2012)\n\nRows: 88\nColumns: 29\n$ County      &lt;chr&gt; \"Anhua\", \"Anren\", \"Anxiang\", \"Baojing\", \"Chaling\", \"Changn…\n$ City        &lt;chr&gt; \"Yiyang\", \"Chenzhou\", \"Changde\", \"Hunan West\", \"Zhuzhou\", …\n$ avg_wage    &lt;dbl&gt; 30544, 28058, 31935, 30843, 31251, 28518, 54540, 28597, 33…\n$ deposite    &lt;dbl&gt; 10967.0, 4598.9, 5517.2, 2250.0, 8241.4, 10860.0, 24332.0,…\n$ FAI         &lt;dbl&gt; 6831.7, 6386.1, 3541.0, 1005.4, 6508.4, 7920.0, 33624.0, 1…\n$ Gov_Rev     &lt;dbl&gt; 456.72, 220.57, 243.64, 192.59, 620.19, 769.86, 5350.00, 1…\n$ Gov_Exp     &lt;dbl&gt; 2703.0, 1454.7, 1779.5, 1379.1, 1947.0, 2631.6, 7885.5, 11…\n$ GDP         &lt;dbl&gt; 13225.0, 4941.2, 12482.0, 4087.9, 11585.0, 19886.0, 88009.…\n$ GDPPC       &lt;dbl&gt; 14567, 12761, 23667, 14563, 20078, 24418, 88656, 10132, 17…\n$ GIO         &lt;dbl&gt; 9276.90, 4189.20, 5108.90, 3623.50, 9157.70, 37392.00, 513…\n$ Loan        &lt;dbl&gt; 3954.90, 2555.30, 2806.90, 1253.70, 4287.40, 4242.80, 4053…\n$ NIPCR       &lt;dbl&gt; 3528.3, 3271.8, 7693.7, 4191.3, 3887.7, 9528.0, 17070.0, 3…\n$ Bed         &lt;dbl&gt; 2718, 970, 1931, 927, 1449, 3605, 3310, 582, 2170, 2179, 1…\n$ Emp         &lt;dbl&gt; 494.310, 290.820, 336.390, 195.170, 330.290, 548.610, 670.…\n$ EmpR        &lt;dbl&gt; 441.4, 255.4, 270.5, 145.6, 299.0, 415.1, 452.0, 127.6, 21…\n$ EmpRT       &lt;dbl&gt; 338.0, 99.4, 205.9, 116.4, 154.0, 273.7, 219.4, 94.4, 174.…\n$ Pri_Stu     &lt;dbl&gt; 54.175, 33.171, 19.584, 19.249, 33.906, 81.831, 59.151, 18…\n$ Sec_Stu     &lt;dbl&gt; 32.830, 17.505, 17.819, 11.831, 20.548, 44.485, 39.685, 7.…\n$ Household   &lt;dbl&gt; 290.4, 104.6, 148.1, 73.2, 148.7, 211.2, 300.3, 76.1, 139.…\n$ Household_R &lt;dbl&gt; 234.5, 121.9, 135.4, 69.9, 139.4, 211.7, 248.4, 59.6, 110.…\n$ NOIP        &lt;dbl&gt; 101, 34, 53, 18, 106, 115, 214, 17, 55, 70, 44, 84, 74, 17…\n$ Pop_R       &lt;dbl&gt; 670.3, 243.2, 346.0, 184.1, 301.6, 448.2, 475.1, 189.6, 31…\n$ RSCG        &lt;dbl&gt; 5760.60, 2386.40, 3957.90, 768.04, 4009.50, 5220.40, 22604…\n$ Pop_T       &lt;dbl&gt; 910.8, 388.7, 528.3, 281.3, 578.4, 816.3, 998.6, 256.7, 45…\n$ Agri        &lt;dbl&gt; 4942.253, 2357.764, 4524.410, 1118.561, 3793.550, 6430.782…\n$ Service     &lt;dbl&gt; 5414.5, 3814.1, 14100.0, 541.8, 5444.0, 13074.6, 17726.6, …\n$ Disp_Inc    &lt;dbl&gt; 12373, 16072, 16610, 13455, 20461, 20868, 183252, 12379, 1…\n$ RORP        &lt;dbl&gt; 0.7359464, 0.6256753, 0.6549309, 0.6544614, 0.5214385, 0.5…\n$ ROREmp      &lt;dbl&gt; 0.8929619, 0.8782065, 0.8041262, 0.7460163, 0.9052651, 0.7…\n\nclass(hunan2012)\n\n[1] \"spec_tbl_df\" \"tbl_df\"      \"tbl\"         \"data.frame\" \n\n\n\n\n3.3 Performing Relational Join\nThe code chunk uses left_join() of dplyr package from tidyverse to append the attribute table of hunan the spatial polygon data frame with the attribute fields of hunan2012 data frame by = join_by(County) and selects required fields.\n\nhunan &lt;- left_join(hunan, hunan2012) %&gt;%\n   select(1:4, 7, 15)"
   },
   {
     "objectID": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#visualising-reginal-development-indicator",
     "href": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#visualising-reginal-development-indicator",
-    "title": "04:Spatial Weights and Applications",
+    "title": "04: Spatial Weights and Applications",
     "section": "4 Visualising Reginal Development Indicator",
     "text": "4 Visualising Reginal Development Indicator\nNext we use tm_polygons() to create a base map and use qtm() also from tmap to create a choropleth map to show the distribution of GDP per capita GDPPC 2012.\n\nbasemap &lt;- tm_shape(hunan) +\n  tm_polygons() +\n  tm_text(\"NAME_3\", size = 0.5)\n\ngdppc &lt;- qtm(hunan, \"GDPPC\") +\n  tm_layout(\n    legend.position = c(\"left\", \"bottom\"))\ntmap_arrange(basemap, gdppc, asp = 1, ncol =2)"
   },
   {
     "objectID": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#computing-contiguity-spatial-weights",
     "href": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#computing-contiguity-spatial-weights",
-    "title": "04:Spatial Weights and Applications",
+    "title": "04: Spatial Weights and Applications",
     "section": "5 Computing Contiguity Spatial Weights",
     "text": "5 Computing Contiguity Spatial Weights\nWe define the neighbours (who influences whom) using: Contiguity(shared border), Distance(within k kilometres), Trajectory: order or flow.\nWe weight the neighbours (how strong the influence is) using: Binary (1/0), Distance decay (closer neighbours carry more weight), Strength-based (combined measures, such as shared boundary length, population, or flows)."
   },
   {
     "objectID": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#computing-distance-based-neighbours",
     "href": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#computing-distance-based-neighbours",
-    "title": "04:Spatial Weights and Applications",
+    "title": "04: Spatial Weights and Applications",
     "section": "6 Computing Distance Based Neighbours",
     "text": "6 Computing Distance Based Neighbours"
   },
   {
     "objectID": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#weights-based-on-idw-inversed-distance-method",
     "href": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#weights-based-on-idw-inversed-distance-method",
-    "title": "04:Spatial Weights and Applications",
+    "title": "04: Spatial Weights and Applications",
     "section": "7 Weights Based on IDW (Inversed Distance Method)",
     "text": "7 Weights Based on IDW (Inversed Distance Method)"
   },
   {
     "objectID": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#row-standardised-weights-matrix",
     "href": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#row-standardised-weights-matrix",
-    "title": "04:Spatial Weights and Applications",
+    "title": "04: Spatial Weights and Applications",
     "section": "8 Row-standardised Weights Matrix",
     "text": "8 Row-standardised Weights Matrix"
   },
   {
     "objectID": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#application-of-spatial-weight-matrix",
     "href": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#application-of-spatial-weight-matrix",
-    "title": "04:Spatial Weights and Applications",
-    "section": "9 APplication of Spatial Weight Matrix",
-    "text": "9 APplication of Spatial Weight Matrix"
+    "title": "04: Spatial Weights and Applications",
+    "section": "9 Application of Spatial Weight Matrix",
+    "text": "9 Application of Spatial Weight Matrix"
   },
   {
     "objectID": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#reference",
     "href": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#reference",
-    "title": "04:Spatial Weights and Applications",
+    "title": "04: Spatial Weights and Applications",
     "section": "10 Reference",
     "text": "10 Reference\nKam, T. S. 8 Spatial Weights and Applications. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap08"
   }

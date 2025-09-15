@@ -9,7 +9,7 @@
 <meta name="author" content="Yiqiong PAN">
 <meta name="dcterms.date" content="2025-09-15">
 
-<title>04:Spatial Weights and Applications – ISSS626-yiqiong-pan</title>
+<title>04: Spatial Weights and Applications – ISSS626-yiqiong-pan</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -419,7 +419,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview"><span class="header-section-number">1</span> OVerview</a></li>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview"><span class="header-section-number">1</span> Overview</a></li>
   <li><a href="#the-study-area-and-data" id="toc-the-study-area-and-data" class="nav-link" data-scroll-target="#the-study-area-and-data"><span class="header-section-number">2</span> The Study Area and Data</a>
   <ul class="collapse">
   <li><a href="#getting-started" id="toc-getting-started" class="nav-link" data-scroll-target="#getting-started"><span class="header-section-number">2.1</span> Getting started</a></li>
@@ -435,7 +435,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#computing-distance-based-neighbours" id="toc-computing-distance-based-neighbours" class="nav-link" data-scroll-target="#computing-distance-based-neighbours"><span class="header-section-number">6</span> Computing Distance Based Neighbours</a></li>
   <li><a href="#weights-based-on-idw-inversed-distance-method" id="toc-weights-based-on-idw-inversed-distance-method" class="nav-link" data-scroll-target="#weights-based-on-idw-inversed-distance-method"><span class="header-section-number">7</span> Weights Based on IDW (Inversed Distance Method)</a></li>
   <li><a href="#row-standardised-weights-matrix" id="toc-row-standardised-weights-matrix" class="nav-link" data-scroll-target="#row-standardised-weights-matrix"><span class="header-section-number">8</span> Row-standardised Weights Matrix</a></li>
-  <li><a href="#application-of-spatial-weight-matrix" id="toc-application-of-spatial-weight-matrix" class="nav-link" data-scroll-target="#application-of-spatial-weight-matrix"><span class="header-section-number">9</span> APplication of Spatial Weight Matrix</a></li>
+  <li><a href="#application-of-spatial-weight-matrix" id="toc-application-of-spatial-weight-matrix" class="nav-link" data-scroll-target="#application-of-spatial-weight-matrix"><span class="header-section-number">9</span> Application of Spatial Weight Matrix</a></li>
   <li><a href="#reference" id="toc-reference" class="nav-link" data-scroll-target="#reference"><span class="header-section-number">10</span> Reference</a></li>
   </ul>
 </nav>
@@ -446,7 +446,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">04:Spatial Weights and Applications</h1>
+<h1 class="title">04: Spatial Weights and Applications</h1>
 </div>
 
 
@@ -482,14 +482,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <section id="overview" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="overview"><span class="header-section-number">1</span> OVerview</h2>
-<p>In this exercise, we apply spatial weights in a practical implementation in R. Properly defining and weighting neighbours is crucial because spatial data are rarely independent, often violating the independence assumptions of classical statistics (e.g., regression or ANOVA). By weighting spatial data appropriately, we can understand who influences whom and how strong the influence is, while also accounting for spatial autocorrelation and avoiding biased outcomes.</p>
+<h2 data-number="1" class="anchored" data-anchor-id="overview"><span class="header-section-number">1</span> Overview</h2>
+<p>In this exercise, we apply spatial weights in a practical implementation in R.</p>
+<p>Spatial data are rarely independent which often violates the independence assumptions of classical statistics (e.g., regression or ANOVA).Properly defining and weighting neighbours is crucial to account for spatial autocorrelation and avoid biased outcomes. Through it, we can understand who influences whom and how strong the influence is.</p>
 </section>
 <section id="the-study-area-and-data" class="level2" data-number="2">
 <h2 data-number="2" class="anchored" data-anchor-id="the-study-area-and-data"><span class="header-section-number">2</span> The Study Area and Data</h2>
 <p>The following two data sets are used here:</p>
 <ol type="1">
-<li><p>Geospatial data: Hunan county boundary layer in Shapefile format</p></li>
+<li><p>Geospatial data: Hunan county boundary layer in <code>shapefile</code> format</p></li>
 <li><p>Aspatial data: <code>Hunan_2012.csv</code> for Hunan’s local development indicators in 2012.</p></li>
 </ol>
 <section id="getting-started" class="level3" data-number="2.1">
@@ -567,14 +568,24 @@ $ Shape_Area &lt;dbl&gt; 0.10056190, 0.19978745, 0.05302413, 0.18908121, 0.11450
 $ County     &lt;chr&gt; "Anxiang", "Hanshou", "Jinshi", "Li", "Linli", "Shimen", "L…
 $ geometry   &lt;POLYGON [°]&gt; POLYGON ((112.0625 29.75523..., POLYGON ((112.2288 …</code></pre>
 </div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(hunan) <span class="sc">+</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_text</span>(<span class="st">"NAME_3"</span>, <span class="at">size =</span> <span class="fl">0.4</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Hands-on_Ex04_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
 </div>
 </section>
 <section id="importing-csv-file" class="level3" data-number="3.2">
 <h3 data-number="3.2" class="anchored" data-anchor-id="importing-csv-file"><span class="header-section-number">3.2</span> Importing <code>csv</code> File</h3>
 <p>The code chunk uses read_csv() of <code>readr</code> to import the attribute table of local development indicators in 2012.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>hunan2012 <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/aspatial/Hunan_2012.csv"</span>)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(hunan2012)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>hunan2012 <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/aspatial/Hunan_2012.csv"</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(hunan2012)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Rows: 88
 Columns: 29
@@ -608,14 +619,18 @@ $ Disp_Inc    &lt;dbl&gt; 12373, 16072, 16610, 13455, 20461, 20868, 183252, 1237
 $ RORP        &lt;dbl&gt; 0.7359464, 0.6256753, 0.6549309, 0.6544614, 0.5214385, 0.5…
 $ ROREmp      &lt;dbl&gt; 0.8929619, 0.8782065, 0.8041262, 0.7460163, 0.9052651, 0.7…</code></pre>
 </div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(hunan2012)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "spec_tbl_df" "tbl_df"      "tbl"         "data.frame" </code></pre>
+</div>
 </div>
 </section>
 <section id="performing-relational-join" class="level3" data-number="3.3">
 <h3 data-number="3.3" class="anchored" data-anchor-id="performing-relational-join"><span class="header-section-number">3.3</span> Performing Relational Join</h3>
 <p>The code chunk uses <code>left_join()</code> of <code>dplyr</code> package from <code>tidyverse</code> to append the attribute table of <code>hunan</code> the spatial polygon data frame with the attribute fields of <code>hunan2012</code> data frame <code>by = join_by(County)</code> and selects required fields.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>hunan <span class="ot">&lt;-</span> <span class="fu">left_join</span>(hunan, hunan2012) <span class="sc">%&gt;%</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>   <span class="fu">select</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>, <span class="dv">7</span>, <span class="dv">15</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>hunan <span class="ot">&lt;-</span> <span class="fu">left_join</span>(hunan, hunan2012) <span class="sc">%&gt;%</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>   <span class="fu">select</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>, <span class="dv">7</span>, <span class="dv">15</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 </section>
@@ -623,14 +638,14 @@ $ ROREmp      &lt;dbl&gt; 0.8929619, 0.8782065, 0.8041262, 0.7460163, 0.9052651,
 <h2 data-number="4" class="anchored" data-anchor-id="visualising-reginal-development-indicator"><span class="header-section-number">4</span> Visualising Reginal Development Indicator</h2>
 <p>Next we use <code>tm_polygons()</code> to create a base map and use <code>qtm()</code> also from <code>tmap</code> to create a choropleth map to show the distribution of GDP per capita GDPPC 2012.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>basemap <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(hunan) <span class="sc">+</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_text</span>(<span class="st">"NAME_3"</span>, <span class="at">size =</span> <span class="fl">0.5</span>)</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>gdppc <span class="ot">&lt;-</span> <span class="fu">qtm</span>(hunan, <span class="st">"GDPPC"</span>) <span class="sc">+</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="fu">c</span>(<span class="st">"left"</span>, <span class="st">"bottom"</span>))</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(basemap, gdppc, <span class="at">asp =</span> <span class="dv">1</span>, <span class="at">ncol =</span><span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>basemap <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(hunan) <span class="sc">+</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_text</span>(<span class="st">"NAME_3"</span>, <span class="at">size =</span> <span class="fl">0.5</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>gdppc <span class="ot">&lt;-</span> <span class="fu">qtm</span>(hunan, <span class="st">"GDPPC"</span>) <span class="sc">+</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="fu">c</span>(<span class="st">"left"</span>, <span class="st">"bottom"</span>))</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(basemap, gdppc, <span class="at">asp =</span> <span class="dv">1</span>, <span class="at">ncol =</span><span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -655,7 +670,7 @@ $ ROREmp      &lt;dbl&gt; 0.8929619, 0.8782065, 0.8041262, 0.7460163, 0.9052651,
 <h2 data-number="8" class="anchored" data-anchor-id="row-standardised-weights-matrix"><span class="header-section-number">8</span> Row-standardised Weights Matrix</h2>
 </section>
 <section id="application-of-spatial-weight-matrix" class="level2" data-number="9">
-<h2 data-number="9" class="anchored" data-anchor-id="application-of-spatial-weight-matrix"><span class="header-section-number">9</span> APplication of Spatial Weight Matrix</h2>
+<h2 data-number="9" class="anchored" data-anchor-id="application-of-spatial-weight-matrix"><span class="header-section-number">9</span> Application of Spatial Weight Matrix</h2>
 </section>
 <section id="reference" class="level2" data-number="10">
 <h2 data-number="10" class="anchored" data-anchor-id="reference"><span class="header-section-number">10</span> Reference</h2>

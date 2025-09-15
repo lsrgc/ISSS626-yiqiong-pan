@@ -1,5 +1,5 @@
 ---
-title: "04:Spatial Weights and Applications"
+title: "04: Spatial Weights and Applications"
 author: "Yiqiong PAN"
 date: "Sep 15, 2025"
 date-modified: "last-modified"
@@ -16,19 +16,17 @@ format:
     number-depth: 4
 ---
 
-## OVerview
+## Overview
 
-In this exercise, we apply spatial weights in a practical implementation in R. 
+In this exercise, we apply spatial weights in a practical implementation in R.
 
 Spatial data are rarely independent which often violates the independence assumptions of classical statistics (e.g., regression or ANOVA).Properly defining and weighting neighbours is crucial to account for spatial autocorrelation and avoid biased outcomes. Through it, we can understand who influences whom and how strong the influence is.
-
-
 
 ## The Study Area and Data
 
 The following two data sets are used here:
 
-1.  Geospatial data: Hunan county boundary layer in Shapefile format
+1.  Geospatial data: Hunan county boundary layer in `shapefile` format
 
 2.  Aspatial data: `Hunan_2012.csv` for Hunan’s local development indicators in 2012.
 
@@ -54,19 +52,23 @@ pacman:: p_load(sf, spdep, knitr, tmap, tidyverse)
 
 ## Importing Data into R
 
-In this section, we import above-mentioned two data sets into the R environment by using `st_read()` from `sf` package for geospatial data and `read_csv()` from `readr` of `tiyeverse` family. 
-
+In this section, we import above-mentioned two data sets into the R environment by using `st_read()` from `sf` package for geospatial data and `read_csv()` from `readr` of `tiyeverse` family.
 
 ### Importing `sharefile` File
 
-The code chunk below uses `st_read()` to import the Hunan county layer in `sharefile` format to R as an `sf` object for spatial analysis. 
+The code chunk below uses `st_read()` to import the Hunan county layer in `sharefile` format to R as an `sf` object for spatial analysis.
 
 ```{r}
 hunan <- st_read(dsn = "data/geospatial",
                 layer = "Hunan")
 
 glimpse(hunan)
+
+tm_shape(hunan) +
+  tm_polygons() +
+  tm_text("NAME_3", size = 0.4)
 ```
+
 ### Importing `csv` File
 
 The code chunk uses read_csv() of `readr` to import the attribute table of local development indicators in 2012.
@@ -74,6 +76,7 @@ The code chunk uses read_csv() of `readr` to import the attribute table of local
 ```{r}
 hunan2012 <- read_csv("data/aspatial/Hunan_2012.csv")
 glimpse(hunan2012)
+class(hunan2012)
 ```
 
 ### Performing Relational Join
@@ -84,10 +87,10 @@ The code chunk uses `left_join()` of `dplyr` package from `tidyverse` to append 
 hunan <- left_join(hunan, hunan2012) %>%
    select(1:4, 7, 15)
 ```
+
 ## Visualising Reginal Development Indicator
 
 Next we use `tm_polygons()` to create a base map and use `qtm()` also from `tmap` to create a choropleth map to show the distribution of GDP per capita GDPPC 2012.
-
 
 ```{r, fig.height=12, fig.width=16}
 basemap <- tm_shape(hunan) +
@@ -108,15 +111,11 @@ We weight the neighbours (how strong the influence is) using: Binary (1/0), Dist
 
 ## Computing Distance Based Neighbours
 
-
-
 ## Weights Based on IDW (Inversed Distance Method)
-
 
 ## Row-standardised Weights Matrix
 
-## APplication of Spatial Weight Matrix
-
+## Application of Spatial Weight Matrix
 
 ## Reference
 
