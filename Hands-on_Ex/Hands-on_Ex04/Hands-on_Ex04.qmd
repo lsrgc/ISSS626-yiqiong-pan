@@ -1,0 +1,19 @@
+---
+title: "04:Spatial Weights and Applications"
+author: "Yiqiong PAN"
+date: "Sep 15, 2025"
+date-modified: "last-modified"
+execute:
+  echo: true #display the code
+  eval: true #run the code
+  message: false
+  warning: false
+  freeze: true # not render if nothing edited
+editor: visual
+format: 
+  html:
+    number-sections: true
+    number-depth: 4
+---
+
+
