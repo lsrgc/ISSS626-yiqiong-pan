@@ -1,5 +1,5 @@
 ---
-title: "In-class Exercise 3b: Tidy Government Data"
+title: "In-class Exercise 3b: Working with Open Government Data"
 author: "Yiqiong PAN"
 date: "September 13, 2025"
 date-modified: "last-modified"
@@ -9,11 +9,19 @@ execute:
   warning: false
   freeze: true
 ---
+## Tidying the Data
+
+###  Loading the Packages
+
+The code chunk below loads tidyverse, sf, tmap and httr into R environment.
 
 ```{r}
 pacman::p_load(tidyverse, sf, tmap, httr)
 ```
 
+### Importing the ACRA Data
+
+The code chunk imports ACRA data into R enviroment as tibble data frame. We also need to drop unnecessary fields, e.g., those with excessive missing values or containing only a single value.
 
 ```{r}
 folder_path <- "data/aspatial/acra"
@@ -22,14 +30,20 @@ file_list <- list.files(path = folder_path,
                         full.names = TRUE)
 
 acra_data <- file_list %>%
-  map_dfr(read_csv)
+  map_dfr(read_csv,show_col_types = FALSE)
 ```
+
+### Saving the ACRA Data
+
+The code chunk saves the consolidated ACRA data.
 
 ```{r}
 write_rds(acra_data, "data/rds/acra_data.rds") #rds not csv to avoid changing of field names..
 ```
 
-make sure the month ends at June.
+### Selecting the Target Business and Period
+
+The code chunk selects fields for the target business according to the SSIC code and registrations within the first six months of 2025. It renames long column names to ‘date’ for easier coding later, creates a new year column and both numeric and categorical month columns, and also tidies the postal code by adding a leading ‘0’.
 
 ```{r}
 biz_56111 <- acra_data %>%
@@ -43,6 +57,12 @@ biz_56111 <- acra_data %>%
          postal_code = str_pad(postal_code, width = 6, side = "left", pad = "0")) %>%
   filter(YEAR == 2025, MONTH_NUM <= 6)     
 ```
+
+### Performing Geocoding
+
+The code chunk extracts unique postal codes from the postal_code field of a tidied tibble, queries the **SLA OneMap** `Reverse Geocode API` for each postal code. Then it store results in two data frames:
+- `found`: records with valid geocode results.
+- `not_found`: records where postal codes are not returned by the API.
 
 ```{r}
 postcodes <- unique(biz_56111$postal_code)
@@ -72,14 +92,72 @@ for (pc in postcodes) {
 }
 ```
 
+### Clearning up the Geocoding
+
+The code chunk extracts the first 10 columns that contain useful information for this study.
+
+```{r}
+found <- found %>%
+  select(1:10)
+```
+
+### Combining the Business Data with Geo Info
+
+The code chunk appends the business sf data frame with location information. 
+
 ```{r}
 biz_56111 = biz_56111 %>%
   left_join (found,
              by = c('postal_code'= 'POSTAL'))
 ```
 
+
+### Saving the data
+
+The code chunk saves the data as rds format.
+
 ```{r}
-biz_56111 <- st_as_sf(biz_56111,
+write_rds(biz_56111, "data/rds/biz_56111.rds")
+```
+
+
+### Converting to `sf` Data Frame
+
+The code chunk converts the `tibble` data frame to an `sf` object and also assigns the correct EPSG.
+
+```{r}
+biz_56111_sf <- st_as_sf(biz_56111,
                       coords = c("X","Y"),
                       crs = 3414)
 ```
+
+## EDA
+
+
+### Visualising the Distribution
+
+The code chunk shows the new business registration number by month.`aes()` maps data frame columns to plot aesthetics, e.g. aes(x = var1, y = var2) maps var1 to the x-axis and var2 to the y-axis.
+
+```{r}
+ggplot(data = biz_56111_sf,
+       aes(x = MONTH_ABBR)) +
+  geom_bar()
+```
+
+### Visualsing the business
+
+The code chunk plots the new business in interactive map.
+```{r}
+tmap_mode('view')
+tm_shape(biz_56111_sf) + 
+  tm_dots()
+```
+
+The code chunk reverses the `tmap_mode` from interactive to static. 
+
+```{r}
+tmap_mode('plot')
+```
+
+
+
