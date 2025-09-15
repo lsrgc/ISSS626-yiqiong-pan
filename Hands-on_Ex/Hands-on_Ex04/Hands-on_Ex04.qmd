@@ -18,7 +18,11 @@ format:
 
 ## OVerview
 
-In this exercise, we apply spatial weights in a practical implementation in R. Properly defining and weighting neighbours is crucial because spatial data are rarely independent, often violating the independence assumptions of classical statistics (e.g., regression or ANOVA). By weighting spatial data appropriately, we can understand who influences whom and how strong the influence is, while also accounting for spatial autocorrelation and avoiding biased outcomes.
+In this exercise, we apply spatial weights in a practical implementation in R. 
+
+Spatial data are rarely independent which often violates the independence assumptions of classical statistics (e.g., regression or ANOVA).Properly defining and weighting neighbours is crucial to account for spatial autocorrelation and avoid biased outcomes. Through it, we can understand who influences whom and how strong the influence is.
+
+
 
 ## The Study Area and Data
 
