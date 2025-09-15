@@ -16,4 +16,104 @@ format:
     number-depth: 4
 ---
 
+## OVerview
 
+In this exercise, we apply spatial weights in a practical implementation in R. Properly defining and weighting neighbours is crucial because spatial data are rarely independent, often violating the independence assumptions of classical statistics (e.g., regression or ANOVA). By weighting spatial data appropriately, we can understand who influences whom and how strong the influence is, while also accounting for spatial autocorrelation and avoiding biased outcomes.
+
+## The Study Area and Data
+
+The following two data sets are used here:
+
+1.  Geospatial data: Hunan county boundary layer in Shapefile format
+
+2.  Aspatial data: `Hunan_2012.csv` for Hunan’s local development indicators in 2012.
+
+### Getting started
+
+A total of **five** R packages will be used in this exercise.
+
+| Package | Description |
+|------------------------------------|------------------------------------|
+| [sf](https://r-spatial.github.io/sf/) | Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data. |
+| [spdep](https://cran.r-project.org/web/packages/spdep/index.html) | Tools for computing spatial weights and calculating spatially lagged variables. |
+| [knitr](https://cran.r-project.org/web/packages/knitr/index.html) | Provides useful functions for dynamic document generation. |
+| [tmap](https://r-tmap.github.io/tmap/) | Creates cartographic quality static or interactive choropleth maps. |
+| [tidyverse](https://www.tidyverse.org/) | A collection of R packages for data import, cleaning, transformation, and visualisation (e.g., readr, dplyr, tidyr, ggplot2). |
+
+: {tbl-colwidths="\[15,85\]"}
+
+After installation via `install.packages()`, we load them into R environment using the code below.
+
+```{r}
+pacman:: p_load(sf, spdep, knitr, tmap, tidyverse)
+```
+
+## Importing Data into R
+
+In this section, we import above-mentioned two data sets into the R environment by using `st_read()` from `sf` package for geospatial data and `read_csv()` from `readr` of `tiyeverse` family. 
+
+
+### Importing `sharefile` File
+
+The code chunk below uses `st_read()` to import the Hunan county layer in `sharefile` format to R as an `sf` object for spatial analysis. 
+
+```{r}
+hunan <- st_read(dsn = "data/geospatial",
+                layer = "Hunan")
+
+glimpse(hunan)
+```
+### Importing `csv` File
+
+The code chunk uses read_csv() of `readr` to import the attribute table of local development indicators in 2012.
+
+```{r}
+hunan2012 <- read_csv("data/aspatial/Hunan_2012.csv")
+glimpse(hunan2012)
+```
+
+### Performing Relational Join
+
+The code chunk uses `left_join()` of `dplyr` package from `tidyverse` to append the attribute table of `hunan` the spatial polygon data frame with the attribute fields of `hunan2012` data frame `by = join_by(County)` and selects required fields.
+
+```{r}
+hunan <- left_join(hunan, hunan2012) %>%
+   select(1:4, 7, 15)
+```
+## Visualising Reginal Development Indicator
+
+Next we use `tm_polygons()` to create a base map and use `qtm()` also from `tmap` to create a choropleth map to show the distribution of GDP per capita GDPPC 2012.
+
+
+```{r, fig.height=12, fig.width=16}
+basemap <- tm_shape(hunan) +
+  tm_polygons() +
+  tm_text("NAME_3", size = 0.5)
+
+gdppc <- qtm(hunan, "GDPPC") +
+  tm_layout(
+    legend.position = c("left", "bottom"))
+tmap_arrange(basemap, gdppc, asp = 1, ncol =2)
+```
+
+## Computing Contiguity Spatial Weights
+
+We define the neighbours (who influences whom) using: Contiguity(shared border), Distance(within k kilometres), Trajectory: order or flow.
+
+We weight the neighbours (how strong the influence is) using: Binary (1/0), Distance decay (closer neighbours carry more weight), Strength-based (combined measures, such as shared boundary length, population, or flows).
+
+## Computing Distance Based Neighbours
+
+
+
+## Weights Based on IDW (Inversed Distance Method)
+
+
+## Row-standardised Weights Matrix
+
+## APplication of Spatial Weight Matrix
+
+
+## Reference
+
+Kam, T. S. 8 Spatial Weights and Applications. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap08

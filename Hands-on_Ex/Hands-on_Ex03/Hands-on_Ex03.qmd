@@ -462,13 +462,13 @@ knitr::include_graphics(c("fig/stkde_day.gif","fig/stkde_day_bt.gif"))
 
 ## Spatio-temporal Point Patterns Analysis: stpp methods
 
-Here we try out the second order ST-SPPA under stpp methods. 
+Here we try out the second order ST-SPPA under stpp methods.
 
 ### Preparing spatio-temporal point process object of stpp
 
-1. Extract fire event coordinates
-2. Construct a data frame with x, y, and an integer time index t
-3. Generate a spatio-temporal object by passing the matrix of x, y, t into as.3dpoints().
+1.  Extract fire event coordinates
+2.  Construct a data frame with x, y, and an integer time index t
+3.  Generate a spatio-temporal object by passing the matrix of x, y, t into as.3dpoints().
 
 ```{r}
 coords <- st_coordinates(fire_sf)
@@ -491,16 +491,13 @@ kbb_stik <- STIKhat(fire_stpp)
 plotK(kbb_stik)
 ```
 
-
 ### Intepration Rule
 
-- High contour values at small spatial (uu) and temporal (vv) distances:
-strong clustering (events occur close together in space and time).
+-   High contour values at small spatial (uu) and temporal (vv) distances: strong clustering (events occur close together in space and time).
 
-- Flat or low contour values :random distribution or weak clustering.
+-   Flat or low contour values :random distribution or weak clustering.
 
-- Shape of contours across axes:
-shows the extent of clustering: rapid changes indicate strong clustering over specific distances.
+-   Shape of contours across axes: shows the extent of clustering: rapid changes indicate strong clustering over specific distances.
 
 In this plot, the contours are widely spaced and rise gradually, which suggests weaker clustering: events are more spread out and do not strongly cluster at short distances.
 

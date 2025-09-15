@@ -22,6 +22,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -379,8 +414,31 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview"><span class="header-section-number">1</span> OVerview</a></li>
+  <li><a href="#the-study-area-and-data" id="toc-the-study-area-and-data" class="nav-link" data-scroll-target="#the-study-area-and-data"><span class="header-section-number">2</span> The Study Area and Data</a>
+  <ul class="collapse">
+  <li><a href="#getting-started" id="toc-getting-started" class="nav-link" data-scroll-target="#getting-started"><span class="header-section-number">2.1</span> Getting started</a></li>
+  </ul></li>
+  <li><a href="#importing-data-into-r" id="toc-importing-data-into-r" class="nav-link" data-scroll-target="#importing-data-into-r"><span class="header-section-number">3</span> Importing Data into R</a>
+  <ul class="collapse">
+  <li><a href="#importing-sharefile-file" id="toc-importing-sharefile-file" class="nav-link" data-scroll-target="#importing-sharefile-file"><span class="header-section-number">3.1</span> Importing <code>sharefile</code> File</a></li>
+  <li><a href="#importing-csv-file" id="toc-importing-csv-file" class="nav-link" data-scroll-target="#importing-csv-file"><span class="header-section-number">3.2</span> Importing <code>csv</code> File</a></li>
+  <li><a href="#performing-relational-join" id="toc-performing-relational-join" class="nav-link" data-scroll-target="#performing-relational-join"><span class="header-section-number">3.3</span> Performing Relational Join</a></li>
+  </ul></li>
+  <li><a href="#visualising-reginal-development-indicator" id="toc-visualising-reginal-development-indicator" class="nav-link" data-scroll-target="#visualising-reginal-development-indicator"><span class="header-section-number">4</span> Visualising Reginal Development Indicator</a></li>
+  <li><a href="#computing-contiguity-spatial-weights" id="toc-computing-contiguity-spatial-weights" class="nav-link" data-scroll-target="#computing-contiguity-spatial-weights"><span class="header-section-number">5</span> Computing Contiguity Spatial Weights</a></li>
+  <li><a href="#computing-distance-based-neighbours" id="toc-computing-distance-based-neighbours" class="nav-link" data-scroll-target="#computing-distance-based-neighbours"><span class="header-section-number">6</span> Computing Distance Based Neighbours</a></li>
+  <li><a href="#weights-based-on-idw-inversed-distance-method" id="toc-weights-based-on-idw-inversed-distance-method" class="nav-link" data-scroll-target="#weights-based-on-idw-inversed-distance-method"><span class="header-section-number">7</span> Weights Based on IDW (Inversed Distance Method)</a></li>
+  <li><a href="#row-standardised-weights-matrix" id="toc-row-standardised-weights-matrix" class="nav-link" data-scroll-target="#row-standardised-weights-matrix"><span class="header-section-number">8</span> Row-standardised Weights Matrix</a></li>
+  <li><a href="#application-of-spatial-weight-matrix" id="toc-application-of-spatial-weight-matrix" class="nav-link" data-scroll-target="#application-of-spatial-weight-matrix"><span class="header-section-number">9</span> APplication of Spatial Weight Matrix</a></li>
+  <li><a href="#reference" id="toc-reference" class="nav-link" data-scroll-target="#reference"><span class="header-section-number">10</span> Reference</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -423,8 +481,188 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<section id="overview" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="overview"><span class="header-section-number">1</span> OVerview</h2>
+<p>In this exercise, we apply spatial weights in a practical implementation in R. Properly defining and weighting neighbours is crucial because spatial data are rarely independent, often violating the independence assumptions of classical statistics (e.g., regression or ANOVA). By weighting spatial data appropriately, we can understand who influences whom and how strong the influence is, while also accounting for spatial autocorrelation and avoiding biased outcomes.</p>
+</section>
+<section id="the-study-area-and-data" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="the-study-area-and-data"><span class="header-section-number">2</span> The Study Area and Data</h2>
+<p>The following two data sets are used here:</p>
+<ol type="1">
+<li><p>Geospatial data: Hunan county boundary layer in Shapefile format</p></li>
+<li><p>Aspatial data: <code>Hunan_2012.csv</code> for Hunan’s local development indicators in 2012.</p></li>
+</ol>
+<section id="getting-started" class="level3" data-number="2.1">
+<h3 data-number="2.1" class="anchored" data-anchor-id="getting-started"><span class="header-section-number">2.1</span> Getting started</h3>
+<p>A total of <strong>five</strong> R packages will be used in this exercise.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 85%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Package</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="https://r-spatial.github.io/sf/">sf</a></td>
+<td>Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data.</td>
+</tr>
+<tr class="even">
+<td><a href="https://cran.r-project.org/web/packages/spdep/index.html">spdep</a></td>
+<td>Tools for computing spatial weights and calculating spatially lagged variables.</td>
+</tr>
+<tr class="odd">
+<td><a href="https://cran.r-project.org/web/packages/knitr/index.html">knitr</a></td>
+<td>Provides useful functions for dynamic document generation.</td>
+</tr>
+<tr class="even">
+<td><a href="https://r-tmap.github.io/tmap/">tmap</a></td>
+<td>Creates cartographic quality static or interactive choropleth maps.</td>
+</tr>
+<tr class="odd">
+<td><a href="https://www.tidyverse.org/">tidyverse</a></td>
+<td>A collection of R packages for data import, cleaning, transformation, and visualisation (e.g., readr, dplyr, tidyr, ggplot2).</td>
+</tr>
+</tbody>
+</table>
+<p>After installation via <code>install.packages()</code>, we load them into R environment using the code below.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span> <span class="fu">p_load</span>(sf, spdep, knitr, tmap, tidyverse)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="importing-data-into-r" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="importing-data-into-r"><span class="header-section-number">3</span> Importing Data into R</h2>
+<p>In this section, we import above-mentioned two data sets into the R environment by using <code>st_read()</code> from <code>sf</code> package for geospatial data and <code>read_csv()</code> from <code>readr</code> of <code>tiyeverse</code> family.</p>
+<section id="importing-sharefile-file" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="importing-sharefile-file"><span class="header-section-number">3.1</span> Importing <code>sharefile</code> File</h3>
+<p>The code chunk below uses <code>st_read()</code> to import the Hunan county layer in <code>sharefile</code> format to R as an <code>sf</code> object for spatial analysis.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>hunan <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial"</span>,</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">layer =</span> <span class="st">"Hunan"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading layer `Hunan' from data source 
+  `C:\lsrgc\ISSS626-yiqiong-pan\Hands-on_Ex\Hands-on_Ex04\data\geospatial' 
+  using driver `ESRI Shapefile'
+Simple feature collection with 88 features and 7 fields
+Geometry type: POLYGON
+Dimension:     XY
+Bounding box:  xmin: 108.7831 ymin: 24.6342 xmax: 114.2544 ymax: 30.12812
+Geodetic CRS:  WGS 84</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(hunan)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 88
+Columns: 8
+$ NAME_2     &lt;chr&gt; "Changde", "Changde", "Changde", "Changde", "Changde", "Cha…
+$ ID_3       &lt;int&gt; 21098, 21100, 21101, 21102, 21103, 21104, 21109, 21110, 211…
+$ NAME_3     &lt;chr&gt; "Anxiang", "Hanshou", "Jinshi", "Li", "Linli", "Shimen", "L…
+$ ENGTYPE_3  &lt;chr&gt; "County", "County", "County City", "County", "County", "Cou…
+$ Shape_Leng &lt;dbl&gt; 1.869074, 2.360691, 1.425620, 3.474325, 2.289506, 4.171918,…
+$ Shape_Area &lt;dbl&gt; 0.10056190, 0.19978745, 0.05302413, 0.18908121, 0.11450357,…
+$ County     &lt;chr&gt; "Anxiang", "Hanshou", "Jinshi", "Li", "Linli", "Shimen", "L…
+$ geometry   &lt;POLYGON [°]&gt; POLYGON ((112.0625 29.75523..., POLYGON ((112.2288 …</code></pre>
+</div>
+</div>
+</section>
+<section id="importing-csv-file" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="importing-csv-file"><span class="header-section-number">3.2</span> Importing <code>csv</code> File</h3>
+<p>The code chunk uses read_csv() of <code>readr</code> to import the attribute table of local development indicators in 2012.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>hunan2012 <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/aspatial/Hunan_2012.csv"</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(hunan2012)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 88
+Columns: 29
+$ County      &lt;chr&gt; "Anhua", "Anren", "Anxiang", "Baojing", "Chaling", "Changn…
+$ City        &lt;chr&gt; "Yiyang", "Chenzhou", "Changde", "Hunan West", "Zhuzhou", …
+$ avg_wage    &lt;dbl&gt; 30544, 28058, 31935, 30843, 31251, 28518, 54540, 28597, 33…
+$ deposite    &lt;dbl&gt; 10967.0, 4598.9, 5517.2, 2250.0, 8241.4, 10860.0, 24332.0,…
+$ FAI         &lt;dbl&gt; 6831.7, 6386.1, 3541.0, 1005.4, 6508.4, 7920.0, 33624.0, 1…
+$ Gov_Rev     &lt;dbl&gt; 456.72, 220.57, 243.64, 192.59, 620.19, 769.86, 5350.00, 1…
+$ Gov_Exp     &lt;dbl&gt; 2703.0, 1454.7, 1779.5, 1379.1, 1947.0, 2631.6, 7885.5, 11…
+$ GDP         &lt;dbl&gt; 13225.0, 4941.2, 12482.0, 4087.9, 11585.0, 19886.0, 88009.…
+$ GDPPC       &lt;dbl&gt; 14567, 12761, 23667, 14563, 20078, 24418, 88656, 10132, 17…
+$ GIO         &lt;dbl&gt; 9276.90, 4189.20, 5108.90, 3623.50, 9157.70, 37392.00, 513…
+$ Loan        &lt;dbl&gt; 3954.90, 2555.30, 2806.90, 1253.70, 4287.40, 4242.80, 4053…
+$ NIPCR       &lt;dbl&gt; 3528.3, 3271.8, 7693.7, 4191.3, 3887.7, 9528.0, 17070.0, 3…
+$ Bed         &lt;dbl&gt; 2718, 970, 1931, 927, 1449, 3605, 3310, 582, 2170, 2179, 1…
+$ Emp         &lt;dbl&gt; 494.310, 290.820, 336.390, 195.170, 330.290, 548.610, 670.…
+$ EmpR        &lt;dbl&gt; 441.4, 255.4, 270.5, 145.6, 299.0, 415.1, 452.0, 127.6, 21…
+$ EmpRT       &lt;dbl&gt; 338.0, 99.4, 205.9, 116.4, 154.0, 273.7, 219.4, 94.4, 174.…
+$ Pri_Stu     &lt;dbl&gt; 54.175, 33.171, 19.584, 19.249, 33.906, 81.831, 59.151, 18…
+$ Sec_Stu     &lt;dbl&gt; 32.830, 17.505, 17.819, 11.831, 20.548, 44.485, 39.685, 7.…
+$ Household   &lt;dbl&gt; 290.4, 104.6, 148.1, 73.2, 148.7, 211.2, 300.3, 76.1, 139.…
+$ Household_R &lt;dbl&gt; 234.5, 121.9, 135.4, 69.9, 139.4, 211.7, 248.4, 59.6, 110.…
+$ NOIP        &lt;dbl&gt; 101, 34, 53, 18, 106, 115, 214, 17, 55, 70, 44, 84, 74, 17…
+$ Pop_R       &lt;dbl&gt; 670.3, 243.2, 346.0, 184.1, 301.6, 448.2, 475.1, 189.6, 31…
+$ RSCG        &lt;dbl&gt; 5760.60, 2386.40, 3957.90, 768.04, 4009.50, 5220.40, 22604…
+$ Pop_T       &lt;dbl&gt; 910.8, 388.7, 528.3, 281.3, 578.4, 816.3, 998.6, 256.7, 45…
+$ Agri        &lt;dbl&gt; 4942.253, 2357.764, 4524.410, 1118.561, 3793.550, 6430.782…
+$ Service     &lt;dbl&gt; 5414.5, 3814.1, 14100.0, 541.8, 5444.0, 13074.6, 17726.6, …
+$ Disp_Inc    &lt;dbl&gt; 12373, 16072, 16610, 13455, 20461, 20868, 183252, 12379, 1…
+$ RORP        &lt;dbl&gt; 0.7359464, 0.6256753, 0.6549309, 0.6544614, 0.5214385, 0.5…
+$ ROREmp      &lt;dbl&gt; 0.8929619, 0.8782065, 0.8041262, 0.7460163, 0.9052651, 0.7…</code></pre>
+</div>
+</div>
+</section>
+<section id="performing-relational-join" class="level3" data-number="3.3">
+<h3 data-number="3.3" class="anchored" data-anchor-id="performing-relational-join"><span class="header-section-number">3.3</span> Performing Relational Join</h3>
+<p>The code chunk uses <code>left_join()</code> of <code>dplyr</code> package from <code>tidyverse</code> to append the attribute table of <code>hunan</code> the spatial polygon data frame with the attribute fields of <code>hunan2012</code> data frame <code>by = join_by(County)</code> and selects required fields.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>hunan <span class="ot">&lt;-</span> <span class="fu">left_join</span>(hunan, hunan2012) <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>   <span class="fu">select</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>, <span class="dv">7</span>, <span class="dv">15</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="visualising-reginal-development-indicator" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="visualising-reginal-development-indicator"><span class="header-section-number">4</span> Visualising Reginal Development Indicator</h2>
+<p>Next we use <code>tm_polygons()</code> to create a base map and use <code>qtm()</code> also from <code>tmap</code> to create a choropleth map to show the distribution of GDP per capita GDPPC 2012.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>basemap <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(hunan) <span class="sc">+</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_text</span>(<span class="st">"NAME_3"</span>, <span class="at">size =</span> <span class="fl">0.5</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>gdppc <span class="ot">&lt;-</span> <span class="fu">qtm</span>(hunan, <span class="st">"GDPPC"</span>) <span class="sc">+</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="fu">c</span>(<span class="st">"left"</span>, <span class="st">"bottom"</span>))</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(basemap, gdppc, <span class="at">asp =</span> <span class="dv">1</span>, <span class="at">ncol =</span><span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Hands-on_Ex04_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="1536"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="computing-contiguity-spatial-weights" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="computing-contiguity-spatial-weights"><span class="header-section-number">5</span> Computing Contiguity Spatial Weights</h2>
+<p>We define the neighbours (who influences whom) using: Contiguity(shared border), Distance(within k kilometres), Trajectory: order or flow.</p>
+<p>We weight the neighbours (how strong the influence is) using: Binary (1/0), Distance decay (closer neighbours carry more weight), Strength-based (combined measures, such as shared boundary length, population, or flows).</p>
+</section>
+<section id="computing-distance-based-neighbours" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="computing-distance-based-neighbours"><span class="header-section-number">6</span> Computing Distance Based Neighbours</h2>
+</section>
+<section id="weights-based-on-idw-inversed-distance-method" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="weights-based-on-idw-inversed-distance-method"><span class="header-section-number">7</span> Weights Based on IDW (Inversed Distance Method)</h2>
+</section>
+<section id="row-standardised-weights-matrix" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="row-standardised-weights-matrix"><span class="header-section-number">8</span> Row-standardised Weights Matrix</h2>
+</section>
+<section id="application-of-spatial-weight-matrix" class="level2" data-number="9">
+<h2 data-number="9" class="anchored" data-anchor-id="application-of-spatial-weight-matrix"><span class="header-section-number">9</span> APplication of Spatial Weight Matrix</h2>
+</section>
+<section id="reference" class="level2" data-number="10">
+<h2 data-number="10" class="anchored" data-anchor-id="reference"><span class="header-section-number">10</span> Reference</h2>
+<p>Kam, T. S. 8 Spatial Weights and Applications. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap08</p>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
