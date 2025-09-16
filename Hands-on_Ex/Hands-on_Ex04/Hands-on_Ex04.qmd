@@ -208,29 +208,9 @@ setdiff(hunan$NAME_3[wm_q[[85]]], hunan$NAME_3[wm_r[[85]]])
 setdiff(wm_q[[85]], wm_r[[85]]) 
 
 ```
-:::
 
+### Prepreration for Visualisation
 
-::: callout-note
-**Syntax rules on \[\]**
-
--   **Single** brackets **\[\]** return a sublist (still of type list).
-
-```{r}
-wm_q[1]
-class(wm_q[1])
-```
-
--   **Double** brackets **\[\[ \]\]** return the contents of that element.
-
-```{r}
-wm_q[[1]]
-class(wm_q[[1]])
-```
-:::
-
-
-## Computing Distance Based Neighbours
 
 A connectivity graph shows polygons as points and draws lines to their neighbours. To build this, we need a point for each polygon, usually the centroid.
 
@@ -259,7 +239,27 @@ head(coords)
 
 
 
-### Mapping QUEEN & ROOK Contiguity Neighbours & Comparsion
+::: callout-note
+**Syntax rules on \[\]**
+
+-   **Single** brackets **\[\]** return a sublist (still of type list).
+
+```{r}
+wm_q[1]
+class(wm_q[1])
+```
+
+-   **Double** brackets **\[\[ \]\]** return the contents of that element.
+
+```{r}
+wm_q[[1]]
+class(wm_q[[1]])
+```
+:::
+
+
+
+### Mapping QUEEN & ROOK & Comparsion
 
 The code chunk below use plot() from base R to create two maps one for **QUEEN** contiguity based and one for **ROOK** contiguity based. It also overlays two sets of maps for **comparison**.
 
@@ -308,9 +308,11 @@ legend("bottomleft",
 
 As mentioned earlier, for example, we can observe differences in connectivity between Queen and Rook contiguity. The most connected region, Taoyuan (in the north), has 11 neighbours under Queen and 10 under Rook. One corner-touching neighbour is excluded in the Rook method due to its definition. Similar differences can also be observed in the lower northeast part of the province, where Queen contiguity identifies additional vertex-based neighbours that Rook does not.
 
-The comparsion map highlights the additional **4** neighbour links (equally unidirectional 8 nonzero entries), captured by Queen in blue.
+The comparison map highlights the additional **4** neighbour links (equally unidirectional 8 nonzero entries), captured by Queen in blue.
 
+:::
 
+## Computing distance based neighbours
 
 ## Weights Based on IDW (Inversed Distance Method)
 

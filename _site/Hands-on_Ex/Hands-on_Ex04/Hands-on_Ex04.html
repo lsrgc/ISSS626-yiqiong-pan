@@ -432,10 +432,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul></li>
   <li><a href="#visualising-reginal-development-indicator" id="toc-visualising-reginal-development-indicator" class="nav-link" data-scroll-target="#visualising-reginal-development-indicator"><span class="header-section-number">4</span> Visualising Reginal Development Indicator</a></li>
   <li><a href="#computing-contiguity-spatial-weights" id="toc-computing-contiguity-spatial-weights" class="nav-link" data-scroll-target="#computing-contiguity-spatial-weights"><span class="header-section-number">5</span> Computing Contiguity Spatial Weights</a></li>
-  <li><a href="#computing-distance-based-neighbours" id="toc-computing-distance-based-neighbours" class="nav-link" data-scroll-target="#computing-distance-based-neighbours"><span class="header-section-number">6</span> Computing Distance Based Neighbours</a>
-  <ul class="collapse">
-  <li><a href="#mapping-queen-rook-contiguity-neighbours-comparsion" id="toc-mapping-queen-rook-contiguity-neighbours-comparsion" class="nav-link" data-scroll-target="#mapping-queen-rook-contiguity-neighbours-comparsion"><span class="header-section-number">6.1</span> Mapping QUEEN &amp; ROOK Contiguity Neighbours &amp; Comparsion</a></li>
-  </ul></li>
+  <li><a href="#computing-distance-based-neighbours" id="toc-computing-distance-based-neighbours" class="nav-link" data-scroll-target="#computing-distance-based-neighbours"><span class="header-section-number">6</span> Computing distance based neighbours</a></li>
   <li><a href="#weights-based-on-idw-inversed-distance-method" id="toc-weights-based-on-idw-inversed-distance-method" class="nav-link" data-scroll-target="#weights-based-on-idw-inversed-distance-method"><span class="header-section-number">7</span> Weights Based on IDW (Inversed Distance Method)</a></li>
   <li><a href="#row-standardised-weights-matrix" id="toc-row-standardised-weights-matrix" class="nav-link" data-scroll-target="#row-standardised-weights-matrix"><span class="header-section-number">8</span> Row-standardised Weights Matrix</a></li>
   <li><a href="#application-of-spatial-weight-matrix" id="toc-application-of-spatial-weight-matrix" class="nav-link" data-scroll-target="#application-of-spatial-weight-matrix"><span class="header-section-number">9</span> Application of Spatial Weight Matrix</a></li>
@@ -754,7 +751,7 @@ Note
 <p>(Insee &amp; Eurostat, 2018) Contiguity-defined neighbourhoods are widely used in demographic and social studies. Several types of contiguity can be distinguished. In <strong>Rook</strong> contiguity, two neighbourhoods are considered adjacent if they share at least two common boundary points (i.e., a full edge). On the other hand, <strong>Queen</strong> contiguity requires only one common boundary point (e.g., an edge or a vertex). As a result, the number of neighbours defined under Queen contiguity is always greater than or equal to those defined under Rook contiguity.</p>
 <p>Next, we use <code>poly2nb()</code> of <strong>spdep</strong> package to calculate contiguity weights metrics for the study area <code>hunan</code>.The function allows us to specify the type of contiguity by setting the <code>queen</code> argument to either <code>TRUE</code> (Queen contiguity) or <code>FALSE</code> (Rook contiguity).</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="">(QUEEN) Contiguity Based Neighbours</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">(ROOK) Contiguity Based Neighbours</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="">(QUEEN) Contiguity Based Neighbours</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">(ROOK) Contiguity Based Neighbours</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" role="tab" aria-controls="tabset-1-3" aria-selected="false" href="">Prepreration for Visualisation</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-4" role="tab" aria-controls="tabset-1-4" aria-selected="false" href="">Mapping QUEEN &amp; ROOK &amp; Comparsion</a></li></ul>
 <div class="tab-content">
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
 <p>The code chunk below returns <strong>QUEEN</strong> contiguity weight matrix.</p>
@@ -974,6 +971,35 @@ Link number distribution:
 </div>
 </div>
 </div>
+<div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
+<p>A connectivity graph shows polygons as points and draws lines to their neighbours. To build this, we need a point for each polygon, usually the centroid.</p>
+<p>Using <code>sf</code>, we calculate centroids, then extract longitude and latitude into two separate <code>numeric</code> objects. This is done by mapping <code>st_centroid</code> over the geometry column (<code>us.bound</code>) with <code>map_dbl</code> from purrr.</p>
+<ul>
+<li><p>Longitude: access with <code>[[1]]</code></p></li>
+<li><p>Latitude: access with <code>[[2]]</code></p></li>
+</ul>
+<p>The above gives numeric vectors of coordinates for use in graph construction.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>longitude <span class="ot">&lt;-</span> <span class="fu">map_dbl</span>(hunan<span class="sc">$</span>geometry, <span class="sc">~</span><span class="fu">st_centroid</span>(.x)[[<span class="dv">1</span>]])</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(longitude)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "numeric"</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>latitude  <span class="ot">&lt;-</span> <span class="fu">map_dbl</span>(hunan<span class="sc">$</span>geometry, <span class="sc">~</span><span class="fu">st_centroid</span>(.x)[[<span class="dv">2</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Next we use cbind() to combine longitude and latitude and create a <code>matrix</code> object.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>coords <span class="ot">&lt;-</span> <span class="fu">cbind</span>(longitude, latitude)</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(coords)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     longitude latitude
+[1,]  112.1531 29.44362
+[2,]  112.0372 28.86489
+[3,]  111.8917 29.47107
+[4,]  111.7031 29.74499
+[5,]  111.6138 29.49258
+[6,]  111.0341 29.79863</code></pre>
 </div>
 </div>
 <div class="callout callout-style-default callout-note callout-titled">
@@ -991,12 +1017,12 @@ Note
 <li><strong>Single</strong> brackets <strong>[]</strong> return a sublist (still of type list).</li>
 </ul>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>wm_q[<span class="dv">1</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>wm_q[<span class="dv">1</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[[1]]
 [1]  2  3  4 57 85</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(wm_q[<span class="dv">1</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(wm_q[<span class="dv">1</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] "list"</code></pre>
 </div>
@@ -1005,52 +1031,19 @@ Note
 <li><strong>Double</strong> brackets <strong>[[ ]]</strong> return the contents of that element.</li>
 </ul>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>wm_q[[<span class="dv">1</span>]]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>wm_q[[<span class="dv">1</span>]]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1]  2  3  4 57 85</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(wm_q[[<span class="dv">1</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(wm_q[[<span class="dv">1</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] "integer"</code></pre>
 </div>
 </div>
 </div>
 </div>
-</section>
-<section id="computing-distance-based-neighbours" class="level2" data-number="6">
-<h2 data-number="6" class="anchored" data-anchor-id="computing-distance-based-neighbours"><span class="header-section-number">6</span> Computing Distance Based Neighbours</h2>
-<p>A connectivity graph shows polygons as points and draws lines to their neighbours. To build this, we need a point for each polygon, usually the centroid.</p>
-<p>Using <code>sf</code>, we calculate centroids, then extract longitude and latitude into two separate <code>numeric</code> objects. This is done by mapping <code>st_centroid</code> over the geometry column (<code>us.bound</code>) with <code>map_dbl</code> from purrr.</p>
-<ul>
-<li><p>Longitude: access with <code>[[1]]</code></p></li>
-<li><p>Latitude: access with <code>[[2]]</code></p></li>
-</ul>
-<p>The above gives numeric vectors of coordinates for use in graph construction.</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>longitude <span class="ot">&lt;-</span> <span class="fu">map_dbl</span>(hunan<span class="sc">$</span>geometry, <span class="sc">~</span><span class="fu">st_centroid</span>(.x)[[<span class="dv">1</span>]])</span>
-<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(longitude)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] "numeric"</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>latitude  <span class="ot">&lt;-</span> <span class="fu">map_dbl</span>(hunan<span class="sc">$</span>geometry, <span class="sc">~</span><span class="fu">st_centroid</span>(.x)[[<span class="dv">2</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Next we use cbind() to combine longitude and latitude and create a <code>matrix</code> object.</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>coords <span class="ot">&lt;-</span> <span class="fu">cbind</span>(longitude, latitude)</span>
-<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(coords)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>     longitude latitude
-[1,]  112.1531 29.44362
-[2,]  112.0372 28.86489
-[3,]  111.8917 29.47107
-[4,]  111.7031 29.74499
-[5,]  111.6138 29.49258
-[6,]  111.0341 29.79863</code></pre>
-</div>
-</div>
-<section id="mapping-queen-rook-contiguity-neighbours-comparsion" class="level3" data-number="6.1">
-<h3 data-number="6.1" class="anchored" data-anchor-id="mapping-queen-rook-contiguity-neighbours-comparsion"><span class="header-section-number">6.1</span> Mapping QUEEN &amp; ROOK Contiguity Neighbours &amp; Comparsion</h3>
+<div id="tabset-1-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-4-tab">
 <p>The code chunk below use plot() from base R to create two maps one for <strong>QUEEN</strong> contiguity based and one for <strong>ROOK</strong> contiguity based. It also overlays two sets of maps for <strong>comparison</strong>.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">3</span>))</span>
@@ -1101,8 +1094,13 @@ Note
 </div>
 </div>
 <p>As mentioned earlier, for example, we can observe differences in connectivity between Queen and Rook contiguity. The most connected region, Taoyuan (in the north), has 11 neighbours under Queen and 10 under Rook. One corner-touching neighbour is excluded in the Rook method due to its definition. Similar differences can also be observed in the lower northeast part of the province, where Queen contiguity identifies additional vertex-based neighbours that Rook does not.</p>
-<p>The comparsion map highlights the additional <strong>4</strong> neighbour links (equally unidirectional 8 nonzero entries), captured by Queen in blue.</p>
+<p>The comparison map highlights the additional <strong>4</strong> neighbour links (equally unidirectional 8 nonzero entries), captured by Queen in blue.</p>
+</div>
+</div>
+</div>
 </section>
+<section id="computing-distance-based-neighbours" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="computing-distance-based-neighbours"><span class="header-section-number">6</span> Computing distance based neighbours</h2>
 </section>
 <section id="weights-based-on-idw-inversed-distance-method" class="level2" data-number="7">
 <h2 data-number="7" class="anchored" data-anchor-id="weights-based-on-idw-inversed-distance-method"><span class="header-section-number">7</span> Weights Based on IDW (Inversed Distance Method)</h2>
