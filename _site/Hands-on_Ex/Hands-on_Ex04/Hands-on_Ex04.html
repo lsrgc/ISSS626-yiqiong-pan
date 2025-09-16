@@ -1022,7 +1022,7 @@ Note
 <div id="tabset-1-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-4-tab">
 <p>The code chunk below use plot() from base R to create two maps one for <strong>QUEEN</strong> contiguity based and one for <strong>ROOK</strong> contiguity based. It also overlays two sets of maps for <strong>comparison</strong>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb65"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb65"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">hunan</span><span class="op">$</span><span class="va">geometry</span>, border <span class="op">=</span> <span class="st">"lightgrey"</span>,</span>
 <span>     main <span class="op">=</span> <span class="st">"QUEEN Contiguity"</span><span class="op">)</span> <span class="co"># countries base map</span></span>
@@ -1043,7 +1043,7 @@ Note
 <span>     col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="co"># connecting line in red</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="Hands-on_Ex04_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid figure-img" width="1152"></p>
+<figure class="figure"><p><img src="Hands-on_Ex04_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid figure-img" width="960"></p>
 </figure>
 </div>
 </div>
@@ -1073,8 +1073,9 @@ Note
 </div>
 </div>
 </div>
+<p>Here we visualise <code><a href="https://rdrr.io/r/base/sets.html">setdiff()</a></code> differences in connectivity between Queen and Rook contiguity.</p>
 <p>The comparison map above highlights the additional <strong>4</strong> neighbour links (equally unidirectional 8 nonzero entries), captured by Queen in blue.</p>
-<p>Here we visualise <code><a href="https://rdrr.io/r/base/sets.html">setdiff()</a></code> differences in connectivity between Queen and Rook contiguity. The most connected region, Taoyuan (in the north), has 11 neighbours under Queen and 10 under Rook. One corner-touching neighbour is excluded in the Rook method due to its definition. Similar differences can also be observed in the lower northeast part of the province, where Queen contiguity identifies additional vertex-based neighbours that Rook does not.</p>
+<p>The most connected region, Taoyuan (in the north), has 11 neighbours under Queen and 10 under Rook. One corner-touching neighbour is excluded in the Rook method due to its definition. Similar differences can also be observed in the lower northeast part of the province, where Queen contiguity identifies additional vertex-based neighbours that Rook does not.</p>
 </div>
 </div>
 </div>
