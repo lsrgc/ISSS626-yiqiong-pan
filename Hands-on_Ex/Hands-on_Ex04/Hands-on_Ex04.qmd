@@ -265,7 +265,7 @@ class(wm_q[[1]])
 
 The code chunk below use plot() from base R to create two maps one for **QUEEN** contiguity based and one for **ROOK** contiguity based. It also overlays two sets of maps for **comparison**.
 
-```{r, fig.width=18, fig.height=8}
+```{r, fig.width=10, fig.height=6}
 
 par(mfrow = c(1,3))
 
@@ -287,8 +287,9 @@ plot(wm_r, coords, # centroid coords of each polygon
      add = TRUE, # overlays this coords with base map
      col = "red") # connecting line in red
 
+```
 
-
+```{r, fig.width=10, fig.height=6}
 plot(hunan$geometry, border = "lightgrey",
      main = "Contiguity Comparison") # countries base map
 plot(wm_q, coords, # centroid coords of each polygon
@@ -307,10 +308,11 @@ legend("bottomleft",
        col    = c("red", "blue"),
        lty    = 1, lwd = 2, bty = "n")
 ```
+The comparison map above highlights the additional **4** neighbour links (equally unidirectional 8 nonzero entries), captured by Queen in blue.
 
-As mentioned earlier, for example, we can observe differences in connectivity between Queen and Rook contiguity. The most connected region, Taoyuan (in the north), has 11 neighbours under Queen and 10 under Rook. One corner-touching neighbour is excluded in the Rook method due to its definition. Similar differences can also be observed in the lower northeast part of the province, where Queen contiguity identifies additional vertex-based neighbours that Rook does not.
+Here we visualise `setdiff()` differences in connectivity between Queen and Rook contiguity. The most connected region, Taoyuan (in the north), has 11 neighbours under Queen and 10 under Rook. One corner-touching neighbour is excluded in the Rook method due to its definition. Similar differences can also be observed in the lower northeast part of the province, where Queen contiguity identifies additional vertex-based neighbours that Rook does not.
 
-The comparison map highlights the additional **4** neighbour links (equally unidirectional 8 nonzero entries), captured by Queen in blue.
+
 
 :::
 
