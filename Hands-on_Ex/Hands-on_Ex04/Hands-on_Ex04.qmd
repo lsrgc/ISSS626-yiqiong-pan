@@ -290,6 +290,7 @@ plot(wm_r, coords, # centroid coords of each polygon
 ```
 
 ```{r, fig.width=10, fig.height=6}
+#| echo: false
 plot(hunan$geometry, border = "lightgrey",
      main = "Contiguity Comparison") # countries base map
 plot(wm_q, coords, # centroid coords of each polygon

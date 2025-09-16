@@ -1049,23 +1049,6 @@ Note
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb66"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">hunan</span><span class="op">$</span><span class="va">geometry</span>, border <span class="op">=</span> <span class="st">"lightgrey"</span>,</span>
-<span>     main <span class="op">=</span> <span class="st">"Contiguity Comparison"</span><span class="op">)</span> <span class="co"># countries base map</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">wm_q</span>, <span class="va">coords</span>, <span class="co"># centroid coords of each polygon</span></span>
-<span>     pch <span class="op">=</span> <span class="fl">19</span>, <span class="co"># solid circles</span></span>
-<span>     cex <span class="op">=</span> <span class="fl">0.6</span>, <span class="co"># shrinks point size to 60%</span></span>
-<span>     add <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co"># overlays this coords with base map</span></span>
-<span>     col <span class="op">=</span> <span class="st">"BLUE"</span><span class="op">)</span> <span class="co"># connecting # countries base map</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">wm_r</span>, <span class="va">coords</span>, <span class="co"># centroid coords of each polygon</span></span>
-<span>     pch <span class="op">=</span> <span class="fl">19</span>, <span class="co"># solid circles</span></span>
-<span>     cex <span class="op">=</span> <span class="fl">0.6</span>, <span class="co"># shrinks point size to 60%</span></span>
-<span>     add <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co"># overlays this coords with base map</span></span>
-<span>     col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="co"># connecting line in red</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html">legend</a></span><span class="op">(</span><span class="st">"bottomleft"</span>,</span>
-<span>       legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Rook &amp; Queen links"</span>, <span class="st">"Queen-only links"</span><span class="op">)</span>,</span>
-<span>       col    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"red"</span>, <span class="st">"blue"</span><span class="op">)</span>,</span>
-<span>       lty    <span class="op">=</span> <span class="fl">1</span>, lwd <span class="op">=</span> <span class="fl">2</span>, bty <span class="op">=</span> <span class="st">"n"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="Hands-on_Ex04_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid figure-img" width="960"></p>
