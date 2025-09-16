@@ -66,7 +66,7 @@ glimpse(hunan)
 
 tm_shape(hunan) +
   tm_polygons() +
-  tm_text("NAME_3", size = 0.4)
+  tm_text("NAME_3", size = 0.3)
 ```
 
 ### Importing `csv` File
@@ -84,15 +84,32 @@ class(hunan2012)
 The code chunk uses `left_join()` of `dplyr` package from `tidyverse` to append the attribute table of `hunan` the spatial polygon data frame with the attribute fields of `hunan2012` data frame `by = join_by(County)` and selects required fields.
 
 ```{r}
-hunan <- left_join(hunan, hunan2012) %>%
+colnames(hunan)
+```
+
+```{r}
+colnames(hunan2012)
+```
+
+```{r}
+hunan_jn <- left_join(hunan, hunan2012) 
+colnames(hunan_jn)
+
+```
+
+```{r}
+hunan<- hunan_jn %>%
    select(1:4, 7, 15)
+
+glimpse(hunan)
+hunan
 ```
 
 ## Visualising Reginal Development Indicator
 
 Next we use `tm_polygons()` to create a base map and use `qtm()` also from `tmap` to create a choropleth map to show the distribution of GDP per capita GDPPC 2012.
 
-```{r, fig.height=12, fig.width=16}
+```{r, fig.height=7, fig.width=14}
 basemap <- tm_shape(hunan) +
   tm_polygons() +
   tm_text("NAME_3", size = 0.5)
@@ -103,13 +120,197 @@ gdppc <- qtm(hunan, "GDPPC") +
 tmap_arrange(basemap, gdppc, asp = 1, ncol =2)
 ```
 
+::: callout-note
+Quick summary:
+
+The side-by-side maps show that the distribution of GDP per capita (GDPPC) across Hunan Province is not evenly spread. The majority of counties record values below 60K. The darkest-shaded area is Changsha, which has the highest GDPPC, ranging from 80K to 100K, with income gradually decreasing as one moves outward from the capital circle. Outside of this core, two other counties stand out with GDPPC between 60K and 80K: Lengshuikeng, located in central Hunan, and Zixing in the southeast.
+:::
+
 ## Computing Contiguity Spatial Weights
 
-We define the neighbours (who influences whom) using: Contiguity(shared border), Distance(within k kilometres), Trajectory: order or flow.
+Neighbours could be defined by using: Contiguity (shared border).
 
-We weight the neighbours (how strong the influence is) using: Binary (1/0), Distance decay (closer neighbours carry more weight), Strength-based (combined measures, such as shared boundary length, population, or flows).
+(Insee & Eurostat, 2018) Contiguity-defined neighbourhoods are widely used in demographic and social studies. Several types of contiguity can be distinguished. In **Rook** contiguity, two neighbourhoods are considered adjacent if they share at least two common boundary points (i.e., a full edge). On the other hand, **Queen** contiguity requires only one common boundary point (e.g., an edge or a vertex). As a result, the number of neighbours defined under Queen contiguity is always greater than or equal to those defined under Rook contiguity.
+
+Next, we use `poly2nb()` of **spdep** package to calculate contiguity weights metrics for the study area `hunan`.The function allows us to specify the type of contiguity by setting the `queen` argument to either `TRUE` (Queen contiguity) or `FALSE` (Rook contiguity).
+
+
+::: panel-tabset
+
+### (QUEEN) Contiguity Based Neighbours
+
+The code chunk below returns **QUEEN** contiguity weight matrix.
+
+From the **summary statistics**, we learn that the dataset contains 88 counties, with a total of 448 neighbour connections across all regions. Among these, percentage of actual neighbour links relative to all possible links is 5.79%. On average, each county has about five neighbours.
+
+Looking at the link number distribution, we see that region ID 85 is the most connected, with 11 neighbours, while region ID 30 and 65 are the least connected, each having only one neighbour. Most counties have between four and six neighbours, which is consistent with the average of five links per region.
+
+```{r}
+wm_q <- poly2nb(hunan, queen = TRUE)
+summary(wm_q)
+```
+
+By using the index code chunk below, we can print the list of neighbour ploygons for most-connected region 85.The numbers represent the polygon IDs as stored in hunan `SpatialPolygonsDataFrame` class.
+
+Further, we can retrieve the `county name` of region 85 by looking it up in the hunan dataset, specifically using the syntax `dataset$column[i]`, which returns the corresponding value in that column.
+
+We can also retrieve 11 neighbouring county names by using the`c()` function to concatenate the required region IDs inside the indexing operation.
+
+```{r}
+wm_q[[85]] 
+class(wm_q[[85]])
+hunan$County[85]
+hunan$NAME_3[c(1,  2,  3,  5,  6, 32, 56, 57, 69, 75, 78)]
+```
+
+We can also wrap both steps together once we get familiar with the data frames.
+
+```{r}
+hunan$NAME_3[wm_q[[85]]]
+```
+
+To simplify the code and reduce the risk of syntax errors, we can first assign the neighbour indices of a given region to a helper variable then retieve the corresponding GDPPC values.
+
+```{r}
+nb1 <- wm_q[[1]]
+hunan$GDPPC[nb1]
+```
+
+Additionally, we can also use the structure function `str()` to display the complete matrix.
+
+```{r}
+str(wm_q)
+```
+
+
+
+### (ROOK) Contiguity Based Neighbours
+
+As mentioned earlier, the measurement type can be easily switched to **Rook** mode by disabling the `queen` argument. The code chunk below uses `poly2nb()` to compute the Rook contiguity weight matrix.
+
+```{r}
+wm_r <- poly2nb(hunan, queen = FALSE)
+summary(wm_r)
+```
+The summary shows that there are 88 regions in the dataset, with a total of 440 possible neighbour connections. Among these, percentage of actual neighbour links relative to all possible links is 5.68%. On average, each region has around five neighbours. Similarly, one region is the most connected, with 10 Rook neighbours, while regions 30 and 65 are the least connected, each having only one link.
+
+The code chunk below retreives the region ID 85's neighbour names and GDPPC under ROOK.
+
+We used the `setdiff(a, b)` function to identify the neighbours included under Queen contiguity but not under Rook. The result returned region ID **57**, named **Nan**. It is unclear whether this indicates a missing value. However, the county is located at the northeast vertex of region 85 (Taoyuan) according to the baseline map.
+
+```{r}
+wm_r[[85]]
+hunan$County[85]
+hunan$NAME_3[wm_r[[85]]]
+hunan$GDPPC[wm_r[[85]]]
+
+setdiff(hunan$NAME_3[wm_q[[85]]], hunan$NAME_3[wm_r[[85]]]) 
+setdiff(wm_q[[85]], wm_r[[85]]) 
+
+```
+:::
+
+
+::: callout-note
+**Syntax rules on \[\]**
+
+-   **Single** brackets **\[\]** return a sublist (still of type list).
+
+```{r}
+wm_q[1]
+class(wm_q[1])
+```
+
+-   **Double** brackets **\[\[ \]\]** return the contents of that element.
+
+```{r}
+wm_q[[1]]
+class(wm_q[[1]])
+```
+:::
+
 
 ## Computing Distance Based Neighbours
+
+A connectivity graph shows polygons as points and draws lines to their neighbours. To build this, we need a point for each polygon, usually the centroid.
+
+Using `sf`, we calculate centroids, then extract longitude and latitude into two separate `numeric` objects. This is done by mapping `st_centroid` over the geometry column (`us.bound`) with `map_dbl` from purrr.
+
+- Longitude: access with `[[1]]`
+
+- Latitude: access with `[[2]]`
+
+The above gives numeric vectors of coordinates for use in graph construction.
+
+```{r}
+longitude <- map_dbl(hunan$geometry, ~st_centroid(.x)[[1]])
+class(longitude)
+latitude  <- map_dbl(hunan$geometry, ~st_centroid(.x)[[2]])
+```
+
+
+Next we use cbind() to combine longitude and latitude and create a `matrix` object.
+
+```{r}
+coords <- cbind(longitude, latitude)
+
+head(coords)
+```
+
+
+
+### Mapping QUEEN & ROOK Contiguity Neighbours & Comparsion
+
+The code chunk below use plot() from base R to create two maps one for **QUEEN** contiguity based and one for **ROOK** contiguity based. It also overlays two sets of maps for **comparison**.
+
+```{r, fig.width=12, fig.height=6}
+
+par(mfrow = c(1,3))
+
+plot(hunan$geometry, border = "lightgrey",
+     main = "QUEEN Contiguity") # countries base map
+plot(wm_q, coords, # centroid coords of each polygon
+     pch = 19, # solid circles
+     cex = 0.6, # shrinks point size to 60%
+     add = TRUE, # overlays this coords with base map
+     col = "red") # connecting line in red
+
+
+
+plot(hunan$geometry, border = "lightgrey",
+     main = "ROOK Contiguity") # countries base map
+plot(wm_r, coords, # centroid coords of each polygon
+     pch = 19, # solid circles
+     cex = 0.6, # shrinks point size to 60%
+     add = TRUE, # overlays this coords with base map
+     col = "red") # connecting line in red
+
+
+
+plot(hunan$geometry, border = "lightgrey",
+     main = "Contiguity Comparison") # countries base map
+plot(wm_q, coords, # centroid coords of each polygon
+     pch = 19, # solid circles
+     cex = 0.6, # shrinks point size to 60%
+     add = TRUE, # overlays this coords with base map
+     col = "BLUE") # connecting # countries base map
+plot(wm_r, coords, # centroid coords of each polygon
+     pch = 19, # solid circles
+     cex = 0.6, # shrinks point size to 60%
+     add = TRUE, # overlays this coords with base map
+     col = "red") # connecting line in red
+
+legend("bottomleft",
+       legend = c("Rook & Queen links", "Queen-only links"),
+       col    = c("red", "blue"),
+       lty    = 1, lwd = 2, bty = "n")
+```
+
+As mentioned earlier, for example, we can observe differences in connectivity between Queen and Rook contiguity. The most connected region, Taoyuan (in the north), has 11 neighbours under Queen and 10 under Rook. One corner-touching neighbour is excluded in the Rook method due to its definition. Similar differences can also be observed in the lower northeast part of the province, where Queen contiguity identifies additional vertex-based neighbours that Rook does not.
+
+The comparsion map highlights the additional **4** neighbour links (equally unidirectional 8 nonzero entries), captured by Queen in blue.
+
+
 
 ## Weights Based on IDW (Inversed Distance Method)
 
@@ -117,6 +318,13 @@ We weight the neighbours (how strong the influence is) using: Binary (1/0), Dist
 
 ## Application of Spatial Weight Matrix
 
+
+We define the neighbours (who influences whom) using: Contiguity(shared border), Distance(within k kilometres), Trajectory: order or flow.
+
+We weight the neighbours (how strong the influence is) using: Binary (1/0), Distance decay (closer neighbours carry more weight), Strength-based (combined measures, such as shared boundary length, population, or flows).
+
 ## Reference
+
+Insee, & Eurostat. (2018, October). Handbook of spatial analysis: Theory and application with R (V. Loonis, Dir.; M.-P. de Bellefon, Coord.; Insee Méthodes, No. 131). Insee. https://www.insee.fr/en/information/3635545
 
 Kam, T. S. 8 Spatial Weights and Applications. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap08
