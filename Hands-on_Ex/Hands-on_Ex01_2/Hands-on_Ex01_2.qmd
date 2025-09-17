@@ -3,11 +3,19 @@ title: "01-2 Thematic Mapping and GeoVisualisation with R"
 author: "Yiqiong PAN"
 date: "Aug 28, 2025"
 date-modified: "last-modified"
-execute: 
-  eval: true
-  echo: true
-  warning: false 
-  freeze: true
+execute:
+  echo: true #display the code
+  eval: true #run the code
+  message: false
+  warning: false
+  freeze: true # not render if nothing edited
+editor: visual
+format: 
+  html:
+    number-sections: true
+    number-depth: 4
+    code-link: true
+    toc: true
 ---
 
 ## 1 Overview
@@ -64,7 +72,7 @@ mpsz$Description[1:10]
 #first 10: each has a small table of key–value rows like SUBZONE_N:DEPOT ROAD, REGION_N:CENTRAL REGION, etc.
 ```
 
-The code chunk below create **function** extract_kml_field to extract values from the HTML description. # The code also can be used to other data files like sml or geojson.
+The code chunk below create **function** extract_kml_field to extract values from the HTML description. \# The code also can be used to other data files like sml or geojson.
 
 ```{r}
 extract_kml_field <- function(html_text, field_name) {
@@ -480,7 +488,7 @@ tm_shape(mpsz_pop2024) +
 
 *Why my maps are arranged vertically but the ones in example are shown horizontally?*
 
-```{r, fig.width=16} 
+```{r, fig.width=16}
 #| fig-width: 10 #{r} and use #| both can adjust the figure settings.
 # assigning two variables to the visual variable (fill)
 tm_shape(mpsz_pop2024) + 
