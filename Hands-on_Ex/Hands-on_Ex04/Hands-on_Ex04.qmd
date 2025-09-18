@@ -136,9 +136,7 @@ Neighbours could be defined by using: Contiguity (shared border).
 
 Next, we use `poly2nb()` of **spdep** package to calculate contiguity weights metrics for the study area `hunan`.The function allows us to specify the type of contiguity by setting the `queen` argument to either `TRUE` (Queen contiguity) or `FALSE` (Rook contiguity).
 
-
-::: panel-tabset
-
+:::: panel-tabset
 ### (QUEEN) Contiguity Based Neighbours
 
 The code chunk below returns **QUEEN** contiguity weight matrix.
@@ -184,8 +182,6 @@ Additionally, we can also use the structure function `str()` to display the comp
 str(wm_q)
 ```
 
-
-
 ### (ROOK) Contiguity Based Neighbours
 
 As mentioned earlier, the measurement type can be easily switched to **Rook** mode by disabling the `queen` argument. The code chunk below uses `poly2nb()` to compute the Rook contiguity weight matrix.
@@ -194,6 +190,7 @@ As mentioned earlier, the measurement type can be easily switched to **Rook** mo
 wm_r <- poly2nb(hunan, queen = FALSE)
 summary(wm_r)
 ```
+
 The summary shows that there are 88 regions in the dataset, with a total of 440 possible neighbour connections. Among these, percentage of actual neighbour links relative to all possible links is 5.68%. On average, each region has around five neighbours. Similarly, one region is the most connected, with 10 Rook neighbours, while regions 30 and 65 are the least connected, each having only one link.
 
 The code chunk below retreives the region ID 85's neighbour names and GDPPC under ROOK.
@@ -213,14 +210,13 @@ setdiff(wm_q[[85]], wm_r[[85]])
 
 ### Prepreration for Visualisation
 
-
 A connectivity graph shows polygons as points and draws lines to their neighbours. To build this, we need a point for each polygon, usually the centroid.
 
 Using `sf`, we calculate centroids, then extract longitude and latitude into two separate `numeric` objects. This is done by mapping `st_centroid` over the geometry column (`us.bound`) with `map_dbl` from purrr.
 
-- Longitude: access with `[[1]]`
+-   Longitude: access with `[[1]]`
 
-- Latitude: access with `[[2]]`
+-   Latitude: access with `[[2]]`
 
 The above gives numeric vectors of coordinates for use in graph construction.
 
@@ -230,16 +226,13 @@ class(longitude)
 latitude  <- map_dbl(hunan$geometry, ~st_centroid(.x)[[2]])
 ```
 
-
-Next we use cbind() to combine longitude and latitude and create a `matrix` object.
+Next we use `cbind()` to combine longitude and latitude and create a `matrix` object.
 
 ```{r}
 coords <- cbind(longitude, latitude)
 
 head(coords)
 ```
-
-
 
 ::: callout-note
 **Syntax rules on \[\]**
@@ -258,8 +251,6 @@ wm_q[[1]]
 class(wm_q[[1]])
 ```
 :::
-
-
 
 ### Mapping QUEEN & ROOK & Comparsion
 
@@ -315,19 +306,133 @@ Here we visualise `setdiff()` differences in connectivity between Queen and Rook
 The comparison map above highlights the additional **4** neighbour links (equally unidirectional 8 nonzero entries), captured by Queen in blue.
 
 The most connected region, Taoyuan (in the north), has 11 neighbours under Queen and 10 under Rook. One corner-touching neighbour is excluded in the Rook method due to its definition. Similar differences can also be observed in the lower northeast part of the province, where Queen contiguity identifies additional vertex-based neighbours that Rook does not.
+::::
+
+## Computing Distance Based Neighbours
+
+We could also define neighbours based on **distances** (within k kilometres). Here we use`dnearneigh()` of **spdep** package to compute distance-based weight matrices.
+
+The function finds nearby points around a region based on straight-line distance. You can set a minimum distance (d1) and a maximum distance (d2) using the `bounds` argument.
+
+If date is in a normal flat coordinate system (like projected x-y coordinates), it just uses Euclidean Distance.
+
+If the coordinates are in latitude and longitude (not projected), and you set `longlat=TRUE`, the function works out distances along the Earth’s surface (great-circle distance, like the curved route a plane would fly) in kilometres, using the WGS84 Earth model.
+
+### Determine the Cut-off Distance
+
+The steps show how to compute the upper distance bound.
+
+- Use `knearneigh()` from **spdep** to compute the k nearest neighbors for each point. This produces an index matrix identifying which points are the nearest neighbors of each other.
+```{r}
+#coords <- st_coordinates(st_centroid(hunan)) #similar results of centroid generated in visual preparation  
+#head(coords)
+k1 <- knearneigh(coords, k=1)
+summary(k1)
+```
+- Convert the `knearneigh` object to an `nb` list (neighborhood list) with `knn2nb()`. The resulting object stores integer vectors of neighbour IDs for each region (i.e., `value` column contains region id who is the neighour of [[i]] i-th region in `hunan`).
+```{r}
+k1<- knn2nb(k1)
+k1
+```
+
+```{r}
+k1[[1]]
+hunan$County[c(1,3)] 
+```
+- Use `nbdist()` from **spdep** to calculate the lengths of the neighbour edges (distances between neighbours), expressed in kilometers (if longlat=TRUE).
+
+```{r}
+k1dists <- nbdists(k1, coords, longlat = TRUE)
+head(k1dists)
+```
 
 
+- Apply `unlist()` to flatten the list structure of the distances into a single numeric vector, so we can directly inspect or compute statistics (like the maximum distance = the upper bound).
 
-:::
 
-## Computing distance based neighbours
+```{r}
+k1dists <- unlist(k1dists)
+summary(k1dists)
+```
+The table above shows the largest first-nearest-neighbor distance is 61.79 km, which qualifies as the upper bound. This is because at that distance, every unit in the dataset has at least one neighbor.
+
+### Computing Fixed Distance Weight Matrix
+
+The code chunk below uses `dnearneigh()` to compute the distance weight matrix `nb` class. 
+
+```{r}
+wm_d62 <- dnearneigh(coords, 0, 62, longlat = TRUE)
+wm_d62
+wm_d62[[1]]
+```
+**The Summary Statistics shows across all 88 regions, there are 324 neighbouring edges and on avearge each reagion has 3.68 neighbours. **
+
+The code chunk below can display the contents of the matrix, though the outcome is not shown here. We can also call the index of the nb list to display the neigbhours of i-th region, for example with `wm_d62[[1]]`.
+**The value entries in `wm_d62` contain the actual neighbors of the i-th region according to the neighbour distance.**
+
+```{r}
+#| eval: false
+str(wm_d62)
+```
+
+
+Alternatively, we can combine `table()` and `card()` of **spdep** to display the structure of weight matrix. Tode chunk cross-tabulates each county `hunan$County` against the cardinality of its neighbor list `card(wm_d62)`, which counts how many neighbours each region has.
+
+```{r}
+head(table(hunan$County,card(wm_d62)))
+summary(table(hunan$County,card(wm_d62)))
+```
+
+The statistics indicate there is no significant evidence that two variables (county and cardinality) are dependent. However, the results might not be reliable since the table is essential a one-hot encoding.
+
+`n.comp.nb(nb.obj)`checks connectivity in the dataset. `nc` means 1 connected component.
+
+```{r}
+n_comp <- n.comp.nb(wm_d62)
+n_comp$nc
+```
+`table()` code chunk confirms all 88 counties together as a single connected component.
+
+```{r}
+table(n_comp$comp.id)
+```
+
+### Plotting Fixed Distance Weight Matrix
+
+The code chunk below plots the distance weight matrix. The first map shows connections based on 1st nearest neighbours while the following shows all neighbours based on cut-off boundary of 62km.
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+#| echo: false
+plot(hunan$geometry, border = "lightgrey", main = "First-nearest-neighbor Distance Neighbours")
+plot(k1, coords, add = TRUE, col = "red", length = 0.08)
+```
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+#| echo: false
+plot(hunan$geometry, border = "lightgrey", main = "Distance-based Neighbours")
+plot(wm_d62, coords,add = TRUE)
+plot(k1, coords, add = TRUE, col = "red", length = 0.08)
+```
+
+The code chunk belows plots the formation seperately. 
+
+```{r}
+par(mfrow=c(1,2))
+plot(hunan$geometry, border="lightgrey", main="1st nearest neighbours")
+plot(k1, coords, add=TRUE, col="red", length=0.08)
+plot(hunan$geometry, border="lightgrey", main="Distance link")
+plot(wm_d62, coords, add=TRUE, pch = 19, cex = 0.6)
+```
 
 ## Weights Based on IDW (Inversed Distance Method)
 
 ## Row-standardised Weights Matrix
 
 ## Application of Spatial Weight Matrix
-
 
 We define the neighbours (who influences whom) using: Contiguity(shared border), Distance(within k kilometres), Trajectory: order or flow.
 

@@ -421,7 +421,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
   <li><a href="#visualising-reginal-development-indicator" id="toc-visualising-reginal-development-indicator" class="nav-link" data-scroll-target="#visualising-reginal-development-indicator"><span class="header-section-number">4</span> Visualising Reginal Development Indicator</a></li>
   <li><a href="#computing-contiguity-spatial-weights" id="toc-computing-contiguity-spatial-weights" class="nav-link" data-scroll-target="#computing-contiguity-spatial-weights"><span class="header-section-number">5</span> Computing Contiguity Spatial Weights</a></li>
-  <li><a href="#computing-distance-based-neighbours" id="toc-computing-distance-based-neighbours" class="nav-link" data-scroll-target="#computing-distance-based-neighbours"><span class="header-section-number">6</span> Computing distance based neighbours</a></li>
+  <li>
+<a href="#computing-distance-based-neighbours" id="toc-computing-distance-based-neighbours" class="nav-link" data-scroll-target="#computing-distance-based-neighbours"><span class="header-section-number">6</span> Computing Distance Based Neighbours</a>
+  <ul class="collapse">
+<li><a href="#determine-the-cut-off-distance" id="toc-determine-the-cut-off-distance" class="nav-link" data-scroll-target="#determine-the-cut-off-distance"><span class="header-section-number">6.1</span> Determine the Cut-off Distance</a></li>
+  <li><a href="#computing-fixed-distance-weight-matrix" id="toc-computing-fixed-distance-weight-matrix" class="nav-link" data-scroll-target="#computing-fixed-distance-weight-matrix"><span class="header-section-number">6.2</span> Computing Fixed Distance Weight Matrix</a></li>
+  <li><a href="#plotting-fixed-distance-weight-matrix" id="toc-plotting-fixed-distance-weight-matrix" class="nav-link" data-scroll-target="#plotting-fixed-distance-weight-matrix"><span class="header-section-number">6.3</span> Plotting Fixed Distance Weight Matrix</a></li>
+  </ul>
+</li>
   <li><a href="#weights-based-on-idw-inversed-distance-method" id="toc-weights-based-on-idw-inversed-distance-method" class="nav-link" data-scroll-target="#weights-based-on-idw-inversed-distance-method"><span class="header-section-number">7</span> Weights Based on IDW (Inversed Distance Method)</a></li>
   <li><a href="#row-standardised-weights-matrix" id="toc-row-standardised-weights-matrix" class="nav-link" data-scroll-target="#row-standardised-weights-matrix"><span class="header-section-number">8</span> Row-standardised Weights Matrix</a></li>
   <li><a href="#application-of-spatial-weight-matrix" id="toc-application-of-spatial-weight-matrix" class="nav-link" data-scroll-target="#application-of-spatial-weight-matrix"><span class="header-section-number">9</span> Application of Spatial Weight Matrix</a></li>
@@ -454,7 +461,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">September 17, 2025</p>
+      <p class="date-modified">September 19, 2025</p>
     </div>
   </div>
     
@@ -961,7 +968,7 @@ Link number distribution:
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb54"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">latitude</span>  <span class="op">&lt;-</span> <span class="fu">map_dbl</span><span class="op">(</span><span class="va">hunan</span><span class="op">$</span><span class="va">geometry</span>, <span class="op">~</span><span class="fu">st_centroid</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Next we use cbind() to combine longitude and latitude and create a <code>matrix</code> object.</p>
+<p>Next we use <code><a href="https://rdrr.io/r/base/cbind.html">cbind()</a></code> to combine longitude and latitude and create a <code>matrix</code> object.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb55"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coords</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span><span class="va">longitude</span>, <span class="va">latitude</span><span class="op">)</span></span>
 <span></span>
@@ -1063,8 +1070,192 @@ Note
 </div>
 </div>
 </section><section id="computing-distance-based-neighbours" class="level2" data-number="6"><h2 data-number="6" class="anchored" data-anchor-id="computing-distance-based-neighbours">
-<span class="header-section-number">6</span> Computing distance based neighbours</h2>
-</section><section id="weights-based-on-idw-inversed-distance-method" class="level2" data-number="7"><h2 data-number="7" class="anchored" data-anchor-id="weights-based-on-idw-inversed-distance-method">
+<span class="header-section-number">6</span> Computing Distance Based Neighbours</h2>
+<p>We could also define neighbours based on <strong>distances</strong> (within k kilometres). Here we use<code>dnearneigh()</code> of <strong>spdep</strong> package to compute distance-based weight matrices.</p>
+<p>The function finds nearby points around a region based on straight-line distance. You can set a minimum distance (d1) and a maximum distance (d2) using the <code>bounds</code> argument.</p>
+<p>If date is in a normal flat coordinate system (like projected x-y coordinates), it just uses Euclidean Distance.</p>
+<p>If the coordinates are in latitude and longitude (not projected), and you set <code>longlat=TRUE</code>, the function works out distances along the Earth’s surface (great-circle distance, like the curved route a plane would fly) in kilometres, using the WGS84 Earth model.</p>
+<section id="determine-the-cut-off-distance" class="level3" data-number="6.1"><h3 data-number="6.1" class="anchored" data-anchor-id="determine-the-cut-off-distance">
+<span class="header-section-number">6.1</span> Determine the Cut-off Distance</h3>
+<p>The steps show how to compute the upper distance bound.</p>
+<ul>
+<li>Use <code>knearneigh()</code> from <strong>spdep</strong> to compute the k nearest neighbors for each point. This produces an index matrix identifying which points are the nearest neighbors of each other.</li>
+</ul>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb66"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co">#coords &lt;- st_coordinates(st_centroid(hunan)) #similar results of centroid generated in visual preparation  </span></span>
+<span><span class="co">#head(coords)</span></span>
+<span><span class="va">k1</span> <span class="op">&lt;-</span> <span class="fu">knearneigh</span><span class="op">(</span><span class="va">coords</span>, k<span class="op">=</span><span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">k1</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>          Length Class  Mode   
+nn         88    -none- numeric
+np          1    -none- numeric
+k           1    -none- numeric
+dimension   1    -none- numeric
+x         176    -none- numeric</code></pre>
+</div>
+</div>
+<ul>
+<li>Convert the <code>knearneigh</code> object to an <code>nb</code> list (neighborhood list) with <code>knn2nb()</code>. The resulting object stores integer vectors of neighbour IDs for each region (i.e., <code>value</code> column contains region id who is the neighour of [[i]] i-th region in <code>hunan</code>).</li>
+</ul>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb68"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">k1</span><span class="op">&lt;-</span> <span class="fu">knn2nb</span><span class="op">(</span><span class="va">k1</span><span class="op">)</span></span>
+<span><span class="va">k1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Neighbour list object:
+Number of regions: 88 
+Number of nonzero links: 88 
+Percentage nonzero weights: 1.136364 
+Average number of links: 1 
+25 disjoint connected subgraphs
+Non-symmetric neighbours list</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb70"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">k1</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 3</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb72"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">hunan</span><span class="op">$</span><span class="va">County</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">3</span><span class="op">)</span><span class="op">]</span> </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Anxiang" "Jinshi" </code></pre>
+</div>
+</div>
+<ul>
+<li>Use <code>nbdist()</code> from <strong>spdep</strong> to calculate the lengths of the neighbour edges (distances between neighbours), expressed in kilometers (if longlat=TRUE).</li>
+</ul>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb74"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">k1dists</span> <span class="op">&lt;-</span> <span class="fu">nbdists</span><span class="op">(</span><span class="va">k1</span>, <span class="va">coords</span>, longlat <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">k1dists</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+[1] 25.53398
+
+[[2]]
+[1] 43.03114
+
+[[3]]
+[1] 25.53398
+
+[[4]]
+[1] 29.2848
+
+[[5]]
+[1] 29.2848
+
+[[6]]
+[1] 45.98097</code></pre>
+</div>
+</div>
+<ul>
+<li>Apply <code><a href="https://rdrr.io/r/base/unlist.html">unlist()</a></code> to flatten the list structure of the distances into a single numeric vector, so we can directly inspect or compute statistics (like the maximum distance = the upper bound).</li>
+</ul>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb76"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">k1dists</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="va">k1dists</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">k1dists</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  24.79   32.57   38.01   39.07   44.52   61.79 </code></pre>
+</div>
+</div>
+<p>The table above shows the largest first-nearest-neighbor distance is 61.79 km, which qualifies as the upper bound. This is because at that distance, every unit in the dataset has at least one neighbor.</p>
+</section><section id="computing-fixed-distance-weight-matrix" class="level3" data-number="6.2"><h3 data-number="6.2" class="anchored" data-anchor-id="computing-fixed-distance-weight-matrix">
+<span class="header-section-number">6.2</span> Computing Fixed Distance Weight Matrix</h3>
+<p>The code chunk below uses <code>dnearneigh()</code> to compute the distance weight matrix <code>nb</code> class.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb78"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">wm_d62</span> <span class="op">&lt;-</span> <span class="fu">dnearneigh</span><span class="op">(</span><span class="va">coords</span>, <span class="fl">0</span>, <span class="fl">62</span>, longlat <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">wm_d62</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Neighbour list object:
+Number of regions: 88 
+Number of nonzero links: 324 
+Percentage nonzero weights: 4.183884 
+Average number of links: 3.681818 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb80"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">wm_d62</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1]  3  4  5 57 64</code></pre>
+</div>
+</div>
+<p><strong>The Summary Statistics shows across all 88 regions, there are 324 neighbouring edges and on avearge each reagion has 3.68 neighbours. </strong></p>
+<p>The code chunk below can display the contents of the matrix, though the outcome is not shown here. We can also call the index of the nb list to display the neigbhours of i-th region, for example with <code>wm_d62[[1]]</code>. <strong>The value entries in <code>wm_d62</code> contain the actual neighbors of the i-th region according to the neighbour distance.</strong></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb82"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="va">wm_d62</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Alternatively, we can combine <code><a href="https://rdrr.io/r/base/table.html">table()</a></code> and <code>card()</code> of <strong>spdep</strong> to display the structure of weight matrix. Tode chunk cross-tabulates each county <code>hunan$County</code> against the cardinality of its neighbor list <code>card(wm_d62)</code>, which counts how many neighbours each region has.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb83"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">hunan</span><span class="op">$</span><span class="va">County</span>,<span class="fu">card</span><span class="op">(</span><span class="va">wm_d62</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>           
+            1 2 3 4 5 6
+  Anhua     1 0 0 0 0 0
+  Anren     0 0 0 1 0 0
+  Anxiang   0 0 0 0 1 0
+  Baojing   0 0 0 0 1 0
+  Chaling   0 0 1 0 0 0
+  Changning 0 0 1 0 0 0</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb85"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">hunan</span><span class="op">$</span><span class="va">County</span>,<span class="fu">card</span><span class="op">(</span><span class="va">wm_d62</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Number of cases in table: 88 
+Number of factors: 2 
+Test for independence of all factors:
+    Chisq = 440, df = 435, p-value = 0.4241
+    Chi-squared approximation may be incorrect</code></pre>
+</div>
+</div>
+<p>The statistics indicate there is no significant evidence that two variables (county and cardinality) are dependent. However, the results might not be reliable since the table is essential a one-hot encoding.</p>
+<p><code>n.comp.nb(nb.obj)</code>checks connectivity in the dataset. <code>nc</code> means 1 connected component.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb87"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">n_comp</span> <span class="op">&lt;-</span> <span class="fu">n.comp.nb</span><span class="op">(</span><span class="va">wm_d62</span><span class="op">)</span></span>
+<span><span class="va">n_comp</span><span class="op">$</span><span class="va">nc</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1</code></pre>
+</div>
+</div>
+<p><code><a href="https://rdrr.io/r/base/table.html">table()</a></code> code chunk confirms all 88 counties together as a single connected component.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb89"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">n_comp</span><span class="op">$</span><span class="va">comp.id</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+ 1 
+88 </code></pre>
+</div>
+</div>
+</section><section id="plotting-fixed-distance-weight-matrix" class="level3" data-number="6.3"><h3 data-number="6.3" class="anchored" data-anchor-id="plotting-fixed-distance-weight-matrix">
+<span class="header-section-number">6.3</span> Plotting Fixed Distance Weight Matrix</h3>
+<p>The code chunk below plots the distance weight matrix. The first map shows connections based on 1st nearest neighbours while the following shows all neighbours based on cut-off boundary of 62km.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="Hands-on_Ex04_files/figure-html/unnamed-chunk-32-1.png" class="img-fluid figure-img" width="768"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="Hands-on_Ex04_files/figure-html/unnamed-chunk-33-1.png" class="img-fluid figure-img" width="768"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The code chunk belows plots the formation seperately.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb91"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">hunan</span><span class="op">$</span><span class="va">geometry</span>, border<span class="op">=</span><span class="st">"lightgrey"</span>, main<span class="op">=</span><span class="st">"1st nearest neighbours"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">k1</span>, <span class="va">coords</span>, add<span class="op">=</span><span class="cn">TRUE</span>, col<span class="op">=</span><span class="st">"red"</span>, length<span class="op">=</span><span class="fl">0.08</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">hunan</span><span class="op">$</span><span class="va">geometry</span>, border<span class="op">=</span><span class="st">"lightgrey"</span>, main<span class="op">=</span><span class="st">"Distance link"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">wm_d62</span>, <span class="va">coords</span>, add<span class="op">=</span><span class="cn">TRUE</span>, pch <span class="op">=</span> <span class="fl">19</span>, cex <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="Hands-on_Ex04_files/figure-html/unnamed-chunk-34-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section></section><section id="weights-based-on-idw-inversed-distance-method" class="level2" data-number="7"><h2 data-number="7" class="anchored" data-anchor-id="weights-based-on-idw-inversed-distance-method">
 <span class="header-section-number">7</span> Weights Based on IDW (Inversed Distance Method)</h2>
 </section><section id="row-standardised-weights-matrix" class="level2" data-number="8"><h2 data-number="8" class="anchored" data-anchor-id="row-standardised-weights-matrix">
 <span class="header-section-number">8</span> Row-standardised Weights Matrix</h2>
