@@ -656,7 +656,7 @@ summary(nb1)
 ```
 **meaning of Spatial lag with row-standardized weights:**??
 
-With row-standardised weights (style="W"), the spatial lag at area i is just the neighbour-weighted average of the variable.
+*With row-standardised weights (style="W"), the spatial lag at area i is the neighbour average of the variable GDPPC.*
 
 The code chunk below adds the spatially lag GDPPC values onto `hunan` sf data frame.
 
@@ -673,7 +673,7 @@ Now let's have a look at the newly created `hunan` with spatially lagged GDPPC.
 ```{r}
 head(hunan)
 ```
-The code chunk next plots both GDPPC and spatial lag GDPPC for comparsion.
+The code chunk next plots both GDPPC and spatial lag GDPPC for comparison.
 
 ```{r, fig.width= 16, fig.height=8}
 gdppc <- qtm(hunan, "GDPPC")
@@ -683,7 +683,7 @@ tmap_arrange(gdppc, lag_gdppc, asp=1, ncol=2)
 
 ### Spatial Lag as a Sum of Neighbouring Values
 
-To compute spatial lag as the sum of neighbours, use binary weights (1 per neighbour). Build a weight list of ones for each neighbour vector, then pass it via `glist` with `style="B"` (no standardisation), so weight returns sums.
+To compute spatial lag as the sum of neighbours, use binary weights (1 per neighbour). Build a weight list of ones for each neighbour vector, then pass it via `glist` with `style="B"` (no standardisation), so weight returns sums of neighbourhood number, not 0/1.
 
 The code chunk below assigns the weights to each region.
 
@@ -694,7 +694,7 @@ b_weights2 <- nb2listw(wm_q, glist = b_weights, style = "B")
 summary(unlist(b_weights2$weights))
 ```
 **Meaning of Spatial lag as a sum of neighboring values:**
-
+*It is based on sum (total neighbour count), not an average.*
 
 We use `lag.listw()` to calculate the lag variable for GDPPC using the weights.
 
@@ -718,52 +718,80 @@ tmap_arrange(gdppc, lag_sum_gdppc, asp = 1, ncol = 2)
 
 ### Spatial Window Average
 
+The spacial window average uses row-standardised weights and includes the diagonal element which could be done by using `include.self()` from **spdep** package.
 
 ```{r}
 wm_qs <- include.self(wm_q)
-wm_qs[[1]]
-wm_qs <- nb2listw(wm_qs)
+wm_q
 wm_qs
-lag_w_avg_gpdpc <- lag.listw(wm_qs, 
-                             hunan$GDPPC)
-lag_w_avg_gpdpc
+```
+Here we observe all links are inflated and the region ID itself is included in the neighbour's list.
+
+```{r}
+wm_qs[[1]]
+```
+The code chunk uses `nb2listw()` to compute the weights.
+```{r}
+wm_qs <- nb2listw(wm_qs)
+summary(wm_qs$neighbours)
+summary(unlist(wm_qs$weights))
 ```
 
+*Again, we use nb2listw() and glist() to explicitly assign weight values.* DID WE?
 
+The code chunk below creates the lag variable from weight structure and GDPPC variable.
+
+```{r}
+lag_w_avg_gpdpc <- lag.listw(wm_qs,hunan$GDPPC)
+lag_w_avg_gpdpc
+summary(lag_w_avg_gpdpc)
+```
+
+Next we add the spatial window average to the `hunan` main dataset and tidy up the columns.
 
 ```{r}
 lag.list.wm_qs <- list(hunan$NAME_3, lag.listw(wm_qs, hunan$GDPPC))
 lag_wm_qs.res <- as.data.frame(lag.list.wm_qs)
 colnames(lag_wm_qs.res) <- c("NAME_3", "lag_window_avg GDPPC")
 hunan <- left_join(hunan, lag_wm_qs.res)
+head(hunan, 3)
 ```
+The code chunk below uses `kable()` of **Knitr** to display the required columns neatly and nicely.
 
 ```{r}
-hunan %>%
-  select("County", 
-         "lag GDPPC", 
+kable1 <- hunan %>%
+  select("County", "GDPPC", "lag GDPPC", 
          "lag_window_avg GDPPC") %>%
   kable()
-```
 
-```{r, fig.width= 16, fig.height=8}
+kable1
+```
+Finaly the qtm() of tmap package is used to plot the orignal, lag_gdppc and w_ave_gdppc.
+
+```{r, fig.width= 18, fig.height=8}
 w_avg_gdppc <- qtm(hunan, "lag_window_avg GDPPC")
-tmap_arrange(lag_gdppc, w_avg_gdppc, asp=1, ncol=2)
+tmap_arrange(gdppc, lag_gdppc, w_avg_gdppc, asp=1, ncol=3)
 ```
 
 ### Spatial Window Sum
 
+The spatial window sum is the counter part of the window average, but without using row-standardized weights.First we include the diagonal element to the neighbour list.
+
 ```{r}
 wm_qs <- include.self(wm_q)
 wm_qs
+```
+
+The code chunk assigns binary weights to the each neighbour belong to i-th region (self-included). We observe the region ID 85 has 12 neighbours, that each has weight count 1.
+```{r}
 b_weights <- lapply(wm_qs, function(x) 0*x + 1)
-b_weights[1]
-b_weights2 <- nb2listw(wm_qs, 
-                       glist = b_weights, 
-                       style = "B")
+b_weights[85] #1 * 12
+b_weights2 <- nb2listw(wm_qs, glist = b_weights, style = "B")
+b_weights2$weights[85]
 b_weights2
 ```
 
+The code chunk next calculates the lag GDPPC using lag.listw() and appends the tidied list to the `hunan` main dataset.
 
 ```{r}
 w_sum_gdppc <- list(hunan$NAME_3, lag.listw(b_weights2, hunan$GDPPC))
@@ -774,30 +802,40 @@ colnames(w_sum_gdppc.res) <- c("NAME_3", "w_sum GDPPC")
 
 hunan <- left_join(hunan, w_sum_gdppc.res)
 ```
+Here we call kable() again to tabluate the required values neatly.
 
 ```{r}
-hunan %>%
-  select("County", "lag_sum GDPPC", "w_sum GDPPC") %>%
+kable2<- hunan %>%
+  select("County", "GDPPC", "lag_sum GDPPC", "w_sum GDPPC") %>%
   kable()
 
-```
+kable2
 
-```{r, fig.width= 16, fig.height=8}
+```
+Lastly we use `qtm()` of **tmap** package to compare the lag_sum GDPPC and w_sum_gdppc maps.
+
+```{r, fig.width= 18, fig.height=8}
 w_sum_gdppc <- qtm(hunan, "w_sum GDPPC")
-tmap_arrange(lag_sum_gdppc, w_sum_gdppc, asp=1, ncol=2)
-```
-
-Note: For more effective comparison, it is advicible to use the core tmap mapping functions.
-
-
-
-```{r, fig.width= 16, fig.height=20}
-tmap_arrange(gdppc, lag_gdppc,lag_sum_gdppc, w_avg_gdppc, w_sum_gdppc, asp=1, ncol=2)
-
+tmap_arrange(gdppc,lag_sum_gdppc, w_sum_gdppc, asp=1, ncol=3)
 ```
 
 
 
+### Plotting Summary 
+
+Note: For more effective comparison, it is advisable to use the core tmap mapping functions. Because tmap gives clearer thematic legends, allow easy arrangement via `tmap_arrange()` and control of colour scales, breaks, and styles (useful when comparing spatial lags or weights).
+
+Note: Both spatial lag methods exclude self by default, whereas spatial window methods includes self by `include.self=TRUE`.
+
+**Interpretation:**
+
+The raw GDPPC map reflects only local wealth, while the spatial lag (average) highlights the influence of neighbouring regions’ wealth. Including the diagonal (lag window average) blends self and neighbours, producing a more conservative measure. In contrast, lag sum and weighted sum emphasise total neighbour wealth and therefore amplify the role of areas with many adjacent regions.
+
+
+
+```{r, fig.width= 20, fig.height=20}
+tmap_arrange(gdppc, lag_gdppc, w_avg_gdppc,gdppc, lag_sum_gdppc, w_sum_gdppc, ncol = 3, asp = 1)
+```
 
 
 :::
