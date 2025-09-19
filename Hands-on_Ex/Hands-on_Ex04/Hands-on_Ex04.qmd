@@ -654,7 +654,7 @@ nb1 <- wm_q[[1]]
 nb1 <- hunan$GDPPC[nb1]
 summary(nb1)
 ```
-**meaning of Spatial lag with row-standardized weights:**??
+**meaning of Spatial lag with row-standardized weights:**
 
 *With row-standardised weights (style="W"), the spatial lag at area i is the neighbour average of the variable GDPPC.*
 
@@ -694,7 +694,7 @@ b_weights2 <- nb2listw(wm_q, glist = b_weights, style = "B")
 summary(unlist(b_weights2$weights))
 ```
 **Meaning of Spatial lag as a sum of neighboring values:**
-*It is based on sum (total neighbour count), not an average.*
+*It is based on total value of of all neighours, not an average. e.g. region 1's sum would be 5  x average value = 124326*
 
 We use `lag.listw()` to calculate the lag variable for GDPPC using the weights.
 
@@ -829,9 +829,13 @@ Note: Both spatial lag methods exclude self by default, whereas spatial window m
 
 **Interpretation:**
 
-The raw GDPPC map reflects only local wealth, while the spatial lag (average) highlights the influence of neighbouring regions’ wealth. Including the diagonal (lag window average) blends self and neighbours, producing a more conservative measure. In contrast, lag sum and weighted sum emphasise total neighbour wealth and therefore amplify the role of areas with many adjacent regions.
+The raw GDPPC map shows the local wealth. Spatial lag maps reveal that wealthier counties are often located close to one another,
 
+- Row-standardised lag: shows neighbourhood influence. It tells how much richer/poorer are my neighbours compared to me. 
 
+- Lag sum: indicates total exposure/clustering strength. The number of wealthy neighbours magnifies the effect, rather than just their average wealth. 
+
+- Including the diagonal blends self and neighbours, producing a more conservative view.
 
 ```{r, fig.width= 20, fig.height=20}
 tmap_arrange(gdppc, lag_gdppc, w_avg_gdppc,gdppc, lag_sum_gdppc, w_sum_gdppc, ncol = 3, asp = 1)

@@ -1715,7 +1715,7 @@ Link number distribution:
   20981   21311   22879   24847   24473   34592 </code></pre>
 </div>
 </div>
-<p><strong>meaning of Spatial lag with row-standardized weights:</strong>??</p>
+<p><strong>meaning of Spatial lag with row-standardized weights:</strong></p>
 <p><em>With row-standardised weights (style=“W”), the spatial lag at area i is the neighbour average of the variable GDPPC.</em></p>
 <p>The code chunk below adds the spatially lag GDPPC values onto <code>hunan</code> sf data frame.</p>
 <div class="cell">
@@ -1802,7 +1802,7 @@ Geodetic CRS:  WGS 84
       1       1       1       1       1       1 </code></pre>
 </div>
 </div>
-<p><strong>Meaning of Spatial lag as a sum of neighboring values:</strong> <em>It is based on sum (total neighbour count), not an average.</em></p>
+<p><strong>Meaning of Spatial lag as a sum of neighboring values:</strong> <em>It is based on total value of of all neighours, not an average. e.g.&nbsp;region 1’s sum would be 5 x average value = 124326</em></p>
 <p>We use <code>lag.listw()</code> to calculate the lag variable for GDPPC using the weights.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb168"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">lag_sum</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">hunan</span><span class="op">$</span><span class="va">NAME_3</span>, <span class="fu">lag.listw</span><span class="op">(</span><span class="va">b_weights2</span>, <span class="va">hunan</span><span class="op">$</span><span class="va">GDPPC</span><span class="op">)</span><span class="op">)</span></span>
@@ -3390,7 +3390,12 @@ B 88 7744 536 1072 14160</code></pre>
 <p>Note: For more effective comparison, it is advisable to use the core tmap mapping functions. Because tmap gives clearer thematic legends, allow easy arrangement via <code>tmap_arrange()</code> and control of colour scales, breaks, and styles (useful when comparing spatial lags or weights).</p>
 <p>Note: Both spatial lag methods exclude self by default, whereas spatial window methods includes self by <code>include.self=TRUE</code>.</p>
 <p><strong>Interpretation:</strong></p>
-<p>The raw GDPPC map reflects only local wealth, while the spatial lag (average) highlights the influence of neighbouring regions’ wealth. Including the diagonal (lag window average) blends self and neighbours, producing a more conservative measure. In contrast, lag sum and weighted sum emphasise total neighbour wealth and therefore amplify the role of areas with many adjacent regions.</p>
+<p>The raw GDPPC map shows the local wealth. Spatial lag maps reveal that wealthier counties are often located close to one another,</p>
+<ul>
+<li><p>Row-standardised lag: shows neighbourhood influence. It tells how much richer/poorer are my neighbours compared to me.</p></li>
+<li><p>Lag sum: indicates total exposure/clustering strength. The number of wealthy neighbours magnifies the effect, rather than just their average wealth.</p></li>
+<li><p>Including the diagonal blends self and neighbours, producing a more conservative view.</p></li>
+</ul>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb206"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">tmap_arrange</span><span class="op">(</span><span class="va">gdppc</span>, <span class="va">lag_gdppc</span>, <span class="va">w_avg_gdppc</span>,<span class="va">gdppc</span>, <span class="va">lag_sum_gdppc</span>, <span class="va">w_sum_gdppc</span>, ncol <span class="op">=</span> <span class="fl">3</span>, asp <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
