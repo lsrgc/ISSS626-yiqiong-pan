@@ -803,10 +803,6 @@ tmap_arrange(gdppc, lag_gdppc,lag_sum_gdppc, w_avg_gdppc, w_sum_gdppc, asp=1, nc
 :::
 
 
-We define the neighbours (who influences whom) using: Contiguity(shared border), Distance(within k kilometres), Trajectory: order or flow.
-
-We weight the neighbours (how strong the influence is) using: Binary (1/0), Distance decay (closer neighbours carry more weight), Strength-based (combined measures, such as shared boundary length, population, or flows).
-
 ## Reference
 
 Kam, T. S. 8 Spatial Weights and Applications. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap08
