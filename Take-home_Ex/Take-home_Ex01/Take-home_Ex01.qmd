@@ -1,19 +1,27 @@
 ---
 title: "01: Geospatial Analytics for Public Good"
+draft: true
 author: "Yiqiong PAN"
 date: "Sep 10, 2025"
-date-modified: "last-modified"
+date-modified: last-modified
+
 execute:
-  echo: true #display the code
-  eval: true #run the code
+  echo: true    # display the code
+  eval: true    # run the code
   message: false
   warning: false
-  freeze: true # not render if nothing edited
-editor: visual
+  freeze: true  # do not re-render if nothing edited
+
 format: 
   html:
-    number-sections: true
-    number-depth: 4
+    toc: true
+    code-link: true
+
+number-sections: true
+number-depth: 4
+
+editor: visual
+
 ---
 
 ## Overview
