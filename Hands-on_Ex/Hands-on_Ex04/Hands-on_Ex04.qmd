@@ -442,7 +442,7 @@ knn6
 The code chunk below can display the contents of the matrix, though the outcome is not shown here. We can also call the index of the nb list to display the neigbhours of i-th region, for example with `knn6[[85]]`. `summary(knn6)` confirms that no region is more or less connected than another under k-nearest neighbours. The neighbour count is fixed at six for all.
 
 ```{r}
-#| echo: false
+#| eval: false
 str(knn6)
 ```
 
@@ -567,7 +567,7 @@ summary(unlist(rswm_q$weights))
 
 
 
-TO demonstrate the difference, the code chunk below calls `style = B` and uses previously created IDW distance decay `ids` (closer neighbours carry more weight) to create Inverse Distance Weights matrix.
+To demonstrate the difference, the code chunk below calls `style = B` and uses previously created IDW **distance decay** `ids` (closer neighbours carry more weight) to create Inverse Distance Weights matrix.
 
 
 ```{r}
@@ -585,7 +585,7 @@ length(rswm_q$weights[[85]])
 summary(unlist(rswm_ids$weights))
 ```
 
-::: callout- note
+::: callout-note
 
 Here are a few combinations for weighting neighbours  
 
@@ -620,7 +620,6 @@ rswm_bin <- nb2listw(wm_q, style = "B", zero.policy = TRUE)
 summary(rswm_bin$neighbours)
 summary(unlist(rswm_bin$weights))
 ```
-
 :::
 
 
