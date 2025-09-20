@@ -454,7 +454,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">September 19, 2025</p>
+      <p class="date-modified">September 20, 2025</p>
     </div>
   </div>
     
@@ -1183,7 +1183,7 @@ Average number of links: 3.681818 </code></pre>
 <pre><code>[1] 2 5</code></pre>
 </div>
 </div>
-<p><strong>The Summary Statistics shows across all 88 regions, there are 324 neighbouring edges and on avearge each reagion has 3.68 neighbours. </strong></p>
+<p><strong>The Summary Statistics shows across all 88 regions, there are 324 neighbouring edges and on avearge each reagion has 3.68 neighbours.</strong></p>
 <p>The code chunk below can display the contents of the matrix, though the outcome is not shown here. We can also call the index of the nb list to display the neigbhours of i-th region, for example with <code>wm_d62[[85]]</code>. <strong>The value entries in <code>wm_d62</code> contain the actual neighbors of the i-th region according to the neighbour distance.</strong></p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb84"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="va">wm_d62</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1250,11 +1250,11 @@ Test for independence of all factors:
 </div>
 <div id="tabset-2-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-4-tab">
 <p>With a fixed distance band (e.g., 62 km), every county links to all neighbours within that radius. This contradicts modern urban geographic characteristics (heterogeneity) and may cause over-smoothing, which blurs local signals (weaker LISA extremes), inflates dependence (causing unnecessary Moran’s I), leaves sparse border/rural counties with few links, and introduces bias in models.</p>
-<p>Adaptive weights (k-nearest neighbours) are preferable when densities vary a lot, since they equalise neighbour counts and allow fairer comparison. That means every region gets exactly k neighbours, no matter if it is crowded or isolated.</p>
+<p>Adaptive weights (k-nearest neighbours) are preferrable when densities vary a lot, since they equalise neighbour counts and allow fairer comparison. That means every region gets exactly k neighbours, no matter if it is crowded or isolated.</p>
 <p>Asymmetric kNN is applicable for directional insights since region A may list region B among its k nearest neighbours while region B does not list A. On the other hand, enforced symmetric kNN <code>sym=TRUE</code> is better for connectivity and interpretability.</p>
 <p>We select the smallest k that yields a connected graph and confirm robustness via sensitivity checks.</p>
 <p>Rule-of-thumb: start with k∈[4,8], check connectivity, and run sensitivity (k = 4, 6, 8 …). Pick the smallest k that is connected and stable.</p>
-<p>The code chunk below creates 6 non-symmtric nearest neighbours for each region. We observe nonzero links are 528 higher than preivous methods.</p>
+<p>The code chunk below creates 6 non-symmetric nearest neighbours for each region. We observe nonzero links are 528, higher than previous methods.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb94"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">knn6</span> <span class="op">&lt;-</span> <span class="fu">knn2nb</span><span class="op">(</span><span class="fu">knearneigh</span><span class="op">(</span><span class="va">coords</span>, k<span class="op">=</span><span class="fl">6</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">knn6</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1341,7 +1341,7 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>Plotting Guide: </strong></p>
+<p><strong>Plotting Guide:</strong></p>
 <ul>
 <li>
 <code>pch</code> = plotting character (the marker shape) for the node points drawing at each centroid.</li>
@@ -3394,10 +3394,13 @@ B 88 7744 536 1072 14160</code></pre>
 <ul>
 <li><p>Row-standardised lag: shows neighbourhood influence. It tells how much richer/poorer are my neighbours compared to me.</p></li>
 <li><p>Lag sum: indicates total exposure/clustering strength. The number of wealthy neighbours magnifies the effect, rather than just their average wealth.</p></li>
-<li><p>Including the diagonal blends self and neighbours, producing a more conservative view.</p></li>
+<li><p>Including the diagonal blends self and neighbours, producing a more high-level view.</p></li>
+<li><p>In this Hunan example, the lag window sum shows the east and west divided in wealth. That means eastern side is richer than western side on average. This is common phenomena in China.</p></li>
+<li><p>Another example could be study of customer purchasing power. Once we found higher spending group we can set up new store in the neighouring area.</p></li>
 </ul>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb206"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">tmap_arrange</span><span class="op">(</span><span class="va">gdppc</span>, <span class="va">lag_gdppc</span>, <span class="va">w_avg_gdppc</span>,<span class="va">gdppc</span>, <span class="va">lag_sum_gdppc</span>, <span class="va">w_sum_gdppc</span>, ncol <span class="op">=</span> <span class="fl">3</span>, asp <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb206"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">tmap_arrange</span><span class="op">(</span><span class="va">gdppc</span>, <span class="va">lag_gdppc</span>, <span class="va">w_avg_gdppc</span>,</span>
+<span>             <span class="va">gdppc</span>, <span class="va">lag_sum_gdppc</span>, <span class="va">w_sum_gdppc</span>, ncol <span class="op">=</span> <span class="fl">3</span>, asp <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="Hands-on_Ex04_files/figure-html/unnamed-chunk-68-1.png" class="img-fluid figure-img" width="1920"></p>
