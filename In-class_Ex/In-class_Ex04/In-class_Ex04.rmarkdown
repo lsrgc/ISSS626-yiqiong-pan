@@ -90,6 +90,7 @@ bw_AIC <- bw.gwr(GDPPC ~ 1,
                 adaptive = FALSE,
                 kernel = "bisquare",
                 longlat = T)
+bw_AIC
 ```
 
 
@@ -112,6 +113,7 @@ Since there is no common clumn which is essental to left_join, we can use cbind(
 
 ```{r}
 hunan_gstat <- cbind(hunan_sf, gwstat_df)
+head(hunan_gstat)
 ```
 
 
@@ -127,6 +129,7 @@ tm_shape(hunan_gstat) +
   legend.show = FALSE   # <- turns legend off
   )
 ```
+
 
 
 
