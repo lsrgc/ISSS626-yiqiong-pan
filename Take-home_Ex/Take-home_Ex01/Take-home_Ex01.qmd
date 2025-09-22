@@ -21,7 +21,6 @@ number-sections: true
 number-depth: 4
 
 editor: visual
-
 ---
 
 ## Overview
@@ -68,6 +67,8 @@ For this exercise, the two datasets used are as follows:
 
 2.  **Corporate Entities dataset** contains corporate entitites regisretarion date since... Aug 2025, among with we extracted from duration and study buness based on SSIC 2020. THe orgindal data is downed from data.gov.sg
 
+3.   Master Plan
+
 ## Installing and Loading the R Packages
 
 A total of **six** R packages will be used in this exercise.
@@ -95,82 +96,554 @@ A total of **six** R packages will be used in this exercise.
 After installation via `install.packages()`, we load them into R environment using the code below.
 
 ```{r}
-pacman:: p_load(sf, raster, spatstat, sparr, tmap, tidyverse, terra, stopp, stpp, magick, fs,vroom, readxl,rvest, onemapsgapi,tidygeocoder)
+pacman:: p_load(sf, raster, rvest, spatstat, sparr, tmap, tidyverse, terra, stopp, stpp, magick, httr, ggthemes, plotly)
 ```
 
 ## Importing and Preparing Study Area
 
 ::: panel-tabset
+
 ### Importing Study Area
 
 The following code chunk shows the steps to first import the `Master plan 2019 Subzone Boundary (No Sea)` data using **st_read()** function from sf package, extract the required 4 columns from the `Description` field, filter out the nearby islands, and finally save the file as `mpsz_cl` for further analysis.
 
 ```{r}
-
-mpsz_sf <- st_read("data/geospatial/rawdata/MasterPlan2019SubzoneBoundaryNoSeaKML.kml") %>%
+#| eval: false
+mpsz <- st_read("data/geospatial/rawdata/MasterPlan2019SubzoneBoundaryNoSeaKML.kml") %>%
   st_zm(drop = TRUE, what = "ZM") %>%
   st_transform(crs = 3414)
 
-summary(mpsz_sf)
 
-tm_shape(mpsz_sf) +
-  tm_polygons() 
+summary(mpsz)
+
+tm_shape(mpsz) +
+  tm_polygons()
 ```
 
-```{r}
 
+```{r}
+#| eval: false
+mpsz$Description[200]
+```
+
+
+```{r}
+#| eval: false
 extract_kml_field <- function(html_text, field_name) {
+  # return NA if missing or empty
   if (is.na(html_text) || html_text == "") return(NA_character_)
   
-  page <- read_html(html_text)
-  rows <- page %>% html_elements("tr")
+  page <- read_html(html_text)          #parse the HTML string 
+  rows <- page %>% html_elements("tr")  #get all table rows <tr>
   
   value <- rows %>%
-    keep(~ html_text2(html_element(.x, "th")) == field_name) %>%
-    html_element("td") %>%
-    html_text2()
+    keep(~ html_text2(html_element(.x, "th")) == field_name) %>% #keep row where <th> table header text = field_name
+    html_element("td") %>%                                       #take its <td> table data
+    html_text2()                                                 #extract clean text
   
-  if (length(value) == 0) NA_character_ else value
+  if (length(value) == 0) NA_character_ else value        #return NA if no match, otherwise the value
 }
 ```
 
+
 ```{r}
-# map_chr of purr (tidyverse) applies a function to each element of a list/vector and returns a character vector.
-mpsz_sf <- mpsz_sf %>%
+#| eval: false
+mpsz <- mpsz %>%
   mutate(
-    REGION_N = map_chr(Description, extract_kml_field, "REGION_N"),
+    REGION_N   = map_chr(Description, extract_kml_field, "REGION_N"),
     PLN_AREA_N = map_chr(Description, extract_kml_field, "PLN_AREA_N"),
-    SUBZONE_N = map_chr(Description, extract_kml_field, "SUBZONE_N"),
-    SUBZONE_C = map_chr(Description, extract_kml_field, "SUBZONE_C")
+    SUBZONE_N  = map_chr(Description, extract_kml_field, "SUBZONE_N"),
+    SUBZONE_C  = map_chr(Description, extract_kml_field, "SUBZONE_C")
   ) %>%
   select(-Name, -Description) %>%
   relocate(geometry, .after = last_col())
 ```
 
-```{r}
 
-mpsz_cl <- mpsz_sf %>%
+```{r}
+#| eval: false
+mpsz_cl <- mpsz %>%
   filter(SUBZONE_N != "SOUTHERN GROUP",
          PLN_AREA_N != "WESTERN ISLANDS",
          PLN_AREA_N != "NORTH-EASTERN ISLANDS")
 
 write_rds(mpsz_cl,
-          "data/geospatial/mpsz_cl.rds")
+          "data/rds/mpsz_cl.rds")
 ```
 
 ```{r}
-mpsz_cl <- read_rds("data/geospatial/mpsz_cl.rds")
+mpsz_cl <- read_rds("data/rds/mpsz_cl.rds")
 summary(mpsz_cl)
-
-tm_shape(mpsz_cl) +
-  tm_polygons() 
 ```
 
+```{r}
+tmap_mode ("plot")
+tm_shape(mpsz_cl) + tm_polygons()
+
+```
+
+
+
+:::
+
+
+
+```{r}
+#| eval: false
+lu2019 <- st_read("data/geospatial/rawdata/MasterPlan2019LandUselayer.geojson") %>%
+  st_zm(drop = TRUE, what = "ZM") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+#| eval: false
+lu2019$Description[1]
+```
+
+```{r}
+#| eval: false
+lu2023 <- st_read("data/geospatial/rawdata/AmendmenttoMasterPlan2019LandUselayer.geojson") %>%
+  st_zm(drop = TRUE, what = "ZM") %>%
+  st_transform(crs = 3414)
+lu2023$Description[1:2] 
+```
+
+
+```{r}
+#| eval: false
+st_crs(lu2019) == st_crs(lu2023)
+lu2019 <- st_make_valid(lu2019)
+lu2023 <- st_make_valid(lu2023)
+lu2019_updated <- lu2019[!st_intersects(lu2019, st_union(lu2023), sparse = FALSE)[,1], ]
+lu_combined <- rbind(lu2019_updated, lu2023)
+
+```
+
+
+```{r}
+nrow(lu2019); nrow(lu2019_updated); nrow(lu2023); nrow(lu_combined)
+
+# Coverage check: does 2023 essentially cover all 2019?
+a2019 <- st_area(st_union(st_make_valid(lu2019)))
+a2023 <- st_area(st_union(st_make_valid(lu2023)))
+as.numeric(a2023 / a2019)
+
+```
+
+```{r}
+# parse LU_DESC from the Description column of land_use
+lu <- lu_combined %>%
+  mutate(
+    LU_DESC = map_chr(Description, extract_kml_field, "LU_DESC"),
+  ) %>%
+  select(-Name, -Description) %>%
+  relocate(geometry, .after = last_col())
+
+```
+
+
+```{r}
+table(lu$LU_DESC)
+
+```
+
+```{r}
+lu_use <- lu %>%
+  filter(!(LU_DESC %in% c("ROAD", "WATERBODY")))
+
+```
+
+
+```{r}
+
+if (st_crs(lu_use) != st_crs(mpsz_cl)) {
+  mpsz_cl <- st_transform(mpsz_cl, st_crs(lu_use))
+}
+
+# Option A: centroid join (faster)
+lu_cent <- st_centroid(lu_use)
+
+lu_with_subzone <- st_join(
+  lu_cent %>% select(LU_DESC),
+  mpsz_cl  %>% select(REGION_N, PLN_AREA_N, SUBZONE_N),
+  join = st_within, left = TRUE
+)
+
+# Now every LU parcel has a SUBZONE_N, PLN_AREA_N, REGION_N
+
+```
+```{r}
+lu_counts_subzone <- lu_with_subzone %>%
+  st_drop_geometry() %>%
+  count(PLN_AREA_N, SUBZONE_N, LU_DESC, sort = TRUE)
+
+head(lu_counts_subzone, 20)
+
+```
+
+
+
+::: panel-tabset
 ### Business registry
+
+
+#### Importing the ACRA Data
+The code chunk imports ACRA data into R enviroment as tibble data frame. We also need to drop unnecessary fields, e.g., those with excessive missing values or containing only a single value.
+
+
+```{r}
+#| eval: false
+folder_path <- "data/aspatial/acra"
+file_list <- list.files(path = folder_path,
+                        pattern = "^ACRA.*\\csv$",
+                        full.names = TRUE)
+
+acra_data <- file_list %>%
+  map_dfr(read_csv,show_col_types = FALSE)
+```
+
+
+#### Saving the ACRA Data
+The code chunk saves the consolidated ACRA data.
+
+```{r}
+#| eval: false
+write_rds(acra_data, "data/rds/acra_data.rds") #rds not csv to avoid changing of field names..
+```
+
+```{r}
+#| eval: false
+acra_data <- read_rds("data/rds/acra_data.rds")
+```
+
+Selecting the Target Business and Period
+The code chunk selects fields for the target business according to the SSIC code and registrations within the first six months of 2025. It renames long column names to ‘date’ for easier coding later, creates a new year column and both numeric and categorical month columns, and also tidies the postal code by adding a leading ‘0’.
+
+```{r}
+acra_2025 <- acra_data %>%
+  select(1:24) %>%
+  rename(date = registration_incorporation_date) %>%
+  mutate(date = as.Date(date),
+         YEAR = year(date),
+         MONTH_NUM = month(date),
+         MONTH_ABBR = month(date, label = TRUE, abbr = TRUE),
+         postal_code = str_pad(postal_code, width = 6, side = "left", pad = "0")) %>%
+  filter(YEAR == 2025, MONTH_NUM <= 6)
+```
+
+
+```{r}
+write_rds(acra_2025, "data/rds/acra_2025.rds")
+```
+
+```{r}
+acra_2025 <- read_rds("data/rds/acra_2025.rds")
+```
+
+37362 vs 37012
+
+```{r}
+acra_2025l <- acra_2025 %>%
+  filter(str_detect(entity_status_description, "Live"))
+```
+
+
+```{r}
+write_rds(acra_2025l, "data/rds/acra_2025l.rds")
+acra_2025l <- read_rds("data/rds/acra_2025l.rds")
+```
+
+```{r}
+top20_codes <- acra_2025l %>%
+  count(primary_ssic_code, sort = TRUE) %>%
+  slice_max(n , n =20)   # keep top 20 codes
+```
+
+
+```{r}
+ssic_lookup <- read_excel("data/aspatial/ssic2020-classification-structure.xlsx", skip = 4)%>%
+  select(ssic_code = `SSIC 2020`, ssic_title = `SSIC 2020 Title`) %>%
+  filter(!is.na(ssic_code))
+```
+
+```{r}
+top20_codes <- top20_codes %>%
+  mutate(primary_ssic_code = as.character(primary_ssic_code)) %>%
+  left_join(ssic_lookup, by = c("primary_ssic_code" = "ssic_code"))
+```
+
+
+Following business types are selected as study of interest:
+
+
+1. 46900 – Wholesale trade of a variety of goods without a dominant product
+2. 62011 – Information technology consultancy (except cybersecurity)
+3. 56140 - Stalls selling cooked food and prepared drinks (including stalls at food courts and mobile food hawkers)
+
+Since they are among top 20, closed rate less than 1%
+
+
+
+```{r}
+# Define the SSIC codes of interest
+target_codes <- c("46900", "62011", "56140", "47801", "47802" )
+
+# Count in full dataset
+counts_full <- acra_2025 %>%
+  count(primary_ssic_code, name = "count_full") %>%
+  filter(primary_ssic_code %in% target_codes)
+
+# Count in live-only dataset
+counts_live <- acra_2025l %>%
+  count(primary_ssic_code, name = "count_live") %>%
+  filter(primary_ssic_code %in% target_codes)
+
+# Combine side by side
+counts_compare <- counts_full %>%
+  full_join(counts_live, by = "primary_ssic_code") %>%
+  mutate(precentage =round((count_full- count_live)/ count_full * 100,2))%>%
+  arrange(primary_ssic_code)
+
+counts_compare
+```
+
+
+
+```{r}
+acra_sl <- acra_2025l %>%
+  select(3,17,22,25:27)
+
+```
+
+
+```{r}
+biz_46900 <- acra_sl %>% filter(primary_ssic_code == "46900")
+biz_62011 <- acra_sl %>% filter(primary_ssic_code == "62011")
+biz_56140 <- acra_sl %>% filter(primary_ssic_code == "56140")
+```
+
+
+GEOCODE FOR EACH CODE
+
+
+Performing Geocoding
+The code chunk extracts unique postal codes from the postal_code field of a tidied tibble, queries the *SLA OneMap* `Reverse Geocode API` for each postal code. Then it store results in two data frames: - `found`: records with valid geocode results. - `not_found`: records where postal codes are not returned by the API.Clearning up the Geocoding
+The code chunk extracts the first 10 columns that contain useful information for this study
+Combining the Business Data with Geo Info
+The code chunk appends the business sf data frame with location information.
+
+Saving the data
+The code chunk saves the data as rds format.
+
+Converting to sf Data Frame
+The code chunk converts the tibble data frame to an sf object and also assigns the correct EPSG.
+
+```{r}
+geocode_biz <- function(biz_df, out_rds_path) {
+  # Extract unique postal codes
+  postcodes <- unique(biz_df$postal_code)
+  url <- "https://onemap.gov.sg/api/common/elastic/search"
+  
+  found <- data.frame()
+  not_found <- data.frame(postcode = character())
+  
+  # Loop through postal codes
+  for (pc in postcodes) {
+    query <- list(
+      searchVal = pc,
+      returnGeom = "Y",
+      getAddrDetails = "Y",
+      pageNum = "1"
+    )
+    
+    res <- GET(url, query = query)
+    json <- content(res)
+    
+    if (json$found != 0) {
+      df <- as.data.frame(json$results, stringsAsFactors = FALSE)
+      df$input_postcode <- pc
+      found <- bind_rows(found, df)
+    } else {
+      not_found <- bind_rows(not_found, data.frame(postcode = pc))
+    }
+  }
+  
+  # Keep first 10 columns
+  found <- found %>% select(1:10)
+  
+  # Join back to business data
+  biz_df <- biz_df %>%
+    left_join(found, by = c("postal_code" = "POSTAL"))
+  
+  # Save RDS
+  write_rds(biz_df, out_rds_path)
+  
+  # Convert to sf
+  biz_sf <- st_as_sf(biz_df,
+                     coords = c("X", "Y"),
+                     crs = 3414)
+  
+  return(biz_sf)
+}
+
+```
+
+Usage on select three codes
+
+```{r}
+biz_46900_sf <- geocode_biz(biz_46900, "data/rds/biz_46900.rds")
+```
+
+
+```{r}
+biz_62011_sf <- geocode_biz(biz_62011, "data/rds/biz_62011.rds")
+```
+
+```{r}
+biz_56140_sf <- geocode_biz(biz_56140, "data/rds/biz_56140.rds")
+```
+
+
+
+
+EDA
+Visualising the Distribution
+The code chunk shows the new business registration number by month.aes() maps data frame columns to plot aesthetics, e.g. aes(x = var1, y = var2) maps var1 to the x-axis and var2 to the y-axis.
+
+
+```{r}
+ggplot(data = biz_46900_sf,
+       aes(x = MONTH_ABBR)) +
+  geom_bar()
+```
+
+
+
+
+
+
+
+
+
+  
+Visualsing the business
+The code chunk plots the new business in interactive map.
+
+
+```{r}
+
+mpsz_lbl <- mpsz_cl %>%
+  mutate(area_km2 = as.numeric(st_area(geometry)) / 1e6) %>%
+  st_point_on_surface() %>%                 # safer than st_centroid for skinny polygons
+  filter(area_km2 > 0.30)                   # label only big ones; tweak threshold
+
+tmap_mode("view")
+
+tm_shape(mpsz_cl) +
+  tm_polygons(alpha = 0.15, border.col = "grey50") +
+tm_shape(mpsz_lbl) +
+  tm_text("SUBZONE_N", size = 0.6, col = "blue", auto.placement = TRUE) +
+tm_shape(biz_46900_sf) + tm_dots()
+```
+
+
+```{r}
+tmap_mode('view') 
+tm_shape(biz_46900_sf) + tm_dots()
+```
+  
+
+The code chunk reverses the tmap_mode from interactive to static.
+```{r}
+tmap_mode('plot')
+```
+
+
+EDA
+Visualising the Distribution
+The code chunk shows the new business registration number by month.aes() maps data frame columns to plot aesthetics, e.g. aes(x = var1, y = var2) maps var1 to the x-axis and var2 to the y-axis.
+
+
+```{r}
+ggplot(data = biz_62011_sf,
+       aes(x = MONTH_ABBR)) +
+  geom_bar()
+```
+
+
+  
+Visualsing the business
+The code chunk plots the new business in interactive map.
+
+
+```{r}
+tmap_mode('view') 
+tm_shape(biz_62011_sf) + tm_dots()
+```
+  
+
+The code chunk reverses the tmap_mode from interactive to static.
+```{r}
+tmap_mode('plot')
+```
+
+
+```{r}
+ggplot(data = biz_56140_sf,
+       aes(x = MONTH_ABBR)) +
+  geom_bar()
+```
+
+
+  
+Visualsing the business
+The code chunk plots the new business in interactive map.
+
+
+```{r}
+tmap_mode('view') 
+tm_shape(biz_56140_sf) + tm_dots()
+```
+  
+
+The code chunk reverses the tmap_mode from interactive to static.
+```{r}
+tmap_mode('plot')
+```
+
+
+
+
+
+
+
+
+Online marketplaces for goods (including food)
+
+```{r}
+biz_63201 <- acra_2025 %>%
+  filter(primary_ssic_code == 63201)
+```
+
+```{r}
+biz_63205 <- acra_2025 %>%
+  filter(primary_ssic_code == 63205) 
+```
+
 
 we realise that \`preimiarly ssic code has missing leading 0 probably due to transmission and registartion date date type is ymd.
 
 Inside map_dfr(), vroom(.x) → reads each CSV filter(between(...)) → keeps only rows in the date window. map_dfr() → row-binds all filtered CSVs into one tibble (files_fl).
+
+
+
+
+
+
+
+
+
+
 
 ```{r}
 dir <- "data/aspatial/rawdata" 
@@ -307,10 +780,6 @@ get_geocode_by_ssic <- function(df, ssic_code) {
 #cp_geo  <- get_geocode_by_ssic(files_geo, "62") #	COMPUTER PROGRAMMING
 ```
 
-### Converting sf Point Data Frames to PPP
-
-Here we use `as.ppp()` of spatstat package to covert the point data `bsns_sf` to ppp file, confirm the change using `class()` and have a quick overview of the data statistics via `summary()`.
-
 ### Creating Owin Object
 
 Similarly, the owin object can be created using the function as.owin() for polygon data. After the conversion, the class() and plot() functions can be used to verify that the object is of the correct class and that the data retains its original shape.
@@ -327,7 +796,120 @@ class(sg_owin)
 plot(sg_owin)
 ```
 
+
+
+### Converting sf Point Data Frames to PPP
+
+Here we use `as.ppp()` of spatstat package to covert the point data `bsns_sf` to ppp file, confirm the change using `class()` and have a quick overview of the data statistics via `summary()`.when converting the sf to ppp, we include a nested rjitter() function to push away the overlapped data points.
+
+```{r}
+biz56140_ppp <- as.ppp(biz_56140_sf) %>%
+  rjitter(retry = TRUE,
+          nsim = 1,
+          drop = TRUE)
+class(biz56140_ppp)
+```
+
+```{r}
+summary(biz56140_ppp)
+```
+```{r}
+plot(unmark(biz56140_ppp), main = "biz56140")
+```
+
+```{r}
+any(duplicated(biz56140_ppp))
+```
+
+
+
 ### Combining Point Events object and Owin Object
+
+The code chunk below combines ppp and owin into one ppp file which means it updates the window of childcare_ppp to sg_owin and keeps the points that fall inside.
+
+```{r}
+biz56140_PPP = biz56140_ppp[sg_owin]
+class(biz56140_PPP)
+```
+```{r}
+summary(biz56140_PPP)
+```
+
+```{r}
+plot(unmark(biz56140_PPP), main = "biz56140_PPP")
+```
+## Clark-Evans Test for Nearest Neighbour Anaylysis (NNA)
+
+
+Clark-Evans Test for Nearest Neighbour Anaylysis (NNA)
+
+```{r}
+clarkevans.test(biz56140_PPP,
+                correction = "none",
+                clipregion = "sg_owin",
+                alternative= c("clustered")
+                )
+```
+
+
+ Performing the Clark-Evans Test with CSR (Monte Carlo?)
+ 
+```{r}
+clarkevans.test(biz56140_PPP,
+                correction ="none",
+                clipregion ="sg_owin",
+                alternative= "less",
+                method = "MonteCarlo",
+                nsim = 99)
+```
+ 
+ Kernel Density Estimation Method
+ Working with Automatic Bandwidth Selection Method
+ 
+ 
+```{r}
+biz56140_diggle <- density (
+  biz56140_PPP,
+  sigma = bw.diggle,
+  edge = TRUE,
+  kernel = "gaussian")
+```
+ 
+ 
+ 
+```{r}
+plot(biz56140_diggle)
+```
+ 
+```{r}
+summary(biz56140_diggle)
+
+```
+ 
+ 
+```{r}
+bw <- bw.diggle(biz56140_PPP)
+bw
+```
+```{r}
+biz56140_ppp_km <- rescale.ppp(
+  biz56140_PPP, 1000, "km")
+summary(biz56140_ppp_km)
+```
+ 
+```{r}
+kde_biz56140_ppp_km <- density(biz56140_ppp_km,
+                              sigma = bw.diggle,
+                              edge = TRUE,
+                              kernel = "gaussian")
+summary(kde_biz56140_ppp_km)
+```
+ 
+ 
+```{r, fig.height=6}
+plot(kde_biz56140_ppp_km)
+```
+ 
 
 ## Compute spatial and spatio-temporal KDE of the selected business types.
 
