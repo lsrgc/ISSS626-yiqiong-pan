@@ -42,7 +42,7 @@ website:
       - text: "Take-home Exercise"
         menu: 
           - text: "01: Geospatial Analytics for Public Good"
-            href: "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.qmd"
+            href: "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html"
           - text: "Take-home Exercise 2"
     right: 
       - href: index.qmd
