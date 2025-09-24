@@ -1,5 +1,5 @@
 ---
-title: "01: Geospatial Analytics for Public Good"
+title: "01: Geospatial Analytics for Public Good: Agglomeration in Play"
 author: "Yiqiong PAN"
 date: "Sep 10, 2025"
 date-modified: last-modified
@@ -54,7 +54,7 @@ The workflow followed a two-stage SPPA and Spatial Temporal approach:
 
 -   First-order analysis: Clark–Evans tests were applied, both under and without Complete Spatial Randomness (CSR) assumptions, to evaluate whether businesses were randomly distributed. Kernel Density Estimation (KDE) was conducted to visualise spatial concentrations.
 
--   Second-order analysis: L-funtion were used to analyse the internal relationship within each business type.
+-   Second-order analysis: L-funtion was used to analyse the internal relationship within each business type. K-fucntion was tried out for ST SPPA.
 
 -   Subzone zoom-in: High-density subzones were identified and interpreted individually for each business type.
 
@@ -3509,7 +3509,7 @@ image_write(anim, "img/kde_46900_je_boot.gif")
 
 ## Second Order Spatial and Spatio-temporal Analysis
 
-Here we test the second order ST-SPPA under stpp methods.
+Here we test the second order ST-SPPA under `stpp` methods. The results are preliminary and further data cleaning might needed. 
 
 ::: panel-tabset
 ### Food Stalls 56140
@@ -3574,38 +3574,41 @@ STIKhat() of stpp package is used to compute space-time inhomogeneous K-function
 biz46900_stik <- STIKhat(biz46900_stpp)
 plotK(biz46900_stik)
 ```
+
+
 :::
 
-# Results
+## Results
 
-+-------------------+------------------------+---------------------+---------------------------------------------------------------------------+-------------------------------------------+---------------------------------------------------------------------+
-| Business Type     | 1st Order C-E Test CSR | 1st Order KDE (High | Subzone KDE (High                                                         | Subzone 2rd Order L-Function (clustering) | ST KDE Dynamics                                                     |
-|                   |                        |                     |                                                                           |                                           |                                                                     |
-|                   |                        | Density)            | Density)                                                                  |                                           |                                                                     |
-+===================+========================+=====================+===========================================================================+===========================================+=====================================================================+
-| Food Stalls 46900 | Clustered              | Central, North      | Geylang (Aljunied East), Woodlands (E/W), Sembawang (N)                   | Geylang (35-530m),                        | Surge from May in Geylang and Punggol                               |
-|                   |                        |                     |                                                                           |                                           |                                                                     |
-|                   |                        |                     |                                                                           | Woodlands ( 135 m-160m & over 1100m),     |                                                                     |
-|                   |                        |                     |                                                                           |                                           |                                                                     |
-|                   |                        |                     |                                                                           | sembawang (50-150m & 340m-360m)           |                                                                     |
-+-------------------+------------------------+---------------------+---------------------------------------------------------------------------+-------------------------------------------+---------------------------------------------------------------------+
-| Software Dev      | Clustered              | Dominant Central    | Downtown Core (Cecil), Singapore River (Boat Quay), Tampines (NW hotspot) | Singapore River (0-100m up to 300m)       | Increasing Density in Jan -Feb and May - Jun in Central and Geylang |
-|                   |                        |                     |                                                                           |                                           |                                                                     |
-| 62011             |                        |                     |                                                                           | Downtown Core (strong 0-100m up to 750m)  |                                                                     |
-|                   |                        |                     |                                                                           |                                           |                                                                     |
-|                   |                        |                     |                                                                           | Tempines( 50m, 150m, over 1.4km)          |                                                                     |
-+-------------------+------------------------+---------------------+---------------------------------------------------------------------------+-------------------------------------------+---------------------------------------------------------------------+
-| Wholesale Trade   | Clustered              | Dominant Central    | Downtown Core (Cecil), Geylang (Geylang East), Jurong East (E)            | Jurong East (0-70m up to 300m),           | Hot in Jan, May, June in Central and Geylang                        |
-|                   |                        |                     |                                                                           |                                           |                                                                     |
-| 56140             |                        |                     |                                                                           | Downtown Coil (0-50m up to 120m)          |                                                                     |
-|                   |                        |                     |                                                                           |                                           |                                                                     |
-|                   |                        |                     |                                                                           | Geylang( 0-100m up to 900m)               |                                                                     |
-+-------------------+------------------------+---------------------+---------------------------------------------------------------------------+-------------------------------------------+---------------------------------------------------------------------+
++-------------------+--------------+------------------+---------------------------------------------------------------------------+------------------------------------------+---------------------------------------------------------------------+
+| Business          | C-E Test CSR | KDE              | Subzone KDE                                                               | L-Function                               | ST KDE                                                              |
++===================+==============+==================+===========================================================================+==========================================+=====================================================================+
+| Food Stalls 46900 | Clustered    | Central, North   | Geylang (Aljunied East), Woodlands (E/W), Sembawang (N)                   | Geylang (35-530m),                       | Surge from May in Geylang and Punggol                               |
+|                   |              |                  |                                                                           |                                          |                                                                     |
+|                   |              |                  |                                                                           | Woodlands ( 135 m-160m & over 1100m),    |                                                                     |
+|                   |              |                  |                                                                           |                                          |                                                                     |
+|                   |              |                  |                                                                           | sembawang (50-150m & 340m-360m)          |                                                                     |
++-------------------+--------------+------------------+---------------------------------------------------------------------------+------------------------------------------+---------------------------------------------------------------------+
+| Software Dev      | Clustered    | Dominant Central | Downtown Core (Cecil), Singapore River (Boat Quay), Tampines (NW hotspot) | Singapore River (0-100m up to 300m)      | Increasing Density in Jan -Feb and May - Jun in Central and Geylang |
+|                   |              |                  |                                                                           |                                          |                                                                     |
+| 62011             |              |                  |                                                                           | Downtown Core (strong 0-100m up to 750m) |                                                                     |
+|                   |              |                  |                                                                           |                                          |                                                                     |
+|                   |              |                  |                                                                           | Tempines( 50m, 150m, over 1.4km)         |                                                                     |
++-------------------+--------------+------------------+---------------------------------------------------------------------------+------------------------------------------+---------------------------------------------------------------------+
+| Wholesale Trade   | Clustered    | Dominant Central | Downtown Core (Cecil), Geylang (Geylang East), Jurong East (E)            | Jurong East (0-70m up to 300m),          | Hot in Jan, May, June in Central and Geylang                        |
+|                   |              |                  |                                                                           |                                          |                                                                     |
+| 56140             |              |                  |                                                                           | Downtown Coil (0-50m up to 120m)         |                                                                     |
+|                   |              |                  |                                                                           |                                          |                                                                     |
+|                   |              |                  |                                                                           | Geylang( 0-100m up to 900m)              |                                                                     |
++-------------------+--------------+------------------+---------------------------------------------------------------------------+------------------------------------------+---------------------------------------------------------------------+
 
 ## Discussion
 
-## w these findings can be used to support urban land use planning and management. (Not more than 500 words)
+The selected business types, Food Stalls, Software Development, and Wholesale Trade, all exhibit agglomeration economies, but in different ways.
 
-One interesting findings are software firm and who
+To strengthen the analysis, we also reviewed the 2024 new registry data. Software and wholesale businesses ranked among the top sectors in both 2024 and early 2025. In 2025, registrations became increasingly concentrated, with hundreds of new firms located in a few buildings such as City House in Downtown, Paya Lebar Square in Geylang, and 68 Circular Road in Boat Quay. Many of these buildings host co-working spaces or virtual offices, which are cost-efficient, provide easy access to services and networking opportunities, and offer postcode prestige for startups.
 
-To strengthen the analysis, the full year of 2024 is also included as a baseline under Spatio-Temporal SPPA.
+This pattern suggests rising demand for smaller and more flexible office spaces. Authorities may wish to encourage the growth of co-working facilities in regional centres such as Tampines or Jurong East to distribute activity more evenly. However, a cautious approach and further study are needed, as these hotspots do not necessarily reflect actual land use or employment density.
+
+Food stalls are commonly established together in hawker centres near residential areas or public transports, where owners benefit from shared facilities and a steady stream of customer traffic. These clusters not only generate economies of scale but also bring vibrancy to neighbourhoods. Our analysis shows a surge in Geylang, which resonates with the clustering patterns observed in the other business types. 
+
