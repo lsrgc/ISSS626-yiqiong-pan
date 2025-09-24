@@ -29,7 +29,7 @@ editor: visual
 
 Business is a key driver of modern economies, and the location of businesses has a profound impact on both human activities and the surrounding environment. Studying the spatial and temporal dynamics of business locations helps reveal how economic activities unfold and evolve, while also offering valuable insights for urban planning.
 
-This report demonstrates how to apply the Spatial and temporal Spatial Point Pattern Analysis through a case study of **new business registration in Singapore** from 1 January to 30 June 2025. To strengthen the analysis, the full year of 2024 is also included as a baseline under Spatio-Temporal SPPA.
+This report demonstrates how to apply the Spatial and temporal Spatial Point Pattern Analysis through a case study of **new business registration in Singapore** from 1 January to 30 June 2025.
 
 **Spatial Point Pattern Analysis** (SPPA) refers to the study of how points are arranged or distributed in given area. There points may represent **events**(e.g., crimes, road accidents, or disease), or **service and facility locations**(e.g., cafes, supermarkets). A **spatio-temporal point process** extends SPPA by including the element of time.
 
@@ -43,17 +43,10 @@ In this study, the following business types are selected for analysis:
 
 The five-digit codes and their definitions are based on [Singapore Standard Industrial Classification](https://classification.codes/classifications/industry/ssic-singapore) (SSIC) 2020.
 
-The business types were selected based on the number of new registrations in the first half of 2025. Wholesale trade and software development consistently ranked among the top sectors in both 2024 and 2025, while food stalls, although not in the top group for 2024 but within the top 10 in 2025, were included for their distinct Singaporean context.
+The business types were selected based on the number of new registrations in the first half of 2025. Wholesale trade and software development consistently ranked among the top sectors in 2025, while food stalls, within the top 10 in 2025, were included for their distinct Singaporean context.
 
 *The primary focus of this study is to examine the spatial clustering of new businesses in Singapore during the first half of 2025 using Spatial Point Pattern Analysis (SPPA).*
 
-### ?methods
-
-is a random set of points, each showing when and where an event happens. Examples include disease cases, animal sightings, or natural disasters such as fires and earthquakes.
-
-As more data is collected with both time and location, analysing spatio-temporal patterns has become more important. In recent years, several R packages have been developed for this purpose.
-
-This exercise demonstrates how to apply the process through a case study of **New Business** in Singapore, from 1 January to 30 June 2025.
 
 ## The Data
 
@@ -2541,22 +2534,33 @@ if (nrow(Lcsr_df[Lcsr_df$obs > Lcsr_df$hi,])==0){
 
 Here we can see solid line shows strong significant clustering (above the grey envelope) from 0 m to 1,300 m. Further new businesses are heavily clustered from 0m to 70m.
 
-#### Downtown Core
+#### Downtown Core - Cecil
 
-First we compute L-function estimate for Downtown Core.
+L-function test on Downtown Core for wholesale Business took 30 mins to complete, here we zoom into Cecil to see the code prestige effect. 
+First we prepare the observation window and compute L-function estimate for Downtown Core.
 
 ```{r}
-L_46900_dc = Lest(biz46900_dc_ppp, correction = "Ripley")
-plot(L_46900_dc, . -r ~ r, 
+cc <- mpsz_cl %>%
+  filter(SUBZONE_N == "CECIL")
+cc_owin = as.owin(cc)
+biz46900_cc_ppp = biz46900_ppp[cc_owin]
+```
+
+
+
+
+```{r}
+L_46900_cc = Lest(biz46900_cc_ppp, correction = "Ripley")
+plot(L_46900_cc, . -r ~ r, 
      ylab= "L(d)-r", xlab = "d(m)", 
-     xlim=c(0,1000))
+     xlim=c(0,300))
 ```
 
 We try the Monte Carlo simulation with 95% confidence.
 
 ```{r}
 set.seed(1234)
-L_46900_dc.csr <- envelope(biz46900_dc_ppp, Lest, 
+L_46900_cc.csr <- envelope(biz46900_cc_ppp, Lest, 
                      nsim = 99, 
                      rank = 1, 
                      glocal=TRUE)
@@ -2569,8 +2573,8 @@ head(L_46900_dc.csr)
 Then, plot the model output by using the code chunk below with `plot()`.
 
 ```{r fig.width=7,  fig.height=5.5}
-plot(L_46900_dc.csr, . - r ~ r, 
-     xlab="d", ylab="L(d)-r", xlim=c(0,500))
+plot(L_46900_cc.csr, . - r ~ r, 
+     xlab="d", ylab="L(d)-r", xlim=c(0,300))
 ```
 
 we transform the static L-function plot into an interactive version using plotly.
@@ -2581,7 +2585,7 @@ The codes were referenced from a [R-blogger article](https://www.r-bloggers.com/
 #| fig-height: 5.5
 title <- "Pairwise Distance: L function"
 
-Lcsr_df <- as.data.frame(L_46900_dc.csr)
+Lcsr_df <- as.data.frame(L_46900_cc.csr)
 
 colour=c("#0D657D","#ee770d","#D3D3D3")
 csr_plot <- ggplot(Lcsr_df, aes(r, obs-r))+
@@ -2638,7 +2642,7 @@ if (nrow(Lcsr_df[Lcsr_df$obs > Lcsr_df$hi,])==0){
   }
 ```
 
-Here we can see solid line shows strong significant clustering (above the grey envelope) from 0 m to 750 m. Further new businesses are heavily clustered from 0m to 100m, probably at co-working spaces.
+Here we can see solid line shows strong significant clustering (above the grey envelope) from 0 m to 120 m. Further new businesses are heavily clustered from 0m to 50m, probably at co-working spaces.
 
 #### Geylang
 
@@ -2744,6 +2748,7 @@ Next, we analyse when and where new business registrations evolve in Singapore u
 
 Recalling the full Singapore map plot, we first dissolve all sub-districts into a single boundary.
 
+
 ```{r}
 mpsz_m <-mpsz_cl %>%
     st_union() 
@@ -2754,6 +2759,9 @@ class(mpsz_m)
 tm_shape(mpsz_m) +
   tm_borders() +
   tm_title("Singapore")
+
+sg_m_owin <- as.owin(mpsz_m)
+class(sg_m_owin)
 ```
 
 ### Visualising the New Business Points
@@ -2885,7 +2893,7 @@ plot(biz56140_month_ppp)
 `ppp[owin]` in `spatstat` clips the point pattern to a given window. That means only points of e.g. `biz56140_month_ppp` that fall in the study area `sg_owin` are kept and outputs a new `ppp` object.
 
 ```{r}
-biz56140_month_owin <- biz56140_month_ppp[sg_owin]
+biz56140_month_owin <- biz56140_month_ppp[sg_m_owin]
 summary(biz56140_month_owin)
 plot(biz56140_month_owin)
 ```
@@ -2927,6 +2935,7 @@ plot(st_kde_biz56140_m, override.par = FALSE, fix.range = TRUE)
 Here we use `magick` package to animate the `st_kde_biz56140_m` file.
 
 ```{r}
+#| eval: false
 # pick all 6 months
 sel <- seq_along(st_kde_biz56140_m$tgrid)
 
@@ -2946,10 +2955,10 @@ anim <- image_animate(image_join(frames), delay = 50, loop = 0)
 
 
 # save to file
-image_write(anim, "st_kde_biz56140_m.gif")
+image_write(anim, "img/st_kde_biz56140_m.gif")
 ```
 
-
+![]"img/st_kde_biz56140_m.gif"
 
 
 ### Software Development 62011
@@ -3003,7 +3012,7 @@ plot(biz62011_month_ppp)
 `ppp[owin]` in `spatstat` clips the point pattern to a given window. That means only points of e.g. `biz62011_month_ppp` that fall in the study area `sg_owin` are kept and outputs a new `ppp` object.
 
 ```{r}
-biz62011_month_owin <- biz62011_month_ppp[sg_owin]
+biz62011_month_owin <- biz62011_month_ppp[sg_m_owin]
 summary(biz62011_month_owin)
 plot(biz62011_month_owin)
 ```
@@ -3040,6 +3049,112 @@ par(mfrow = c(4,3))
 plot(st_kde_biz62011_m, override.par = FALSE, fix.range = TRUE)
 ```
 
+### Software Development 62011 -Tempines
+
+#### A Extracting `MONTH_NUM` field
+
+Since `as.ppp()` from spatstat only needs a mark field (e.g numeric field MONTH_NUM) and the geometry, this step ensures the data frame is reduced to just what is necessary.
+
+As mentioned above, in `spatstat`, the marks of a `ppp` object could be:
+
+-   numeric mark,quantitative values, which is used for intensity or regression analysis
+-   character marks, converted to `factor`, which are then used for for categorical analysis
+
+```{r}
+tp_m <-tp %>%
+    st_union() 
+  
+tp_m
+class(tp_m)
+
+tm_shape(tp_m) +
+  tm_borders() +
+  tm_title("Tempines")
+
+tp_m_owin <- as.owin(tp_m)
+class(tp_m_owin)
+```
+
+```{r}
+biz62011_month <- biz_62011_sf %>%
+  select(MONTH_NUM)
+
+str(biz62011_month)
+plot(biz62011_month)
+```
+
+#### B Creating `ppp`
+
+The code chunk below converts sf data frame to `ppp` object.
+
+```{r}
+biz62011_month_ppp <- as.ppp(biz62011_month)
+biz62011_month_ppp
+```
+
+The code chunk below check the summary statistics including object class.
+
+```{r}
+summary(biz62011_month_ppp)
+```
+
+The code chunk below performs a quick sanity check to ensure there are no duplicate points, which could avoid biased results or errors.
+
+```{r}
+any(duplicated(biz62011_month_ppp))
+```
+
+The code chunk below draws the points for a quick look.
+
+```{r}
+plot(biz62011_month_ppp)
+```
+
+#### C Adding `owin` Object
+
+`ppp[owin]` in `spatstat` clips the point pattern to a given window. That means only points of e.g. `biz62011_month_ppp` that fall in the study area `sg_owin` are kept and outputs a new `ppp` object.
+
+```{r}
+biz62011_month_tp_owin <- biz62011_month_ppp[tp_m_owin]
+summary(biz62011_month_tp_owin)
+plot(biz62011_month_tp_owin)
+```
+
+#### D computing Spatio-temporal KDE
+
+The code chunk below calculate the STKDE using `spattemp.density()`.
+
+```{r}
+st_kde_biz62011_tp_m <- spattemp.density(biz62011_month_tp_owin)
+
+summary(st_kde_biz62011_tp_m)
+class(st_kde_biz62011_tp_m)
+```
+
+#### E Ploting the STKDE Ojbect
+
+The class of `st_kde` is `stden` which stores a stack of KDE surfaces, one for each time slice. Using `plot(st_kde_biz620110_m)` alone, plots 6 monthly KDE. The code chunk below first creates a list for then plots 6 KDE maps between Jan 25 and Jun 25 in a 2 \* 3 grid.
+
+```{r, fig.width= 12, fig.height= 10}
+tims <- c(1:6)
+par(mfcol = c(2,3))
+for (i in tims){
+  plot(st_kde_biz62011_tp_m, i, override.par= FALSE,
+       fix.range= TRUE,
+       main = paste("56140 KDE at month", i))
+}
+```
+
+Here we quickly plot the monthly KDE. The `fix.range = TRUE` argument is important: without a common colour scale, months with few events are exaggerated and low-activity months can look quite intense.
+
+```{r, fig.width=12, fig.height=17}
+par(mfrow = c(4,3))
+plot(st_kde_biz62011_tp_m, override.par = FALSE, fix.range = TRUE)
+```
+
+
+
+
 
 :::
 
@@ -3062,14 +3177,5 @@ plot(st_kde_biz62011_m, override.par = FALSE, fix.range = TRUE)
 
 ## discuss how these findings can be used to support urban land use planning and management. (Not more than 500 words)
 
-Check local policy during 2024–2025:
-
-e.g., Singapore introduced incentives for fintech or retail startups?
-
-New sustainability/green finance schemes?
-
-Post-COVID recovery grants?
-
-Why: If a sudden spike in registrations in certain SSIC groups coincides with a government initiative,
-
+ To strengthen the analysis, the full year of 2024 is also included as a baseline under Spatio-Temporal SPPA.
 
