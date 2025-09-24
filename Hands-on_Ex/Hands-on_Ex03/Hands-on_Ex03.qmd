@@ -45,7 +45,7 @@ For this exercise, the two datasets used are as follows:
 A total of **six** R packages will be used in this exercise.
 
 | Package | Description |
-|------------------------------------|------------------------------------|
+|----|----|
 | [sf](https://r-spatial.github.io/sf/) | Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data. |
 | [raster](https://rspatial.org/raster/) | Tools for reading, writing, and analyzing raster (gridded) spatial data in R |
 | [spatstat](https://spatstat.org/) | Provides useful functions for SPPA, including kcross, Lcross etc. |
