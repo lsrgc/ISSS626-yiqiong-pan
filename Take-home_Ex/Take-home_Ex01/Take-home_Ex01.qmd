@@ -1,6 +1,6 @@
 ---
 title: "01: Geospatial Analytics for Public Good"
-draft: true
+draft: false
 author: "Yiqiong PAN"
 date: "Sep 10, 2025"
 date-modified: last-modified
@@ -46,7 +46,6 @@ The five-digit codes and their definitions are based on [Singapore Standard Indu
 The business types were selected based on the number of new registrations in the first half of 2025. Wholesale trade and software development consistently ranked among the top sectors in 2025, while food stalls, within the top 10 in 2025, were included for their distinct Singaporean context.
 
 *The primary focus of this study is to examine the spatial clustering of new businesses in Singapore during the first half of 2025 using Spatial Point Pattern Analysis (SPPA).*
-
 
 ## The Data
 
@@ -378,102 +377,6 @@ write_rds(biz_56140, "data/rds/biz_56140.rds")
 biz_56140 <- read_rds("data/rds/biz_56140.rds")
 ```
 
-#### Selecting Busines Type 2024
-
-Similarly we repeat the steps to generate the table for new business registration in 2024 and extract the registration details for the three targeted business types (namely 46900 wholesale trade, 62011 software development and 56140 food stalls).
-
-```{r}
-#| eval: false
-acra_data <- read_rds("data/rds/acra_data.rds")
-```
-
-```{r}
-#| eval: false
-acra_2024 <- acra_data %>%
-  select(c(1:24)) %>%
-  rename(date = registration_incorporation_date) %>%
-  mutate(date = as.Date(date),
-         YEAR = year(date),
-         MONTH_NUM = month(date),
-         MONTH_ABBR = month(date, label = TRUE, abbr = TRUE),
-         postal_code = str_pad(postal_code, width = 6, side = "left", pad = "0")) %>%
-  filter(YEAR == 2024)
-```
-
-The code chunk below filters out the new entities are not live in 2024. For 2024, 64,815 of 71,515 newly registered entities remain live as at August 2025. That means new business's survival rate is about 91%.
-
-```{r}
-#| eval: false
-acra_2024l <- acra_2024 %>%
-  filter(str_detect(entity_status_description, "Live"))
-```
-
-The code chunk below filters out the top 15 business types based on the count of new registrations that remain live. For the study business types, the comparison table shows estimated closure rates of 8% for wholesale trade (46900), 13% for food stalls (56140), and 12% for software development (62011). All three closure rates are higher than those observed in early 2025, which might could be further analysed in a separate study. In this report, however, we focus only on businesses that remain live for the SPPA analysis.
-
-```{r}
-#| eval: false
-top15_24 <- acra_2024 %>%
-  filter(str_detect(entity_status_description, "Live")) %>%
-  count(primary_ssic_code, sort = TRUE) %>%
-  slice_max(n , n =15) %>%   # keep top 20 codes
-  mutate(primary_ssic_code = as.character(primary_ssic_code)) %>%
-  left_join(ssic_lookup, by = c("primary_ssic_code" = "ssic_code"))
-kable(top15_24)
-```
-
-```{r}
-#| eval: false
-# Define the SSIC codes of interest
-target_codes <- c("46900", "62011", "56140")
-# 4780 stalls retail
-# 56122, 56123 takeaway
-
-# Count in full dataset
-counts_full <- acra_2024 %>%
-  count(primary_ssic_code, name = "count_full") %>%
-  filter(primary_ssic_code %in% target_codes)
-
-# Count in live-only dataset
-counts_live <- acra_2024l %>%
-  count(primary_ssic_code, name = "count_live") %>%
-  filter(primary_ssic_code %in% target_codes)
-
-# Combine side by side
-counts_compare <- counts_full %>%
-  full_join(counts_live, by = "primary_ssic_code") %>%
-  mutate(precentage =round((count_full- count_live)/ count_full * 100,2))%>%
-  arrange(primary_ssic_code)
-
-kable(counts_compare,caption ="Live vs struck-off for selected business (2024), with estimated closure rates")
-```
-
-Next we save and load the business data in 2024.
-
-```{r}
-#| eval: false
-biz_46900_24 <- acra_2024l %>% filter(primary_ssic_code == "46900") %>% select(c(1, 3, 9, 12:17, 22, 25:27)) #wholesale
-biz_62011_24 <- acra_2024l %>% filter(primary_ssic_code == "62011") %>% select(c(1, 3, 9, 12:17, 22, 25:27)) #software
-biz_56140_24 <- acra_2024l %>% filter(primary_ssic_code == "56140") %>% select(c(1, 3, 9, 12:17, 22, 25:27)) #food stalls
-```
-
-```{r}
-#| eval: false
-write_rds(biz_46900_24, "data/rds/biz_46900_24.rds")
-biz_46900_24 <- read_rds("data/rds/biz_46900_24.rds")
-```
-
-```{r}
-#| eval: false
-write_rds(biz_62011_24, "data/rds/biz_62011_24.rds")
-biz_62011_24 <- read_rds("data/rds/biz_62011_24.rds")
-```
-
-```{r}
-#| eval: false
-write_rds(biz_56140_24, "data/rds/biz_56140_24.rds")
-biz_56140_24 <- read_rds("data/rds/biz_56140_24.rds")
-```
-
 ### Performing Geocoding
 
 The code chunk extracts unique postal codes from the postal_code field of a tidied tibble, queries the *SLA OneMap* `Reverse Geocode API` for each postal code. Then it store results in two data frames: - `found`: records with valid geocode results. - `not_found`: records where postal codes are not returned by the API.Clearning up the Geocoding The code chunk extracts the first 10 columns that contain useful information for this study Combining the Business Data with Geo Info The code chunk appends the business sf data frame with location information.
@@ -522,8 +425,6 @@ geocode_biz <- function(biz_df, out_rds_path) {
   write_rds(biz_df, out_rds_path)
   
   # Convert to sf
-  biz_df <- biz_df %>% filter(!is.na("X"), !is.na("Y"))
-
   biz_sf <- st_as_sf(biz_df,
                      coords = c("X", "Y"),
                      crs = 3414)
@@ -567,59 +468,6 @@ write_rds(biz_56140_sf, "data/rds/biz_56140_sf.rds")
 biz_56140_sf <- read_rds("data/rds/biz_56140_sf.rds")
 ```
 
-```{r}
-#| eval: false
-biz_46900_24_sf <- geocode_biz(biz_46900_24, "data/rds/biz_46900_24.rds")
-write_rds(biz_46900_24_sf, "data/rds/biz_46900_24_sf.rds")
-```
-
-```{r}
-#| eval: false
-biz_46900_24_sf<- read_rds("data/rds/biz_46900_24_sf.rds")
-```
-
-```{r}
-#| eval: false
-res <- geocode_biz(biz_62011_24, "data/rds/biz_62011_24.rds")
-biz_56140_24_sf <- res$biz_sf
-write_rds(biz_62011_24_sf, "data/rds/biz_62011_24_sf.rds")
-missing_rows  <- res$bad
-missing_rows
-```
-
-```{r}
-#| eval: false
-biz_62011_24_sf <- read_rds("data/rds/biz_62011_24_sf.rds")
-```
-
-```{r}
-#| eval: false
-res <- geocode_biz(biz_56140_24, "data/rds/biz_56140_24.rds")
-biz_56140_24_sf <- res$biz_sf
-write_rds(biz_56140_24_sf, "data/rds/biz_56140_24_sf.rds")
-missing_rows  <- res$bad
-```
-
-```{r}
-#| eval: false
-summary(missing_rows)
-```
-
-```{r}
-#| eval: false
-res <- GET("https://onemap.gov.sg/api/common/elastic/search",
-           query = list(searchVal = "048940", returnGeom = "Y", getAddrDetails = "Y", pageNum = "1"))
-json <- content(res)
-json$found
-as.data.frame(json$results) %>% dplyr::select(SEARCHVAL, POSTAL, LATITUDE, LONGITUDE, ADDRESS)
-```
-
-```{r}
-#| eval: false
-
-biz_56140_24_sf <- read_rds("data/rds/biz_56140_24_sf.rds")
-```
-
 ### Visualising the Distribution
 
 The code chunk shows the new business registration number by month. The function `aes()` maps data frame columns to plot, e.g. `aes(x = var1, y = var2)` maps `var1` to the x-axis and `var2` to the y-axis.
@@ -655,63 +503,41 @@ The code chunk reverses the tmap_mode from interactive to static.
 tmap_mode('plot')
 ```
 
-```{r}
-#| eval: false
-all_biz_24 <- bind_rows(
-  biz_46900_24_sf %>% mutate(SSIC = "Wholesale Trade (46900)"),
-  biz_62011_24_sf %>% mutate(SSIC = "Software (62011)"),
-  biz_56140_24_sf %>% mutate(SSIC = "Food Stalls (56140)")
-)
-
-ggplot(all_biz_24, aes(x = MONTH_ABBR)) +
-  geom_bar() +
-  facet_wrap(~SSIC, scales = "free_y") +
-  labs(x = "Month", y = "Count")
-```
-
 Visualsing the business The code chunk plots the new business in interactive map.
 
 ```{r}
-#| eval: false
-tmap_mode('view')
-tm_shape(biz_46900_24_sf) +
-  tm_dots(col = "red",    size = 0.5, alpha = 0.5) +
-tm_shape(biz_62011_24_sf) +
-  tm_dots(col = "blue",   size = 0.5, alpha = 0.5) +
-tm_shape(biz_56140_24_sf) +
-  tm_dots(col = "yellow",  size = 0.5, alpha = 0.5)
-
-
-
-biz_56140_sf1 <- st_join(biz_56140_sf, mpsz_cl["PLN_AREA_N"])
-
-biz56140_summary <- biz_56140_sf %>%
-  group_by(PLN_AREA_N) %>%
-  summarise(count = n()) %>%
+biz_56140_sf1 <- st_join(biz_56140_sf, mpsz_cl[c("SUBZONE_N","PLN_AREA_N")])
+biz56140_summary0 <- biz_56140_sf1 %>% group_by(PLN_AREA_N) %>% summarise(count = n()) %>% arrange(desc(count))
+biz56140_summary1 <- biz_56140_sf1 %>%
+  group_by(PLN_AREA_N, SUBZONE_N) %>%
+  summarise(count = n(), .groups = "drop") %>%
   arrange(desc(count))
-print(biz56140_summary)
+head(biz56140_summary0)
+head(biz56140_summary1)
 ```
 
 ```{r}
-#| eval: false
 biz_46900_sf1 <- st_join(biz_46900_sf, mpsz_cl[c("SUBZONE_N","PLN_AREA_N")])
 biz46900_summary0 <- biz_46900_sf1 %>% group_by(PLN_AREA_N) %>% summarise(count = n()) %>% arrange(desc(count))
 biz46900_summary1 <- biz_46900_sf1 %>%
   group_by(PLN_AREA_N, SUBZONE_N) %>%
   summarise(count = n(), .groups = "drop") %>%
   arrange(desc(count))
-print(biz46900_summary0)
-print(biz46900_summary1)
+head(biz46900_summary0)
+head(biz46900_summary1)
 
 ```
 
 ```{r}
-#| eval: false
-biz_62011_sf1 <- st_join(biz_62011_sf, mpsz_cl["PLN_AREA_N"])
-biz62011_summary <- biz_62011_sf1 %>% group_by(PLN_AREA_N) %>% 
-  summarise(count = n()) %>% 
+biz_62011_sf1 <- st_join(biz_62011_sf, mpsz_cl[c("SUBZONE_N","PLN_AREA_N")])
+biz62011_summary0 <- biz_62011_sf1 %>% group_by(PLN_AREA_N) %>% summarise(count = n()) %>% arrange(desc(count))
+biz62011_summary1 <- biz_62011_sf1 %>%
+  group_by(PLN_AREA_N, SUBZONE_N) %>%
+  summarise(count = n(), .groups = "drop") %>%
   arrange(desc(count))
-print(biz62011_summary)
+head(biz62011_summary0)
+head(biz62011_summary1)
+
 ```
 
 Visualsing the business The code chunk plots the new business in interactive map.
@@ -1033,7 +859,7 @@ For **adaptive bandwidths**, the function `density.adaptive()` can be used. This
 
 #### Computing KDE with Different Methods
 
-:::panel-tabset
+::: panel-tabset
 ##### Food Stalls 56140
 
 Before applying KDE, we first rescale the map to make interpretation easier. Without rescaling, the KDE output would appear very small because we are analysing only a few thousand data points spread across a large spatial window. To improve readability and interpretability, we convert the unit from metres (SVY21 coordinate system default) to kilometres using the `rescale.ppp()` function.
@@ -1842,7 +1668,7 @@ If observed line is outside of envelope, we confirm there is significant cluster
 
 ### Food Stalls 56140
 
-:::panel-tabset
+::: panel-tabset
 Here we conduct L-function test on the selected subzones (Geylang, Woodlands, Sembawang) for 56140 Food Stalls.
 
 #### Geylang
@@ -2536,8 +2362,7 @@ Here we can see solid line shows strong significant clustering (above the grey e
 
 #### Downtown Core - Cecil
 
-L-function test on Downtown Core for wholesale Business took 30 mins to complete, here we zoom into Cecil to see the code prestige effect. 
-First we prepare the observation window and compute L-function estimate for Downtown Core.
+L-function test on Downtown Core for wholesale Business took 30 mins to complete, here we zoom into Cecil to see the code prestige effect. First we prepare the observation window and compute L-function estimate for Downtown Core.
 
 ```{r}
 cc <- mpsz_cl %>%
@@ -2545,9 +2370,6 @@ cc <- mpsz_cl %>%
 cc_owin = as.owin(cc)
 biz46900_cc_ppp = biz46900_ppp[cc_owin]
 ```
-
-
-
 
 ```{r}
 L_46900_cc = Lest(biz46900_cc_ppp, correction = "Ripley")
@@ -2566,9 +2388,6 @@ L_46900_cc.csr <- envelope(biz46900_cc_ppp, Lest,
                      glocal=TRUE)
 ```
 
-```{r}
-head(L_46900_dc.csr)
-```
 
 Then, plot the model output by using the code chunk below with `plot()`.
 
@@ -2739,7 +2558,6 @@ if (nrow(Lcsr_df[Lcsr_df$obs > Lcsr_df$hi,])==0){
 ```
 
 HHere we can see solid line shows strong significant clustering (above the grey envelope) from 0 m to 900 m. Further new businesses are heavily clustered from 0m to 100m, probably at warehouse hubs like kampong Ubi or Aljunied.
-
 :::
 
 ## **Spatio-temporal SPPA**
@@ -2747,7 +2565,6 @@ HHere we can see solid line shows strong significant clustering (above the grey 
 Next, we analyse when and where new business registrations evolve in Singapore using spatio-temporal point pattern analysis (SPPA). A spatio-temporal point process is a random set of points, each representing the location and time of an event. Common examples include disease cases, animal sightings, or natural disasters such as fires and earthquakes. In this study, we will first visualise registrations by month, then compute monthly spatio-temporal kernel density estimates (STKDE), and finally conduct second-order spatio-temporal analyses to draw conclusions.
 
 Recalling the full Singapore map plot, we first dissolve all sub-districts into a single boundary.
-
 
 ```{r}
 mpsz_m <-mpsz_cl %>%
@@ -2841,8 +2658,10 @@ tm_facets(by = "MONTH_ABBR",  #split the map into multiple panels by month facto
 
 In this section, we use `spattemp.density()` to build spatio-temporal `ppp` (with x, y, time) from the point data frame to show when and where new businesses are more likely.
 
-::: panel-tabset
+
 ### Food Stalls 56140
+
+::: panel-tabset
 
 #### A Extracting `MONTH_NUM` field
 
@@ -2898,7 +2717,7 @@ summary(biz56140_month_owin)
 plot(biz56140_month_owin)
 ```
 
-#### D computing Spatio-temporal KDE
+#### D Computing Spatio-temporal KDE
 
 The code chunk below calculate the STKDE using `spattemp.density()`.
 
@@ -2908,6 +2727,25 @@ st_kde_biz56140_m <- spattemp.density(biz56140_month_owin)
 summary(st_kde_biz56140_m)
 class(st_kde_biz56140_m)
 ```
+When using plug-in rule in spattemp.density(), the spatio-temporal bandwidths are 2.5km and 1.3 days.
+
+The code chunk below applies boot.spattemp() generated optimal bandwidths 2.45km and 40 days to STKDE computation.
+
+```{r}
+#| eval: false
+set.seed(1234)
+BOOT.spattemp(biz56140_month_owin)
+```
+
+
+```{r}
+kde_56140_boot <- spattemp.density(biz56140_month_owin,
+                                  h = 2455,
+                                  lambda = 1.3)
+summary(kde_56140_boot)
+```
+
+
 
 #### E Ploting the STKDE Ojbect
 
@@ -2958,10 +2796,39 @@ anim <- image_animate(image_join(frames), delay = 50, loop = 0)
 image_write(anim, "img/st_kde_biz56140_m.gif")
 ```
 
-![]"img/st_kde_biz56140_m.gif"
+![](img/st_kde_biz56140_m.gif)
 
+
+Here we use `magick` package to animate the `kde_56140_boot` file.
+
+```{r}
+#| eval: false
+# pick all 6 months
+sel <- seq_along(kde_56140_boot$tgrid)
+
+frames <- lapply(sel, function(i) {
+  tsel <- kde_56140_boot$tgrid[i]
+  img  <- image_graph(width = 800, height = 700, res = 96) # open a plot device
+
+  plot(kde_56140_boot, tselect = tsel, override.par = FALSE, fix.range = TRUE,
+       main = paste("56140 Boot STKDE – MONTH", tsel))
+
+  dev.off()
+  img
+})
+
+anim <- image_animate(image_join(frames), delay = 50, loop = 0)
+
+image_write(anim, "img/kde_56140_boot.gif")
+```
+
+![](img/kde_56140_boot.gif)
+
+:::
 
 ### Software Development 62011
+
+::: panel-tabset
 
 #### A Extracting `MONTH_NUM` field
 
@@ -3017,7 +2884,7 @@ summary(biz62011_month_owin)
 plot(biz62011_month_owin)
 ```
 
-#### D computing Spatio-temporal KDE
+#### D Computing Spatio-temporal KDE
 
 The code chunk below calculate the STKDE using `spattemp.density()`.
 
@@ -3049,7 +2916,43 @@ par(mfrow = c(4,3))
 plot(st_kde_biz62011_m, override.par = FALSE, fix.range = TRUE)
 ```
 
+####F Visualising STKDE in gif
+
+Here we use `magick` package to animate the `st_kde_biz62011_m` file.
+
+```{r}
+#| eval: false
+# pick all 6 months
+sel <- seq_along(st_kde_biz62011_m$tgrid)
+
+frames <- lapply(sel, function(i) {
+  tsel <- st_kde_biz62011_m$tgrid[i]
+  img  <- image_graph(width = 800, height = 800, res = 96) # open a plot device
+
+  plot(st_kde_biz62011_m, tselect = tsel, override.par = FALSE, fix.range = TRUE,
+       main = paste("62011 STKDE – MONTH", tsel))
+
+  dev.off()
+  img
+})
+
+# combine frames into gif
+anim <- image_animate(image_join(frames), delay = 50, loop = 0)
+
+
+# save to file
+image_write(anim, "img/st_kde_biz62011_m.gif")
+```
+
+![](img/st_kde_biz62011_m.gif)
+
+:::
+
 ### Software Development 62011 -Tempines
+
+::: panel-tabset
+
+Here we also zone in subzone Tempines for for details.
 
 #### A Extracting `MONTH_NUM` field
 
@@ -3112,7 +3015,7 @@ plot(biz62011_month_ppp)
 
 #### C Adding `owin` Object
 
-`ppp[owin]` in `spatstat` clips the point pattern to a given window. That means only points of e.g. `biz62011_month_ppp` that fall in the study area `sg_owin` are kept and outputs a new `ppp` object.
+`ppp[owin]` in `spatstat` clips the point pattern to a given window. That means only points of e.g. `biz62011_month_ppp` that fall in the study area `tp_owin` are kept and outputs a new `ppp` object.
 
 ```{r}
 biz62011_month_tp_owin <- biz62011_month_ppp[tp_m_owin]
@@ -3120,7 +3023,8 @@ summary(biz62011_month_tp_owin)
 plot(biz62011_month_tp_owin)
 ```
 
-#### D computing Spatio-temporal KDE
+
+#### D Computing Spatio-temporal KDE
 
 The code chunk below calculate the STKDE using `spattemp.density()`.
 
@@ -3130,6 +3034,25 @@ st_kde_biz62011_tp_m <- spattemp.density(biz62011_month_tp_owin)
 summary(st_kde_biz62011_tp_m)
 class(st_kde_biz62011_tp_m)
 ```
+
+When using plug-in rule in spattemp.density(), the spatio-temporal bandwidths are 555m and 33 days.
+
+The code chunk below applies boot.spattemp() generated optimal bandwidths 767m and 57 days to STKDE computation.
+
+```{r}
+#| eval: false
+set.seed(1234)
+BOOT.spattemp(biz62011_month_tp_owin)
+```
+
+
+```{r}
+kde_62011_tp_boot <- spattemp.density(biz62011_month_tp_owin,
+                                  h = 770,
+                                  lambda = 1.91)
+summary(kde_62011_tp_boot)
+```
+
 
 #### E Ploting the STKDE Ojbect
 
@@ -3152,14 +3075,395 @@ par(mfrow = c(4,3))
 plot(st_kde_biz62011_tp_m, override.par = FALSE, fix.range = TRUE)
 ```
 
+#### F Visualsing STKDE in gif
 
 
+
+
+Here we use `magick` package to animate the `st_kde_biz62011_tp_m` file.
+
+```{r}
+#| eval: false
+# pick all 6 months
+sel <- seq_along(st_kde_biz62011_tp_m$tgrid)
+
+frames <- lapply(sel, function(i) {
+  tsel <- st_kde_biz62011_tp_m$tgrid[i]
+  img  <- image_graph(width = 800, height = 800, res = 96) # open a plot device
+
+  plot(st_kde_biz62011_tp_m, tselect = tsel, override.par = FALSE, fix.range = TRUE,
+       main = paste("62011 Tempines STKDE – MONTH", tsel))
+
+  dev.off()
+  img
+})
+
+# combine frames into gif
+anim <- image_animate(image_join(frames), delay = 50, loop = 0)
+
+
+# save to file
+image_write(anim, "img/st_kde_biz62011_tp_m.gif")
+```
+
+![](img/st_kde_biz62011_tp_m.gif)
+
+
+Here we use `magick` package to animate the `kde_62011_tp_boot` file.
+
+```{r}
+#| eval: false
+# pick all 6 months
+sel <- seq_along(kde_62011_tp_boot$tgrid)
+
+frames <- lapply(sel, function(i) {
+  tsel <- kde_62011_tp_boot$tgrid[i]
+  img  <- image_graph(width = 800, height = 800, res = 96) # open a plot device
+
+  plot(kde_62011_tp_boot, tselect = tsel, override.par = FALSE, fix.range = TRUE,
+       main = paste("62011 TP BOOT STKDE – MONTH", tsel))
+
+  dev.off()
+  img
+})
+
+# combine frames into gif
+anim <- image_animate(image_join(frames), delay = 50, loop = 0)
+
+
+# save to file
+image_write(anim, "img/kde_62011_tp_boot.gif")
+```
+
+
+![](img/kde_62011_tp_boot.gif)
+
+:::
+
+### Wholesale Trade 46900
+
+::: panel-tabset
+
+#### A Extracting `MONTH_NUM` field
+
+Since `as.ppp()` from spatstat only needs a mark field (e.g numeric field MONTH_NUM) and the geometry, this step ensures the data frame is reduced to just what is necessary.
+
+As mentioned above, in `spatstat`, the marks of a `ppp` object could be:
+
+-   numeric mark,quantitative values, which is used for intensity or regression analysis
+-   character marks, converted to `factor`, which are then used for for categorical analysis
+
+```{r}
+biz46900_month <- biz_46900_sf %>%
+  select(MONTH_NUM)
+
+str(biz46900_month)
+plot(biz46900_month)
+```
+
+#### B Creating `ppp`
+
+The code chunk below converts sf data frame to `ppp` object.
+
+```{r}
+biz46900_month_ppp <- as.ppp(biz46900_month)
+biz46900_month_ppp
+```
+
+The code chunk below check the summary statistics including object class.
+
+```{r}
+summary(biz46900_month_ppp)
+```
+
+The code chunk below performs a quick sanity check to ensure there are no duplicate points, which could avoid biased results or errors.
+
+```{r}
+any(duplicated(biz46900_month_ppp))
+```
+
+The code chunk below draws the points for a quick look.
+
+```{r}
+plot(biz46900_month_ppp)
+```
+
+#### C Adding `owin` Object
+
+`ppp[owin]` in `spatstat` clips the point pattern to a given window. That means only points of e.g. `biz46900_month_ppp` that fall in the study area `sg_m_owin` are kept and outputs a new `ppp` object.
+
+```{r}
+biz46900_month_owin <- biz46900_month_ppp[sg_m_owin]
+summary(biz46900_month_owin)
+plot(biz46900_month_owin)
+```
+
+#### D Computing Spatio-temporal KDE
+
+The code chunk below calculate the STKDE using `spattemp.density()`.
+
+```{r}
+st_kde_biz46900_m <- spattemp.density(biz46900_month_owin)
+
+summary(st_kde_biz46900_m)
+class(st_kde_biz46900_m)
+```
+
+#### E Ploting the STKDE Ojbect
+
+The class of `st_kde` is `stden` which stores a stack of KDE surfaces, one for each time slice. Using `plot(st_kde_biz46900_m)` alone, plots 6 monthly KDE. The code chunk below first creates a list for then plots 6 KDE maps between Jan 25 and Jun 25 in a 2 \* 3 grid.
+
+```{r, fig.width= 12, fig.height= 8}
+tims <- c(1:6)
+par(mfcol = c(2,3))
+for (i in tims){
+  plot(st_kde_biz46900_m, i, override.par= FALSE,
+       fix.range= TRUE,
+       main = paste("56140 KDE at month", i))
+}
+```
+
+Here we quickly plot the monthly KDE. The `fix.range = TRUE` argument is important: without a common colour scale, months with few events are exaggerated and low-activity months can look quite intense.
+
+```{r, fig.width=12, fig.height=12}
+par(mfrow = c(4,3))
+plot(st_kde_biz46900_m, override.par = FALSE, fix.range = TRUE)
+```
+
+####F Visualising STKDE in gif
+
+Here we use `magick` package to animate the `st_kde_biz62011_m` file.
+
+```{r}
+#| eval: false
+# pick all 6 months
+sel <- seq_along(st_kde_biz46900_m$tgrid)
+
+frames <- lapply(sel, function(i) {
+  tsel <- st_kde_biz46900_m$tgrid[i]
+  img  <- image_graph(width = 800, height = 800, res = 96) # open a plot device
+
+  plot(st_kde_biz46900_m, tselect = tsel, override.par = FALSE, fix.range = TRUE,
+       main = paste("46900 STKDE – MONTH", tsel))
+
+  dev.off()
+  img
+})
+
+# combine frames into gif
+anim <- image_animate(image_join(frames), delay = 50, loop = 0)
+
+
+# save to file
+image_write(anim, "img/st_kde_biz46900_m.gif")
+```
+
+![](img/st_kde_biz46900_m.gif)
+
+:::
+
+
+### Wholesale Trade 46900 - Jurong East
+
+::: panel-tabset
+
+Here we also zone in subzone Tempines for for details.
+
+#### A Extracting `MONTH_NUM` field
+
+Since `as.ppp()` from spatstat only needs a mark field (e.g numeric field MONTH_NUM) and the geometry, this step ensures the data frame is reduced to just what is necessary.
+
+As mentioned above, in `spatstat`, the marks of a `ppp` object could be:
+
+-   numeric mark,quantitative values, which is used for intensity or regression analysis
+-   character marks, converted to `factor`, which are then used for for categorical analysis
+
+```{r}
+je_m <-je %>%
+    st_union() 
+  
+je_m
+class(je_m)
+
+tm_shape(je_m) +
+  tm_borders() +
+  tm_title("Jurong East")
+
+je_m_owin <- as.owin(je_m)
+class(je_m_owin)
+```
+
+```{r}
+biz46900_month <- biz_46900_sf %>%
+  select(MONTH_NUM)
+
+str(biz46900_month)
+plot(biz46900_month)
+```
+
+#### B Creating `ppp`
+
+The code chunk below converts sf data frame to `ppp` object.
+
+```{r}
+biz46900_month_ppp <- as.ppp(biz46900_month)
+biz46900_month_ppp
+```
+
+The code chunk below check the summary statistics including object class.
+
+```{r}
+summary(biz46900_month_ppp)
+```
+
+The code chunk below performs a quick sanity check to ensure there are no duplicate points, which could avoid biased results or errors.
+
+```{r}
+any(duplicated(biz46900_month_ppp))
+```
+
+The code chunk below draws the points for a quick look.
+
+```{r}
+plot(biz46900_month_ppp)
+```
+
+
+#### C Adding `owin` Object
+
+`ppp[owin]` in `spatstat` clips the point pattern to a given window. That means only points of e.g. `biz46900_month_ppp` that fall in the study area `je_owin` are kept and outputs a new `ppp` object.
+
+```{r}
+biz46900_month_je_owin <- biz46900_month_ppp[je_m_owin]
+summary(biz46900_month_je_owin)
+plot(biz46900_month_je_owin)
+```
+
+#### D Computing Spatio-temporal KDE
+
+The code chunk below calculate the STKDE using `spattemp.density()`.
+
+```{r}
+st_kde_biz46900_je_m <- spattemp.density(biz46900_month_je_owin)
+
+summary(st_kde_biz46900_je_m)
+class(st_kde_biz46900_je_m)
+```
+
+
+When using plug-in rule in spattemp.density(), the spatio-temporal bandwidths are 238m and 4 days.
+
+The code chunk below applies boot.spattemp() generated optimal bandwidths 186m and 67 days to STKDE computation.
+
+```{r}
+#| eval: false
+set.seed(1234)
+BOOT.spattemp(biz46900_month_je_owin)
+```
+
+
+```{r}
+kde_46900_je_boot <- spattemp.density(biz46900_month_je_owin,
+                                  h = 186,
+                                  lambda = 2.22)
+summary(kde_46900_je_boot)
+```
+
+
+#### E Ploting the STKDE Ojbect
+
+The class of `st_kde` is `stden` which stores a stack of KDE surfaces, one for each time slice. Using `plot(st_kde_biz46900_je_m)` alone, plots 6 monthly KDE. The code chunk below first creates a list for then plots 6 KDE maps between Jan 25 and Jun 25 in a 2 \* 3 grid.
+
+```{r, fig.width= 12, fig.height= 10}
+tims <- c(1:6)
+par(mfcol = c(2,3))
+for (i in tims){
+  plot(st_kde_biz46900_je_m, i, override.par= FALSE,
+       fix.range= TRUE,
+       main = paste("46900 JE KDE at month", i))
+}
+```
+
+Here we quickly plot the monthly KDE. The `fix.range = TRUE` argument is important: without a common colour scale, months with few events are exaggerated and low-activity months can look quite intense.
+
+```{r, fig.width=12, fig.height=18}
+par(mfrow = c(4,3))
+plot(st_kde_biz46900_je_m, override.par = FALSE, fix.range = TRUE)
+```
+
+#### F Visualsing STKDE in gif
+
+Here we use `magick` package to animate the `st_kde_biz46800_je_m` file.
+
+```{r}
+#| eval: false
+# pick all 6 months
+sel <- seq_along(st_kde_biz46900_je_m$tgrid)
+
+frames <- lapply(sel, function(i) {
+  tsel <- st_kde_biz46900_je_m$tgrid[i]
+  img  <- image_graph(width = 800, height = 800, res = 96) # open a plot device
+
+  plot(st_kde_biz46900_je_m, tselect = tsel, override.par = FALSE, fix.range = TRUE,
+       main = paste("46900 JE STKDE – MONTH", tsel))
+
+  dev.off()
+  img
+})
+
+# combine frames into gif
+anim <- image_animate(image_join(frames), delay = 50, loop = 0)
+
+
+# save to file
+image_write(anim, "img/st_kde_biz46900_je_m.gif")
+```
+
+![](img/st_kde_biz46900_je_m.gif)
+
+
+Here we use `magick` package to animate the `kde_46900_je_boot` file.
+
+```{r}
+#| eval: false
+# pick all 6 months
+sel <- seq_along(kde_46900_je_boot$tgrid)
+
+frames <- lapply(sel, function(i) {
+  tsel <- kde_46900_je_boot$tgrid[i]
+  img  <- image_graph(width = 800, height = 800, res = 96) # open a plot device
+
+  plot(kde_46900_je_boot, tselect = tsel, override.par = FALSE, fix.range = TRUE,
+       main = paste("46900 JE BOOT STKDE – MONTH", tsel))
+
+  dev.off()
+  img
+})
+
+# combine frames into gif
+anim <- image_animate(image_join(frames), delay = 50, loop = 0)
+
+
+# save to file
+image_write(anim, "img/kde_46900_je_boot.gif")
+```
+
+![](img/kde_46900_je_boot.gif)
 
 
 :::
 
 
-## **second order spatial and spatio-temporal analysis** 
+## **second order spatial and spatio-temporal analysis**
+
+
+
+
+
+
+
+
+
 
 | Col1      | KDE | Subzone 1 | Subzone 2     | Subzone 3   | ST Change | Findings |
 |-----------|-----|-----------|---------------|-------------|-----------|----------|
@@ -3177,4 +3481,4 @@ plot(st_kde_biz62011_tp_m, override.par = FALSE, fix.range = TRUE)
 
 ## discuss how these findings can be used to support urban land use planning and management. (Not more than 500 words)
 
- To strengthen the analysis, the full year of 2024 is also included as a baseline under Spatio-Temporal SPPA.
+To strengthen the analysis, the full year of 2024 is also included as a baseline under Spatio-Temporal SPPA.
