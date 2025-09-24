@@ -1,6 +1,5 @@
 ---
 title: "01: Geospatial Analytics for Public Good"
-draft: false
 author: "Yiqiong PAN"
 date: "Sep 10, 2025"
 date-modified: last-modified
@@ -3456,9 +3455,29 @@ image_write(anim, "img/kde_46900_je_boot.gif")
 
 ## **second order spatial and spatio-temporal analysis**
 
+Here we test the second order ST-SPPA under stpp methods.
 
 
+### Food Stalls 56140
 
+```{r}
+coords_56140 <- st_coordinates(biz_56140_sf)
+biz56140_df <- data.frame(
+  x = coords_56140[, 1],  
+  y = coords_56140[, 2],
+  t = biz_56140_sf$`MONTH_NUM`)
+biz56140_stpp <- as.3dpoints(biz56140_df)
+class(biz56140_stpp)
+plot(biz56140_stpp)
+
+```
+
+STIKhat() of stpp package is used to compute space-time inhomogeneous K-function.
+
+```{r}
+biz56140_stik <- STIKhat(biz56140_stpp)
+plotK(biz56140_stik)
+```
 
 
 
