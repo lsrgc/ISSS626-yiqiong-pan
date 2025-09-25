@@ -1,0 +1,15 @@
+{
+  "hash": "630a3da735f3210c1a81abad2230d67b",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"05-2: Local Measures of Spatial Autocorrelation\"\ndraft: true\nauthor: \"Yiqiong PAN\"\ndate: \"Sep 24, 2025\"\ndate-modified: last-modified\n\nexecute:\n  echo: true    # display the code\n  eval: true    # run the code\n  message: false\n  warning: false\n  freeze: true  # do not re-render if nothing edited\n\nformat: \n  html:\n    toc: true\n    code-link: true\n\nnumber-sections: true\nnumber-depth: 4\n\neditor: visual\n---\n\n## Exerise Template\n\n\n::: {.cell}\n\n```{.r .cell-code}\nfor (i in 5:10) {\n  folder <- file.path(\"Hands-on_Ex\", sprintf(\"Hands-on_Ex%02d\",i))\n  \n  if (!dir.exists(folder)) dir.create(folder, recursive = TRUE)\n  \n  filename <- sprintf(\"Hands-on_Ex%02d.qmd\", i)\n  \n  file.copy(from = \"exercise_template.qmd\",\n            to = file.path(folder, filename), overwrite = TRUE)}\n```\n:::\n\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

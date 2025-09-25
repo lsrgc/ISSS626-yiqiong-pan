@@ -1,0 +1,4 @@
+/* Make callout-note bar blue */
+.callout-note .callout-title {
+  border-left-color: #e7f3ff !important; /* light blue strip */
+}
