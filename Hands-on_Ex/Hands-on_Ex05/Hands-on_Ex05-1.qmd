@@ -29,7 +29,7 @@ editor: visual
 | SA | Description | Example |
 |----|----|----|
 | Positive | occurs when similar values are spatially clustered | High-income households concentrated in neighbouring areas |
-| Zero | indicates complete randomness | With no discernible spatial pattern. |
+| Zero | indicates complete randomness | Early outbreak of Covid-19 |
 | Negative | occurs when similar values are deliberately dispersed | Supermarkets locating apart to avoid direct competition |
 
 : {tbl-colwidths="\[15,45,40\]"}
