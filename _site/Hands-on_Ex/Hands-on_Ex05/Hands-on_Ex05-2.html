@@ -441,6 +441,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul>
 </li>
   <li><a href="#plotting-summary" id="toc-plotting-summary" class="nav-link" data-scroll-target="#plotting-summary"><span class="header-section-number">5</span> Plotting Summary</a></li>
+  <li><a href="#reference" id="toc-reference" class="nav-link" data-scroll-target="#reference"><span class="header-section-number">6</span> Reference</a></li>
   </ul></nav>
     </div>
 <!-- main -->
@@ -802,7 +803,8 @@ Link number distribution:
 <span class="header-section-number">3.3</span> Computing Local Moran’s I</h3>
 <p>The code chunk below uses <a href=""><code>local_moran()</code></a> of <strong>spdep</strong> to calculate local Moran’s I for hunan GDPPC.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">lisa</span> <span class="op">&lt;-</span> <span class="va">wm_q</span> <span class="op">%&gt;%</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
+<span><span class="va">lisa</span> <span class="op">&lt;-</span> <span class="va">wm_q</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">mutate</span><span class="op">(</span>local_moran <span class="op">=</span> <span class="fu">local_moran</span><span class="op">(</span></span>
 <span>    <span class="va">GDPPC</span>, <span class="va">nb</span>, <span class="va">wt</span>, nsim <span class="op">=</span> <span class="fl">99</span><span class="op">)</span>,</span>
 <span>    .before <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
@@ -944,7 +946,8 @@ Link number distribution:
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">lisa</span> <span class="op">&lt;-</span> <span class="va">lisa</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">mutate</span><span class="op">(</span>lag_GDPPC <span class="op">=</span> <span class="fu">st_lag</span><span class="op">(</span></span>
 <span>    <span class="va">GDPPC</span>, <span class="va">nb</span>, <span class="va">wt</span><span class="op">)</span>,</span>
-<span>    .before <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span>    .before <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">%&gt;%</span></span>
+<span>  <span class="fu">unnest</span><span class="op">(</span><span class="va">lag_GDPPC</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Then code chunk plots the Moran Scatterplot of GDPPC by using ggplot.</p>
 <div class="cell">
@@ -1065,7 +1068,7 @@ Link number distribution:
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">tm_borders</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">tm_title</span><span class="op">(</span><span class="st">"Local Moran's I Clusters (p &lt; 0.05)"</span><span class="op">)</span></span>
-<span><span class="fu">tmap_arrange</span><span class="op">(</span><span class="va">equal</span>, <span class="va">lisa_map</span>,<span class="va">quantile</span>, <span class="va">lisa_map</span>,<span class="va">ii.map</span>,<span class="va">lisa_map</span>,  asp<span class="op">=</span><span class="fl">1</span>, ncol<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="fu">tmap_arrange</span><span class="op">(</span><span class="va">ii.map</span>,<span class="va">lisa_map</span>,  asp<span class="op">=</span><span class="fl">1</span>, ncol<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="Hands-on_Ex05-2_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid figure-img" width="1152"></p>
@@ -1084,7 +1087,7 @@ Note
 </div>
 <div class="callout-body-container callout-body">
 <p><strong>What statistical conclusion can you drawfrom the LISA map above?</strong></p>
-<p>At the 95% confidence level, the LISA map shows the eastern–central regions around <strong>Chengdu</strong> form clustered wealthy areas, while the western–southern county of <strong>Wugang</strong> is identified as a least wealthy area.</p>
+<p>At the 95% confidence level, the LISA map shows the eastern–central regions around <strong>Chengdu</strong> form clustered wealthy areas, while the western–southern counties are identified as least wealthy areas.</p>
 </div>
 </div>
 </div>
@@ -1150,7 +1153,7 @@ Link number distribution:
 <p>Note that for Gi analysis, <code>include_self()</code> must be used to ensure each location includes itself in the neighbourhood definition.</p>
 </section><section id="computing-adaptive-distance-weights" class="level4" data-number="4.1.2"><h4 data-number="4.1.2" class="anchored" data-anchor-id="computing-adaptive-distance-weights">
 <span class="header-section-number">4.1.2</span> Computing adaptive distance weights</h4>
-<p>In a fixed distance weight matrix, dense urban areas have many neighbours while rural areas have few, which smooths neighbour relationships unevenly. To control neighbour numbers, k-nearest neighbours can be used (with or without symmetry). Here, we compute <strong>a adaptive distance weight matrix </strong> using <a href="https://sfdep.josiahparry.com/reference/st_knn"><code>st_knn()</code></a> and st_weights((http://sfdep.josiahparry.com/reference/st_weights)) from the sfdep package.</p>
+<p>In a fixed distance weight matrix, dense urban areas have many neighbours while rural areas have few, which smooths neighbour relationships unevenly. To control neighbour numbers, k-nearest neighbours can be used (with or without symmetry). Here, we compute <strong>a adaptive distance weight matrix </strong> using <a href="https://sfdep.josiahparry.com/reference/st_knn"><code>st_knn()</code></a> and st_weights((http://sfdep.josiahparry.com/reference/st_weights)) from the <strong>sfdep</strong> package.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb38"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">hunan_adw</span> <span class="op">&lt;-</span> <span class="va">hunan</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">mutate</span><span class="op">(</span>nb <span class="op">=</span> <span class="fu">include_self</span><span class="op">(</span></span>
@@ -1188,7 +1191,8 @@ Link number distribution:
 <span class="header-section-number">4.2</span> Computing Local Gi*</h3>
 <p>Local Gi* (Getis–Ord) identifies statistically significant hot and cold spots by comparing neighbourhood values to the global total, producing Z-scores and p-values. In this section, we perform Gi analysis using <a href="https://sfdep.josiahparry.com/reference/local_gstar"><code>local_gstar_perm()</code></a> from the sfdep package.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb42"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">HCSA_fdw</span> <span class="op">&lt;-</span> <span class="va">hunan_fdw</span> <span class="op">%&gt;%</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb42"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
+<span><span class="va">HCSA_fdw</span> <span class="op">&lt;-</span> <span class="va">hunan_fdw</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">mutate</span><span class="op">(</span></span>
 <span>    gistar <span class="op">=</span> <span class="fu">local_gstar_perm</span><span class="op">(</span></span>
 <span>      <span class="va">GDPPC</span>, <span class="va">nb</span>, <span class="va">wt</span>, nsim <span class="op">=</span> <span class="fl">99</span><span class="op">)</span>,</span>
@@ -1336,6 +1340,7 @@ Note
 </div>
 </section></section></section><section id="plotting-summary" class="level2" data-number="5"><h2 data-number="5" class="anchored" data-anchor-id="plotting-summary">
 <span class="header-section-number">5</span> Plotting Summary</h2>
+<p>Both Local Moran’s I (LISA) and Hot Spot/Cold Spot Analysis (HCSA) reveal similar spatial patterns of GDPPC in Hunan. LISA identifies hot clusters in the eastern–central counties and cold clusters in the western–southern counties, while also detecting spatial outliers (e.g.low surrounded by high). HCSA confirms the same hot spots and cold spots, but focuses only on statistically significant clustering, without distinguishing outliers. Thus, LISA provides finer diagnostic detail, whereas HCSA highlights the most robust clusters.</p>
 <p>The code chunk below shows the LISA map and HCSA map together.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb48"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">tmap_arrange</span><span class="op">(</span><span class="va">lisa_map</span>, <span class="va">HCSA_map</span>, asp<span class="op">=</span><span class="fl">1</span>, ncol<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1346,6 +1351,9 @@ Note
 </div>
 </div>
 </div>
+</section><section id="reference" class="level2" data-number="6"><h2 data-number="6" class="anchored" data-anchor-id="reference">
+<span class="header-section-number">6</span> Reference</h2>
+<p>Kam, T. S. 8 Spatial Weights and Applications. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap10</p>
 
 
 </section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">

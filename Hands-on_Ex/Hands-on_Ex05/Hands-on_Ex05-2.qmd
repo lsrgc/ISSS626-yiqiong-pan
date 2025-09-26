@@ -195,6 +195,7 @@ summary(unlist(wm_q$wt))
 The code chunk below uses [`local_moran()`]() of **spdep** to calculate local Moran's I for hunan GDPPC.
 
 ```{r}
+set.seed(1234)
 lisa <- wm_q %>%
   mutate(local_moran = local_moran(
     GDPPC, nb, wt, nsim = 99),
@@ -310,7 +311,8 @@ The code chunk below uses [`st_lag()`](https://sfdep.josiahparry.com/reference/s
 lisa <- lisa %>%
   mutate(lag_GDPPC = st_lag(
     GDPPC, nb, wt),
-    .before = 1)
+    .before = 1)%>%
+  unnest(lag_GDPPC)
 ```
 
 Then code chunk plots the Moran Scatterplot of GDPPC by using ggplot.
@@ -411,7 +413,7 @@ lisa <- lisa %>%
 
 The code chunk below visualises the clusters in the LISA map.
 
-```{r, fig.width=12, fig.height=16}
+```{r, fig.width=12, fig.height=8}
 lisa_map <- tm_shape(lisa) + 
   tm_polygons(
     fill = "LISA_cluster",
@@ -430,12 +432,12 @@ lisa_map <- tm_shape(lisa) +
   ) +
   tm_borders() +
   tm_title("Local Moran's I Clusters (p < 0.05)")
-tmap_arrange(equal, lisa_map,quantile, lisa_map,ii.map,lisa_map,  asp=1, ncol=2)
+tmap_arrange(ii.map,lisa_map,  asp=1, ncol=2)
 ```
 ::: callout-note
 **What statistical conclusion can you drawfrom the LISA map above?**
 
-At the 95% confidence level, the LISA map shows the eastern–central regions around **Chengdu** form clustered wealthy areas, while the western–southern county of **Wugang** is identified as a least wealthy area.
+At the 95% confidence level, the LISA map shows the eastern–central regions around **Chengdu** form clustered wealthy areas, while the western–southern counties are identified as least wealthy areas.
 :::
 
 :::
@@ -488,7 +490,7 @@ Note that for Gi analysis, `include_self()` must be used to ensure each location
 
 #### Computing adaptive distance weights
 
-In a fixed distance weight matrix, dense urban areas have many neighbours while rural areas have few, which smooths neighbour relationships unevenly. To control neighbour numbers, k-nearest neighbours can be used (with or without symmetry). Here, we compute **a adaptive distance weight matrix ** using [`st_knn()`](https://sfdep.josiahparry.com/reference/st_knn) and st_weights((http://sfdep.josiahparry.com/reference/st_weights)) from the sfdep package.
+In a fixed distance weight matrix, dense urban areas have many neighbours while rural areas have few, which smooths neighbour relationships unevenly. To control neighbour numbers, k-nearest neighbours can be used (with or without symmetry). Here, we compute **a adaptive distance weight matrix ** using [`st_knn()`](https://sfdep.josiahparry.com/reference/st_knn) and st_weights((http://sfdep.josiahparry.com/reference/st_weights)) from the **sfdep** package.
 
 ```{r}
 hunan_adw <- hunan %>%
@@ -510,6 +512,7 @@ Local Gi* (Getis–Ord) identifies statistically significant hot and cold spots 
 
 
 ```{r}
+set.seed(1234)
 HCSA_fdw <- hunan_fdw %>%
   mutate(
     gistar = local_gstar_perm(
@@ -641,9 +644,15 @@ At the 95% confidence level, HCSA map shows **hot spots** of high GDP per capita
 
 ## Plotting Summary
 
+Both Local Moran’s I (LISA) and Hot Spot/Cold Spot Analysis (HCSA) reveal similar spatial patterns of GDPPC in Hunan. LISA identifies hot clusters in the eastern–central counties and cold clusters in the western–southern counties, while also detecting spatial outliers (e.g.low surrounded by high). HCSA confirms the same hot spots and cold spots, but focuses only on statistically significant clustering, without distinguishing outliers. Thus, LISA provides finer diagnostic detail, whereas HCSA highlights the most robust clusters.
+
+
 The code chunk below shows the LISA map and HCSA map together.
 
 ```{r fig.width=12, fig.height=8}
 tmap_arrange(lisa_map, HCSA_map, asp=1, ncol=2)
 ```
 
+## Reference
+
+Kam, T. S. 8 Spatial Weights and Applications. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap10

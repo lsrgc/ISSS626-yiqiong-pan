@@ -388,3 +388,8 @@ print(GC_corr)
 
 The spatial correlogram shows that Geary’s C **increases** with distance: starting **negative** (dispersion/ dissimilarity) at short lags, reaching **CSR** around step 4 (p= 0.88 \> 0.05), and becoming significantly **positive** (clustering/ similarity) at longer distances.
 :::
+
+
+## Reference
+
+Kam, T. S. 8 Spatial Weights and Applications. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap09
