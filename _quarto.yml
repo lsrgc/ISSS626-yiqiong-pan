@@ -22,7 +22,7 @@ website:
           - text: "05-1: Global Measures of Spatial Autocorrelation"
             href: "Hands-on_Ex/Hands-on_Ex05/Hands-on_Ex05-1.html"          
           - text: "05-2: Local Measures of Spatial Autocorrelation"
-            href: "Hands-on_Ex/Hands-on_Ex06/Hands-on_Ex05-2.html"
+            href: "Hands-on_Ex/Hands-on_Ex05/Hands-on_Ex05-2.html"
           - text: "06: "
             href: "Hands-on_Ex/Hands-on_Ex06/Hands-on_Ex06.html"
           - text: "07: "
