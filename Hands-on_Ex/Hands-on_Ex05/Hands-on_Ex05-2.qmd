@@ -101,7 +101,7 @@ hunan <- st_read(dsn = "data/geospatial", layer = "hunan")
 st_crs(hunan)
 ```
 
-The code chunk below changes Coordinate Reference System (from user input WGS 84 to projected CRS UTM zone 50N) by using `st_transform()` and assigning CRS 32650.
+The code chunk below changes Coordinate Reference System (from user input WGS 84 to projected CRS UTM zone 50N) by using `st_transform()` and assigning CRS 32650. After this transformation, we no longer need to include longlat = TRUE at the following steps.
 
 ```{r}
 hunan <- hunan %>%
@@ -407,7 +407,7 @@ The code chunk below prepares LISA map by deriving a new field called **LISA-clu
 ```{r}
 lisa <- lisa %>%
   mutate(
-    LISA_cluster = ifelse( p_ii < 0.05, as.character(mean), "Insignificant"),
+    LISA_cluster = ifelse( p_ii_sim < 0.05, as.character(mean), "Insignificant"),
     LISA_cluster = factor( LISA_cluster,
       levels = c("Insignificant", "Low-Low", "Low-High", "High-Low", "High-High")))
 ```
@@ -517,13 +517,7 @@ Interpretation of Getis-Ord Local Gi\*:
 
 -   Near zero: independence/randomness
 
-Significance is usually tested with **p-values**:
-
--   
-
--   
-
-    Common cut-offs: 0.05, 0.01, 0.001.
+Significance is usually tested with **p-values**.
 
 ```{r}
 set.seed(1234)
@@ -654,7 +648,7 @@ At the 95% confidence level, HCSA map shows **hot spots** of high GDP per capita
 
 ## Plotting Summary
 
-Both Local Moran’s I (LISA) and Hot Spot/Cold Spot Analysis (HCSA) reveal similar spatial patterns of GDPPC in Hunan. LISA identifies hot clusters in the eastern–central counties and cold clusters in the western–southern counties, while also detecting spatial outliers (e.g.low surrounded by high). HCSA confirms the same hot spots and cold spots, but focuses only on statistically significant clustering, without distinguishing outliers. Thus, LISA provides finer diagnostic detail, whereas HCSA highlights the most robust clusters.
+Both Local Moran’s I (LISA) and Hot Spot/Cold Spot Analysis (HCSA) reveal similar spatial patterns of GDPPC in Hunan. LISA identifies hot clusters in the eastern–central counties and cold clusters in the western–southern counties, while also detecting spatial outliers (e.g.low surrounded by high and/or high surrounded by low). HCSA confirms the same hot spots and cold spots, but focuses only on statistically significant clustering, without distinguishing outliers. Thus, LISA provides finer diagnostic detail, whereas HCSA highlights the most robust clusters.
 
 The code chunk below shows the LISA map and HCSA map together.
 
