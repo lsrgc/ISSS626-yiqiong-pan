@@ -369,6 +369,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex04/In-class_Ex04.html">
  <span class="dropdown-text">In-class Exercise 04</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex05/In-class_Ex05.html">
+ <span class="dropdown-text">In-class Exercise 05</span></a>
+  </li>  
     </ul>
 </li>
   <li class="nav-item dropdown ">
@@ -380,7 +384,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html">
  <span class="dropdown-text">01: Geospatial Analytics for Public Good</span></a>
   </li>  
-        <li class="dropdown-header">Take-home Exercise 2</li>
+        <li>
+    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex02/Take-home_Ex02.qmd">
+ <span class="dropdown-text">Take-home Exercise 2</span></a>
+  </li>  
     </ul>
 </li>
 </ul>
@@ -470,7 +477,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">September 26, 2025</p>
+      <p class="date-modified">September 27, 2025</p>
     </div>
   </div>
     
@@ -481,6 +488,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header><section id="overview" class="level2" data-number="1"><h2 data-number="1" class="anchored" data-anchor-id="overview">
 <span class="header-section-number">1</span> Overview</h2>
 <p><strong>Local Measures of Spatial Autocorrelation (LMSA)</strong> deepen the analysis of spatial patterns by providing location-specific scores. These measures are mathematically connected to the global indices, such as <strong>Local Indicators of Spatial Association (LISA)</strong> and <strong>Getis–Ord’s Gi</strong>-statistics.</p>
+<p>For detecting <strong>outliers and local clusters</strong>, we use <strong>LISA (Local Moran’s I)</strong> with <strong>distance-based</strong> or <strong>contiguity-based</strong> weights matrix. For identifying <strong>hot spots and cold spots</strong>, we use <strong>Getis-Ord Local Gi*</strong>, only with a <strong>distance-based weights matrix</strong>.</p>
+<p>Results are only reliable if the input feature class contains at least <strong>30</strong> features.</p>
 <p><strong>Tasks for this exercise include:</strong></p>
 <ul>
 <li><p>Importing geospatial data (<code>st_read()</code> from the <strong>sf</strong> package).</p></li>
@@ -1153,7 +1162,7 @@ Link number distribution:
 <p>Note that for Gi analysis, <code>include_self()</code> must be used to ensure each location includes itself in the neighbourhood definition.</p>
 </section><section id="computing-adaptive-distance-weights" class="level4" data-number="4.1.2"><h4 data-number="4.1.2" class="anchored" data-anchor-id="computing-adaptive-distance-weights">
 <span class="header-section-number">4.1.2</span> Computing adaptive distance weights</h4>
-<p>In a fixed distance weight matrix, dense urban areas have many neighbours while rural areas have few, which smooths neighbour relationships unevenly. To control neighbour numbers, k-nearest neighbours can be used (with or without symmetry). Here, we compute <strong>a adaptive distance weight matrix </strong> using <a href="https://sfdep.josiahparry.com/reference/st_knn"><code>st_knn()</code></a> and st_weights((http://sfdep.josiahparry.com/reference/st_weights)) from the <strong>sfdep</strong> package.</p>
+<p>In a fixed distance weight matrix, dense urban areas have many neighbours while rural areas have few, which smooths neighbour relationships unevenly. To control neighbour numbers, k-nearest neighbours can be used (with or without symmetry). Here, we compute <strong>a adaptive distance weight matrix</strong> using <a href="https://sfdep.josiahparry.com/reference/st_knn"><code>st_knn()</code></a> and st_weights((http://sfdep.josiahparry.com/reference/st_weights)) from the <strong>sfdep</strong> package.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb38"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">hunan_adw</span> <span class="op">&lt;-</span> <span class="va">hunan</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">mutate</span><span class="op">(</span>nb <span class="op">=</span> <span class="fu">include_self</span><span class="op">(</span></span>
@@ -1189,7 +1198,18 @@ Link number distribution:
 </div>
 </section></section><section id="computing-local-gi" class="level3" data-number="4.2"><h3 data-number="4.2" class="anchored" data-anchor-id="computing-local-gi">
 <span class="header-section-number">4.2</span> Computing Local Gi*</h3>
-<p>Local Gi* (Getis–Ord) identifies statistically significant hot and cold spots by comparing neighbourhood values to the global total, producing Z-scores and p-values. In this section, we perform Gi analysis using <a href="https://sfdep.josiahparry.com/reference/local_gstar"><code>local_gstar_perm()</code></a> from the sfdep package.</p>
+<p>Local Gi* (Getis–Ord) identifies statistically significant hot and cold spots by comparing neighbourhood values to the global total, producing Z-scores and p-values. In this section, we perform Gi analysis using <a href="https://sfdep.josiahparry.com/reference/local_gstar"><code>local_gstar_perm()</code></a> from the sfdep package. Loacal Gi* should include itself.</p>
+<p>Interpretation of Getis-Ord Local Gi*:</p>
+<ul>
+<li><p>High positive Gi* (large z-score): hot spot</p></li>
+<li><p>High Negative Gi* (large z-score): cold spot</p></li>
+<li><p>Near zero: independence/randomness</p></li>
+</ul>
+<p>Significance is usually tested with <strong>p-values</strong>:</p>
+<ul>
+<li>
+</li><li>Common cut-offs: 0.05, 0.01, 0.001.</li>
+</ul>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb42"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
 <span><span class="va">HCSA_fdw</span> <span class="op">&lt;-</span> <span class="va">hunan_fdw</span> <span class="op">%&gt;%</span></span>

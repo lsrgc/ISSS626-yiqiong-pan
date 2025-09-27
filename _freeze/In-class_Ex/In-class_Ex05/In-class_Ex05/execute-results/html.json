@@ -1,0 +1,15 @@
+{
+  "hash": "23f9c57a8790798056ae2d8f1dddda45",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"0 \"\n\nauthor: \"Yiqiong PAN\"\ndate: \"Sep 27, 2025\"\ndate-modified: last-modified\n\nexecute:\n  echo: true    # display the code\n  eval: true    # run the code\n  message: false\n  warning: false\n  freeze: true  # do not re-render if nothing edited\n\nformat: \n  html:\n    toc: true\n    code-link: true\n\nnumber-sections: true\nnumber-depth: 4\n\neditor: visual\n---\n\n## Overview\n\n\n::: {.cell}\n\n:::\n\n\n\n\n::: {.cell}\n\n:::\n\n\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

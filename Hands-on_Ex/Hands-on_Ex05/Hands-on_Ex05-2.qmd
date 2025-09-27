@@ -26,6 +26,11 @@ editor: visual
 
 **Local Measures of Spatial Autocorrelation (LMSA)** deepen the analysis of spatial patterns by providing location-specific scores. These measures are mathematically connected to the global indices, such as **Local Indicators of Spatial Association (LISA)** and **Getis–Ord’s Gi**-statistics.
 
+For detecting **outliers and local clusters**, we use **LISA (Local Moran’s I)** with **distance-based** or **contiguity-based** weights matrix.
+For identifying **hot spots and cold spots**, we use **Getis-Ord Local Gi\***, only with a **distance-based weights matrix**.
+
+Results are only reliable if the input feature class contains at least **30** features.
+
 **Tasks for this exercise include:**
 
 -   Importing geospatial data (`st_read()` from the **sf** package).
@@ -175,14 +180,13 @@ wm_q <- hunan %>%
          .before = 1)
 ```
 
-
 Here we could call `summary()` function to see the same statistics about the neighbour distribution in hunan newly-created `nb` column. Across the 88 regions in the dataset, the average region has about 5–6 neighbours. Region 85 has the most neighbours with 11 links, while regions 30 and 65 have the fewest, with only 1 link each.
 
 ```{r}
 summary(wm_q$nb)
 ```
 
-###  Row-standardised Weights Matrix
+### Row-standardised Weights Matrix
 
 The code chunk below displays the summary statistics for the new `w` column.
 
@@ -190,6 +194,7 @@ The code chunk below displays the summary statistics for the new `w` column.
 head(wm_q$wt)
 summary(unlist(wm_q$wt))
 ```
+
 ### Computing Local Moran's I
 
 The code chunk below uses [`local_moran()`]() of **spdep** to calculate local Moran's I for hunan GDPPC.
@@ -203,29 +208,27 @@ lisa <- wm_q %>%
   unnest(local_moran)
 ```
 
-
 The `local_moran()` function returns a matrix of values. We use `unnest()` to expand it into separate columns so they can be accessed directly in the `lisa` sf object.
 
 The newly created columns are:
 
-- `ii`: the local Moran’s I statistics for each region
-- `e.ii`: expected value of ii under spatial randomness
-- `var.ii`: the variance of local moran statistic under null model
-- `z.ii`:the standard deviate of local moran statistic (z-value)
-- `p.ii`: the p-value of local moran statistic
-- `p_ii_sim`: p-value from randomisation (Monte Carlo simulations)
-- `p_folded_sim`: folded p-value from simulation (more conservative, treats extreme values both tails)
-- `skewness, kurtosis`: diagnostics for the distribution of simulated ii values (shape compared to normal)
-- `mean, median,pysal`: mean, median, quandrant classifications based on comparing the region’s value to the value of neighbours, in the format of self - neighbours, e.g., "High-High".
-
+-   `ii`: the local Moran’s I statistics for each region
+-   `e.ii`: expected value of ii under spatial randomness
+-   `var.ii`: the variance of local moran statistic under null model
+-   `z.ii`:the standard deviate of local moran statistic (z-value)
+-   `p.ii`: the p-value of local moran statistic
+-   `p_ii_sim`: p-value from randomisation (Monte Carlo simulations)
+-   `p_folded_sim`: folded p-value from simulation (more conservative, treats extreme values both tails)
+-   `skewness, kurtosis`: diagnostics for the distribution of simulated ii values (shape compared to normal)
+-   `mean, median,pysal`: mean, median, quandrant classifications based on comparing the region’s value to the value of neighbours, in the format of self - neighbours, e.g., "High-High".
 
 ### Mapping the Local Moran's I
 
-:::panel-tabset
-
+::: panel-tabset
 #### Mapping the Local Moran's I values
 
 The code chunk below uses choropleth mapping functions from **tmap** to visualise the I values.
+
 ```{r}
 packageVersion("tmap")
 ```
@@ -244,7 +247,8 @@ tm_shape(lisa) +
   tm_borders(fill_alpha = 0.5) +
   tm_title("Loal Moran's I of GDPPC (Queen's method)")
 ```
-####  Mapping Local Moran’s I p-values
+
+#### Mapping Local Moran’s I p-values
 
 The code chunk below visualises the p-values for better comparsion.
 
@@ -293,15 +297,14 @@ p_ii.map <- tm_shape(lisa) +
 
 tmap_arrange(equal, quantile, ii.map, p_ii.map, asp=1, ncol=2)
 ```
-
 :::
 
 ### Preparing and Visualising LISA Map
 
 LISA visualisation highlights spatial patterns such as hot spots, cold spots, and outliers using tools like **choropleth maps, Moran scatterplots, and hot spot maps**.
 
-:::panel-tabset
-####  Plotting Moran Scatterplot
+:::: panel-tabset
+#### Plotting Moran Scatterplot
 
 A Moran Scatterplot visualises spatial autocorrelation by plotting a variable against its spatial lag, with the slope representing Moran’s I and points indicating clusters or outliers.
 
@@ -352,9 +355,9 @@ ggplot(data = lisa,
 ```
 
 #### Plotting Moran Scatterplot with Standardised Variable
- 
- The code chunk below uses [`scale()`](https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/scale) to center and scale the GDPPC, centering subtracts the mean (ignoring NAs) from the variables, and scaling divides the result by its standard deviation, converting the values to z-scores. 
- 
+
+The code chunk below uses [`scale()`](https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/scale) to center and scale the GDPPC, centering subtracts the mean (ignoring NAs) from the variables, and scaling divides the result by its standard deviation, converting the values to z-scores.
+
 ```{r}
 lisa <- lisa %>%
   mutate(
@@ -363,9 +366,8 @@ lisa <- lisa %>%
     .before = 1)
 ```
 
+The function [`as.vector()`](https://www.rdocumentation.org/packages/pbdDMAT/versions/0.5-1/topics/as.vector) goes around the `scale()` function, to ensure the output is converted to numeric vector from matrix.
 
-The function [`as.vector()`](https://www.rdocumentation.org/packages/pbdDMAT/versions/0.5-1/topics/as.vector) goes around the `scale()` function, to ensure the output is converted to numeric vector from matrix. 
- 
 The code chunk below plot the Morgan Scatterplot.
 
 ```{r}
@@ -391,17 +393,16 @@ ggplot(data = lisa,
 ```
 
 #### Preparing LISA Map Classes
- 
- 
+
 The code chunk below sets a statistical significance level for the local Moran.
+
 ```{r}
 signif <- 0.05
 ```
 
 #### Plotting and visualising LISA map
 
-The code chunk below prepares LISA map by deriving a new field called **LISA-cluster** from one of the three LISA classes (**`mean,median, pysal`**). Only significant regions (p < 0.05) keep their cluster label, others are assigned as "insignificant". Then clusters are ordered by levels.
-
+The code chunk below prepares LISA map by deriving a new field called **LISA-cluster** from one of the three LISA classes (**`mean,median, pysal`**). Only significant regions (p \< 0.05) keep their cluster label, others are assigned as "insignificant". Then clusters are ordered by levels.
 
 ```{r}
 lisa <- lisa %>%
@@ -434,27 +435,24 @@ lisa_map <- tm_shape(lisa) +
   tm_title("Local Moran's I Clusters (p < 0.05)")
 tmap_arrange(ii.map,lisa_map,  asp=1, ncol=2)
 ```
+
 ::: callout-note
 **What statistical conclusion can you drawfrom the LISA map above?**
 
 At the 95% confidence level, the LISA map shows the eastern–central regions around **Chengdu** form clustered wealthy areas, while the western–southern counties are identified as least wealthy areas.
 :::
-
-:::
-
+::::
 
 ## Hot Spots and Cold Spots Analysis (HCSA)
 
 **Hot spot and cold spot analysis (HCSA)** identifies statistically significant clusters of high values (**hot spots**) and low values (**cold spots**) in spatial data, such as GDP per capita. Hot spots represent prosperous regions where high values cluster together, while cold spots indicate areas of persistent low values. Using statistics like **Getis–Ord Gi**, HCSA tests whether these patterns are meaningful or due to random chance.
 
+The following four steps are taken:
 
-The following four steps are taken: 
-
-1. Deriving spatial weight matrix
-2. Computing Gi* statistics
-3. Mapping Gi* statistics
-4. Communicating the analysis results
-
+1.  Deriving spatial weight matrix
+2.  Computing Gi\* statistics
+3.  Mapping Gi\* statistics
+4.  Communicating the analysis results
 
 ### Deriving Distance Weight Matrix
 
@@ -470,6 +468,7 @@ First the code chunk below calculates the upper limit for the distance band by u
 ct <- critical_threshold(st_geometry(hunan))
 ct
 ```
+
 Then we apply the derived first nearest neighbour distance 60.80km to the [`st_dist_band()`](https://sfdep.josiahparry.com/reference/st_dist_band) and along with [st_weights()](http://sfdep.josiahparry.com/reference/st_weights) to get the fixed distance matrix.
 
 ```{r}
@@ -490,7 +489,7 @@ Note that for Gi analysis, `include_self()` must be used to ensure each location
 
 #### Computing adaptive distance weights
 
-In a fixed distance weight matrix, dense urban areas have many neighbours while rural areas have few, which smooths neighbour relationships unevenly. To control neighbour numbers, k-nearest neighbours can be used (with or without symmetry). Here, we compute **a adaptive distance weight matrix ** using [`st_knn()`](https://sfdep.josiahparry.com/reference/st_knn) and st_weights((http://sfdep.josiahparry.com/reference/st_weights)) from the **sfdep** package.
+In a fixed distance weight matrix, dense urban areas have many neighbours while rural areas have few, which smooths neighbour relationships unevenly. To control neighbour numbers, k-nearest neighbours can be used (with or without symmetry). Here, we compute **a adaptive distance weight matrix** using [`st_knn()`](https://sfdep.josiahparry.com/reference/st_knn) and st_weights((http://sfdep.josiahparry.com/reference/st_weights)) from the **sfdep** package.
 
 ```{r}
 hunan_adw <- hunan %>%
@@ -506,10 +505,25 @@ summary(hunan_adw$nb)
 summary(unlist(hunan_adw$wt))
 ```
 
-### Computing Local Gi*
+### Computing Local Gi\*
 
-Local Gi* (Getis–Ord) identifies statistically significant hot and cold spots by comparing neighbourhood values to the global total, producing Z-scores and p-values. In this section, we perform Gi analysis using [`local_gstar_perm()`](https://sfdep.josiahparry.com/reference/local_gstar) from the sfdep package.
+Local Gi\* (Getis–Ord) identifies statistically significant hot and cold spots by comparing neighbourhood values to the global total, producing Z-scores and p-values. In this section, we perform Gi analysis using [`local_gstar_perm()`](https://sfdep.josiahparry.com/reference/local_gstar) from the sfdep package. Loacal Gi\* should include itself.
 
+Interpretation of Getis-Ord Local Gi\*:
+
+-   High positive Gi\* (large z-score): hot spot
+
+-   High Negative Gi\* (large z-score): cold spot
+
+-   Near zero: independence/randomness
+
+Significance is usually tested with **p-values**:
+
+-   
+
+-   
+
+    Common cut-offs: 0.05, 0.01, 0.001.
 
 ```{r}
 set.seed(1234)
@@ -521,12 +535,12 @@ HCSA_fdw <- hunan_fdw %>%
   unnest(gistar)
 ```
 
-
 ### Preparing and Visualising HCSA Map
 
-#### Mapping Gi* with fix distance weights
+#### Mapping Gi\* with fix distance weights
 
-The code chunk below plots the distribution of Gi* values.
+The code chunk below plots the distribution of Gi\* values.
+
 ```{r}
 tm_shape(HCSA_fdw) +
   tm_polygons(fill = "gi_star",
@@ -540,7 +554,8 @@ tm_shape(HCSA_fdw) +
   tm_borders(fill_alpha = 0.5) +
   tm_title("Gi* of GDPPC (Fixed Bandwidth d = 60799.91m)")
 ```
-#### Mapping local Gi* p-values
+
+#### Mapping local Gi\* p-values
 
 The code chunk below visualise the p-values.
 
@@ -557,9 +572,9 @@ tm_shape(HCSA_fdw) +
   tm_title("p-values of local Gi* of GDPPC (Fixed distance)")
 ```
 
-#### Mapping both Gi* values and p-values
+#### Mapping both Gi\* values and p-values
 
-The code chunk below puts the Gi* values and p-values side by side for comparsion.
+The code chunk below puts the Gi\* values and p-values side by side for comparsion.
 
 ```{r fig.width=12, fig.height=8}
 Gi_star_map <- tm_shape(HCSA_fdw) +
@@ -609,8 +624,7 @@ HCSA_fdw <- HCSA_fdw %>%
   )
 ```
 
-The code chunk below plots the HCSA map and adds the Gi* value map to its side for comparsion.
-
+The code chunk below plots the HCSA map and adds the Gi\* value map to its side for comparsion.
 
 ```{r fig.width=12, fig.height=8}
 HCSA_map <- tm_shape(HCSA_fdw) + 
@@ -632,20 +646,15 @@ HCSA_map <- tm_shape(HCSA_fdw) +
 tmap_arrange(Gi_star_map, HCSA_map, asp=1, ncol=2)
 ```
 
-
-
-
 ::: callout-note
 **What statistical conclusion can you draw from the HCSA map above?**
 
 At the 95% confidence level, HCSA map shows **hot spots** of high GDP per capita in the **eastern–central** counties and **cold spots** of low GDP per capita in the western–southern counties.
 :::
 
-
 ## Plotting Summary
 
 Both Local Moran’s I (LISA) and Hot Spot/Cold Spot Analysis (HCSA) reveal similar spatial patterns of GDPPC in Hunan. LISA identifies hot clusters in the eastern–central counties and cold clusters in the western–southern counties, while also detecting spatial outliers (e.g.low surrounded by high). HCSA confirms the same hot spots and cold spots, but focuses only on statistically significant clustering, without distinguishing outliers. Thus, LISA provides finer diagnostic detail, whereas HCSA highlights the most robust clusters.
-
 
 The code chunk below shows the LISA map and HCSA map together.
 

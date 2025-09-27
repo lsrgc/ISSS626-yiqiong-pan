@@ -27,7 +27,7 @@ editor: visual
 **Spatial Autocorrelation** is a geographical concept based on the idea that *“near things are more related than distant things.”*
 
 | SA | Description | Example |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | Positive | occurs when similar values are spatially clustered | High-income households concentrated in neighbouring areas |
 | Zero | indicates complete randomness | Early outbreak of Covid-19 |
 | Negative | occurs when similar values are deliberately dispersed | Supermarkets locating apart to avoid direct competition |
@@ -46,14 +46,13 @@ In this exercise, we understand Global Measures of Spatial Autocorrelation (GMSA
 
 The main development objective for urban planners is to achieve **equal development** in the region. Through a case study of GPD Per capita (a development indicator)in Hunan China, we examine the spatial pattern in the area and try to understand:
 
-:::callout-note
+::: callout-note
 ### Questions:
 
 1.  if development is equally distributed?
 2.  if not, is spatial clustering evident?
 3.  If confirmed, where are the clusters?
 :::
-
 
 ### The Study Area and Data
 
@@ -171,21 +170,19 @@ rswm_q <- nb2listw(wm_q, style = "W", zero.policy = TRUE)
 rswm_q
 ```
 
-:::callout-note
+::: callout-note
 ### Function `nb2listw()`
-- **Input:** requires an object of class `nb` (neighbours list).
 
-- **style:** *"B":* basic inary coding (1 = neighbour, 0 = not). **"W":** row-standardised (row sums = 1). **"C":** globally standardised (weights sum to n). **"U":** equal to C / number of neighbours (weights sum = 1). **"S"**: variance-stabilising scheme (Tiefelsdorf et al., 1999).* *"minmax"*:* rescaled weights between 0 and 1.
+-   **Input:** requires an object of class `nb` (neighbours list).
 
-- **zero.policy:**
-**FALSE **(default): errors out if a region has no neighbours.
-**TRUE:* *assigns a zero-weight vector for such regions.
+-   **style:** *"B":* basic inary coding (1 = neighbour, 0 = not). **"W":** row-standardised (row sums = 1). **"C":** globally standardised (weights sum to n). **"U":** equal to C / number of neighbours (weights sum = 1). **"S"**: variance-stabilising scheme (Tiefelsdorf et al., 1999).\* *"minmax"*:\* rescaled weights between 0 and 1.
+
+-   **zero.policy:** **FALSE** (default): errors out if a region has no neighbours. \*\*TRUE:\* \*assigns a zero-weight vector for such regions.
 :::
-
 
 ## GMSA: Moran's I
 
-The Moran's I statistics could be conducted by using [`moran.test()`](https://r-spatial.github.io/spdep/reference/moran.test.html) from **spdep** package. Global Moran's I measures how the features **differ from their negibhours**,from -1 to 1, similar with Persons'r.
+The Moran's I statistics could be conducted by using [`moran.test()`](https://r-spatial.github.io/spdep/reference/moran.test.html) from **spdep** package. Global Moran's I measures how the features **differ from the values in the study area as a whole**,from -1 to 1, similar with Persons'r (**correlation coefficient**).
 
 ### Moran's I Test
 
@@ -201,21 +198,20 @@ The code chunk below calls [`moran.test()`](https://r-spatial.github.io/spdep/re
 moran.test(hunan$GDPPC, listw = rswm_q, 
            zero.policy = TRUE, na.action = na.omit)
 ```
-:::callout-note
+
+::: callout-note
 ### Function `moran.test()`
 
-- **Input**: must be a numeric vector, with same length as the `nb` list in `listw` 
-- **listw**: a `listw` object for weights that computed by `nb2listw` 
-- **alternative**: "greater" default, "two.sided", "less" 
-- **na.action**: `na.fail` default, `na.omit`, `na.exclude`
+-   **Input**: must be a numeric vector, with same length as the `nb` list in `listw`
+-   **listw**: a `listw` object for weights that computed by `nb2listw`
+-   **alternative**: "greater" default, "two.sided", "less"
+-   **na.action**: `na.fail` default, `na.omit`, `na.exclude`
 :::
-
 
 ::: callout-note
 **What statistical conclusion can you draw from the output above?**
 
-The summary shows Moran’s I z-score is 4.7, observed I (\$statistic) is 0.3, expected I is -0.011, with a p-value of 0.000001.
-At the 95% confidence level, we **reject** the null hypothesis of spatial randomness and conclude that there is statistically significant **clustering** in the distribution of wealth.
+The summary shows Moran’s I z-score is 4.7, observed I (\$statistic) is 0.3, expected I is -0.011, with a p-value of 0.000001. At the 95% confidence level, we **reject** the null hypothesis of spatial randomness and conclude that there is statistically significant **clustering** in the distribution of wealth.
 :::
 
 ### Monte Carlo Moran's I
@@ -235,7 +231,7 @@ bperm$res[1]
 ::: callout-note
 **What statistical conclusion can you draw from the output above?**
 
-The summary shows the observed Moran’s I is 0.3. Since I\> 0 over 999 simulation, we conclude that there is statistically significant **clustering/clustering** in the distribution of wealth at 95% confidence.
+The summary shows the observed Moran’s I is 0.3. Since I\> 0 over 1000 simulation, we conclude that there is statistically significant **clustering/clustering** in the distribution of wealth at 95% confidence.
 :::
 
 ### Visualising Monte Carlo Moran's I
@@ -264,13 +260,12 @@ bperm
 ::: callout-note
 **What statistical conclusion can you draw from the output above?**
 
-The histogram of simulatedMoran’s I values (999 permutations) is roughly bell-shaped and centred around 0, which matches the null expectation under complete spatial randomness (CSR).
-The observed Moran’s I is 0.3 which lies at the edge of right tail of simulated distribution. Since I \> 1, this indicates **positive spatial autocorrelation**.
+The histogram of simulatedMoran’s I values (999 permutations) is roughly bell-shaped and centred around 0, which matches the null expectation under complete spatial randomness (CSR). The observed Moran’s I is 0.3 which lies at the edge of right tail of simulated distribution. Since I \> 1, this indicates **positive spatial autocorrelation**.
 :::
 
 ## GMSA: Geary's C
 
-Geary's C measure **squared difference between neigbhours** and examine the local **dissimilarity**, valued from 0 to 2.
+Geary's C measure **the feature difference between neigbhours** and examine the local **dissimilarity**, valued from 0 to infinite. Both Moran’s I and Geary’s C exclude self-comparison (wii = 0). They only compare each observation with its neighbours, never with itself.
 
 **Interpretation Rule:**
 
@@ -289,8 +284,7 @@ geary.test(hunan$GDPPC, listw = rswm_q)
 ::: callout-note
 **What statistical conclusion can you draw from the output above?**
 
-The statistic from Geary's C test reveals z-score is 4.61, p-value is 0.00015, and the observed Geary's C is 0.69.
-When C \<1, this provides strong evidence against complete spatial randomness (CSR) and indicates it indicates **positive Spatial Autocorrelation and similarity.**
+The statistic from Geary's C test reveals z-score is 4.61, p-value is 0.00015, and the observed Geary's C is 0.69. When C \<1, this provides strong evidence against complete spatial randomness (CSR) and indicates it indicates **positive Spatial Autocorrelation and similarity.**
 :::
 
 ### Monte Carlo Geary’s C
@@ -306,8 +300,7 @@ bperm
 ::: callout-note
 **What statistical conclusion can you draw from the output above?**
 
-The statistic from Monte Carlo Geary's C test reveals under 95% confidence, p-value is 0.001, and the observed Geary's C is 0.69.
-When C \<1 after 999 simulations, this provides strong evidence against complete spatial randomness (CSR) and indicates it indicates **strong positive Spatial Autocorrelation and similarity** well beyond the conventional 95% threshold.
+The statistic from Monte Carlo Geary's C test reveals under 95% confidence, p-value is 0.001, and the observed Geary's C is 0.69. When C \<1 after 1000 simulations, this provides strong evidence against complete spatial randomness (CSR) and indicates it indicates **strong positive Spatial Autocorrelation and similarity** well beyond the conventional 95% threshold.
 :::
 
 ### Visualising the Monte Carlo Geary’s C
@@ -335,8 +328,7 @@ abline(v =1 , col = "red")
 ::: callout-note
 **What statistical conclusion can you draw from the output above?**
 
-The histogram of simulated Geary’s C values (999 permutations) is roughly bell-shaped and centred around 1, which matches the null expectation under complete spatial randomness (CSR).
-The observed Geary's C is 0.69 which lies at the left tail of simulated distribution. since C \<1 and I\>0, both confirm **positive spatial autocorrelation** at confidence level of 95%.
+The histogram of simulated Geary’s C values (1000 permutations) is roughly bell-shaped and centred around 1, which matches the null expectation under complete spatial randomness (CSR). The observed Geary's C is 0.69 which lies at the left tail of simulated distribution. since C \<1 and I\>0, both confirm **positive spatial autocorrelation** at confidence level of 95%.
 :::
 
 ## Spatial Correlograms
@@ -388,7 +380,6 @@ print(GC_corr)
 
 The spatial correlogram shows that Geary’s C **increases** with distance: starting **negative** (dispersion/ dissimilarity) at short lags, reaching **CSR** around step 4 (p= 0.88 \> 0.05), and becoming significantly **positive** (clustering/ similarity) at longer distances.
 :::
-
 
 ## Reference
 

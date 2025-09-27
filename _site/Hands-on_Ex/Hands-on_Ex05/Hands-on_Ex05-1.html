@@ -369,6 +369,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex04/In-class_Ex04.html">
  <span class="dropdown-text">In-class Exercise 04</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex05/In-class_Ex05.html">
+ <span class="dropdown-text">In-class Exercise 05</span></a>
+  </li>  
     </ul>
 </li>
   <li class="nav-item dropdown ">
@@ -380,7 +384,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html">
  <span class="dropdown-text">01: Geospatial Analytics for Public Good</span></a>
   </li>  
-        <li class="dropdown-header">Take-home Exercise 2</li>
+        <li>
+    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex02/Take-home_Ex02.qmd">
+ <span class="dropdown-text">Take-home Exercise 2</span></a>
+  </li>  
     </ul>
 </li>
 </ul>
@@ -481,7 +488,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">September 26, 2025</p>
+      <p class="date-modified">September 27, 2025</p>
     </div>
   </div>
     
@@ -736,13 +743,13 @@ W 88 7744 88 37.86334 365.9147</code></pre>
 <ul>
 <li><p><strong>Input:</strong> requires an object of class <code>nb</code> (neighbours list).</p></li>
 <li><p><strong>style:</strong> <em>“B”:</em> basic inary coding (1 = neighbour, 0 = not). <strong>“W”:</strong> row-standardised (row sums = 1). <strong>“C”:</strong> globally standardised (weights sum to n). <strong>“U”:</strong> equal to C / number of neighbours (weights sum = 1). <strong>“S”</strong>: variance-stabilising scheme (Tiefelsdorf et al., 1999).* <em>“minmax”</em>:* rescaled weights between 0 and 1.</p></li>
-<li><p><strong>zero.policy:</strong> <strong>FALSE </strong>(default): errors out if a region has no neighbours. **TRUE:* *assigns a zero-weight vector for such regions.</p></li>
+<li><p><strong>zero.policy:</strong> <strong>FALSE</strong> (default): errors out if a region has no neighbours. **TRUE:* *assigns a zero-weight vector for such regions.</p></li>
 </ul>
 </div>
 </div>
 </section></section><section id="gmsa-morans-i" class="level2" data-number="4"><h2 data-number="4" class="anchored" data-anchor-id="gmsa-morans-i">
 <span class="header-section-number">4</span> GMSA: Moran’s I</h2>
-<p>The Moran’s I statistics could be conducted by using <a href="https://r-spatial.github.io/spdep/reference/moran.test.html"><code>moran.test()</code></a> from <strong>spdep</strong> package. Global Moran’s I measures how the features <strong>differ from their negibhours</strong>,from -1 to 1, similar with Persons’r.</p>
+<p>The Moran’s I statistics could be conducted by using <a href="https://r-spatial.github.io/spdep/reference/moran.test.html"><code>moran.test()</code></a> from <strong>spdep</strong> package. Global Moran’s I measures how the features <strong>differ from the values in the study area as a whole</strong>,from -1 to 1, similar with Persons’r (<strong>correlation coefficient</strong>).</p>
 <section id="morans-i-test" class="level3" data-number="4.1"><h3 data-number="4.1" class="anchored" data-anchor-id="morans-i-test">
 <span class="header-section-number">4.1</span> Moran’s I Test</h3>
 <p>The code chunk below calls <a href="https://r-spatial.github.io/spdep/reference/moran.test.html"><code>moran.test()</code></a> to test Moran’s I.</p>
@@ -879,7 +886,7 @@ Note
 </div>
 <div class="callout-body-container callout-body">
 <p><strong>What statistical conclusion can you draw from the output above?</strong></p>
-<p>The summary shows the observed Moran’s I is 0.3. Since I&gt; 0 over 999 simulation, we conclude that there is statistically significant <strong>clustering/clustering</strong> in the distribution of wealth at 95% confidence.</p>
+<p>The summary shows the observed Moran’s I is 0.3. Since I&gt; 0 over 1000 simulation, we conclude that there is statistically significant <strong>clustering/clustering</strong> in the distribution of wealth at 95% confidence.</p>
 </div>
 </div>
 </section><section id="visualising-monte-carlo-morans-i" class="level3" data-number="4.3"><h3 data-number="4.3" class="anchored" data-anchor-id="visualising-monte-carlo-morans-i">
@@ -943,7 +950,7 @@ Note
 </div>
 </section></section><section id="gmsa-gearys-c" class="level2" data-number="5"><h2 data-number="5" class="anchored" data-anchor-id="gmsa-gearys-c">
 <span class="header-section-number">5</span> GMSA: Geary’s C</h2>
-<p>Geary’s C measure <strong>squared difference between neigbhours</strong> and examine the local <strong>dissimilarity</strong>, valued from 0 to 2.</p>
+<p>Geary’s C measure <strong>the feature difference between neigbhours</strong> and examine the local <strong>dissimilarity</strong>, valued from 0 to infinite. Both Moran’s I and Geary’s C exclude self-comparison (wii = 0). They only compare each observation with its neighbours, never with itself.</p>
 <p><strong>Interpretation Rule:</strong></p>
 <ul>
 <li>
@@ -1016,7 +1023,7 @@ Note
 </div>
 <div class="callout-body-container callout-body">
 <p><strong>What statistical conclusion can you draw from the output above?</strong></p>
-<p>The statistic from Monte Carlo Geary’s C test reveals under 95% confidence, p-value is 0.001, and the observed Geary’s C is 0.69. When C &lt;1 after 999 simulations, this provides strong evidence against complete spatial randomness (CSR) and indicates it indicates <strong>strong positive Spatial Autocorrelation and similarity</strong> well beyond the conventional 95% threshold.</p>
+<p>The statistic from Monte Carlo Geary’s C test reveals under 95% confidence, p-value is 0.001, and the observed Geary’s C is 0.69. When C &lt;1 after 1000 simulations, this provides strong evidence against complete spatial randomness (CSR) and indicates it indicates <strong>strong positive Spatial Autocorrelation and similarity</strong> well beyond the conventional 95% threshold.</p>
 </div>
 </div>
 </section><section id="visualising-the-monte-carlo-gearys-c" class="level3" data-number="5.3"><h3 data-number="5.3" class="anchored" data-anchor-id="visualising-the-monte-carlo-gearys-c">
@@ -1063,7 +1070,7 @@ Note
 </div>
 <div class="callout-body-container callout-body">
 <p><strong>What statistical conclusion can you draw from the output above?</strong></p>
-<p>The histogram of simulated Geary’s C values (999 permutations) is roughly bell-shaped and centred around 1, which matches the null expectation under complete spatial randomness (CSR). The observed Geary’s C is 0.69 which lies at the left tail of simulated distribution. since C &lt;1 and I&gt;0, both confirm <strong>positive spatial autocorrelation</strong> at confidence level of 95%.</p>
+<p>The histogram of simulated Geary’s C values (1000 permutations) is roughly bell-shaped and centred around 1, which matches the null expectation under complete spatial randomness (CSR). The observed Geary’s C is 0.69 which lies at the left tail of simulated distribution. since C &lt;1 and I&gt;0, both confirm <strong>positive spatial autocorrelation</strong> at confidence level of 95%.</p>
 </div>
 </div>
 </section></section><section id="spatial-correlograms" class="level2" data-number="6"><h2 data-number="6" class="anchored" data-anchor-id="spatial-correlograms">
