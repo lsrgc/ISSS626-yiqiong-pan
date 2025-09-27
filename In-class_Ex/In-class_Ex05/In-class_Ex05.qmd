@@ -1,5 +1,5 @@
 ---
-title: "0 "
+title: "In-class Ex05"
 
 author: "Yiqiong PAN"
 date: "Sep 27, 2025"
@@ -25,12 +25,111 @@ editor: visual
 
 ## Overview
 
-```{r}
+[sfdep](https://sfdep.josiahparry.com/) built on [spdep](https://cran.r-project.org/web/packages/spdep/index.html) ( tools for computing spatial weights and calculating spatially lagged variables), provides a tidyverse-friendly interface with list-columns and additional functionality.
 
+```{r}
+pacman:: p_load(sf, tmap, tidyverse, sfdep)
+```
+
+## Getting the Data into R environment
+
+:::panel-tabset
+### Importing Geospatial data in Shapefile
+
+```{r}
+hunan <- st_read(dsn = "data/geospatial", layer = "hunan")
+st_crs(hunan)
+```
+
+```{r}
+hunan <- hunan %>%
+  st_transform(crs = 32650)
+st_crs(hunan)
+```
+
+### Importing Aspatial data in csv
+
+```{r}
+hunan2012 <- read_csv ("data/aspatial/hunan_2012.csv")
+```
+
+### Performing Rational Join
+
+```{r}
+hunan_GDPPC <- left_join(hunan, hunan2012) %>%
+  select(1:4, 7,15)
 ```
 
 
-```{r}
+
+### Visualising Regional Development Indicator
+
+The code chunk below uses [`qtm()`](https://jamescheshire.github.io/learningR/mapping-in-r.html) from **tmap** to plot base and choropleth maps to show the ditribtution of GDPPC 2012 in Hunan. **Equal interval groups by same range of values whereas Quantile defines the group by rank/count, but value ranges may vary.**
+
+More mapping tips can be found [here](https://r.geocompx.org/adv-map#animated-maps).
+
+```{r, fig.width=12, fig.height=8}
+equal <- tm_shape(hunan_GDPPC) +
+  tm_polygons(fill = "GDPPC",
+              fill.scale = tm_scale_intervals(
+                style = "equal",
+                n = 5,
+                values = "brewer.blues"
+              )) +
+  tm_borders(fill_alpha= 0.5) + 
+  tm_layout(legend.position = c("left", "bottom"),
+            main.title = "Equal interval classification")
+
+quantile <- tm_shape(hunan_GDPPC) +
+  tm_polygons(fill = "GDPPC",
+              fill.scale = tm_scale_intervals(
+                style = "quantile",
+                n = 5)) +
+  tm_borders(fill_alpha = 0.5) +
+  tm_layout(legend.position = c("left", "bottom"),
+            main.title = "Quantile classfication")
+
+tmap_arrange(equal, quantile, asp = 1, ncol = 2)
 
 ```
+:::
+
+
+## Global Measures of Spatial Association
+
+
+### Computing Contiguity Spatial Weights
+
+```{r}
+wm_q <- hunan_GDPPC %>%
+  mutate(nb = st_contiguity(geometry),
+         wt = st_weights(
+           nb, style = "W"),
+         .before = 1)
+head(wm_q)
+```
+
+### Computing Global Moran's I
+
+```{r}
+set.seed(1234)
+```
+
+```{r}
+global_moran_perm(wm_q$GDPPC,
+                  wm_q$nb,
+                  wm_q$wt,
+                  nsim = 99) #100 simulations since the it starts with 0.
+```
+
+**At the 95% confidence level, p-value is less than 0.05, we reject the null hypothesis. Moran's I value is 0.3 which is a sign of moderate clustering.**
+
+
+:::callout-caution
+
+When we fail to reject the null hypothesis, we should continue to examine further, since there is still possibility that at local level there are hot spot and cold spot areas.
+
+:::
+
+
 

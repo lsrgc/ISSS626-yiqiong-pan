@@ -218,7 +218,7 @@ The newly created columns are:
 -   `z.ii`:the standard deviate of local moran statistic (z-value)
 -   `p.ii`: the p-value of local moran statistic
 -   `p_ii_sim`: p-value from randomisation (Monte Carlo simulations)
--   `p_folded_sim`: folded p-value from simulation (more conservative, treats extreme values both tails)
+-   `p_folded_sim`: p-value from k-folded simulations (more conservative, treats extreme values both tails), from pysal (python's equivalent ESDA). 
 -   `skewness, kurtosis`: diagnostics for the distribution of simulated ii values (shape compared to normal)
 -   `mean, median,pysal`: mean, median, quandrant classifications based on comparing the region’s value to the value of neighbours, in the format of self - neighbours, e.g., "High-High".
 
