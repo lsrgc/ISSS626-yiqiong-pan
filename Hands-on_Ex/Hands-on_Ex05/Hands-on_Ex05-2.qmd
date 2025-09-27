@@ -489,7 +489,7 @@ Note that for Gi analysis, `include_self()` must be used to ensure each location
 
 #### Computing adaptive distance weights
 
-In a fixed distance weight matrix, dense urban areas have many neighbours while rural areas have few, which smooths neighbour relationships unevenly. To control neighbour numbers, k-nearest neighbours can be used (with or without symmetry). Here, we compute **a adaptive distance weight matrix** using [`st_knn()`](https://sfdep.josiahparry.com/reference/st_knn) and st_weights((http://sfdep.josiahparry.com/reference/st_weights)) from the **sfdep** package.
+In a fixed distance weight matrix, dense urban areas have many neighbours while rural areas have few, which smooths neighbour relationships unevenly. To control neighbour numbers, k-nearest neighbours can be used (with or without symmetry). Here, we compute **a adaptive distance weight matrix** using [`st_knn()`](https://sfdep.josiahparry.com/reference/st_knn) and st_weights((http://sfdep.josiahparry.com/reference/st_weights)) from the **sfdep** package. `k=6` is set for easy computation, but we should try out until 15 to find the more accurate k.
 
 ```{r}
 hunan_adw <- hunan %>%
@@ -648,7 +648,7 @@ At the 95% confidence level, HCSA map shows **hot spots** of high GDP per capita
 
 ## Plotting Summary
 
-Both Local Moran’s I (LISA) and Hot Spot/Cold Spot Analysis (HCSA) reveal similar spatial patterns of GDPPC in Hunan. LISA identifies hot clusters in the eastern–central counties and cold clusters in the western–southern counties, while also detecting spatial outliers (e.g.low surrounded by high and/or high surrounded by low). HCSA confirms the same hot spots and cold spots, but focuses only on statistically significant clustering, without distinguishing outliers. Thus, LISA provides finer diagnostic detail, whereas HCSA highlights the most robust clusters.
+Both Local Moran’s I (LISA) and Hot Spot/Cold Spot Analysis (HCSA) reveal similar spatial patterns of GDPPC in Hunan. LISA identifies hot clusters in the eastern–central counties and cold clusters in the western–southern counties, while also detecting spatial outliers (e.g.low surrounded by high and/or high surrounded by low). HCSA confirms the same hot spots and cold spots, but focuses only on statistically significant clustering, without distinguishing outliers. Thus, LISA provides finer diagnostic detail, whereas HCSA highlights the most robust clusters. There is high possibility to observe overlapped hot spots in LISA and HCSA, but there might not be sthe ame for cold spots since the methods are different. 
 
 The code chunk below shows the LISA map and HCSA map together.
 

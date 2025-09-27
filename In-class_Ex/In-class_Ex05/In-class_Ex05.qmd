@@ -25,7 +25,7 @@ editor: visual
 
 ## Overview
 
-[sfdep](https://sfdep.josiahparry.com/) built on [spdep](https://cran.r-project.org/web/packages/spdep/index.html) ( tools for computing spatial weights and calculating spatially lagged variables), provides a tidyverse-friendly interface with list-columns and additional functionality.
+[sfdep](https://sfdep.josiahparry.com/) built on [spdep](https://cran.r-project.org/web/packages/spdep/index.html) ( tools for computing spatial weights and calculating spatially lagged variables), provides a tidyverse-friendly interface with list-columns and additional functionality, more importantly inlcuding functions to analyse spatial temporal data.
 
 ```{r}
 pacman:: p_load(sf, tmap, tidyverse, sfdep)
@@ -132,4 +132,74 @@ When we fail to reject the null hypothesis, we should continue to examine furthe
 :::
 
 
+## Emerging Hot Spot Analysis (EHSA)
+
+- Build a space–time cube.
+- Calculate local Gi*.
+- Evaluate the hot/cold-spot trend using the Mann–Kendall test.
+Categorise each study-area location by combining the trend (MK z-score and p-value) with the - per-bin hot/cold status (Gi* z-score and p-value).
+
+```{r}
+pacman:: p_load(sf, tmap, tidyverse, sfdep)
+```
+
+
+```{r}
+hunan <- st_read(dsn = "data/geospatial", layer = "hunan")
+st_crs(hunan)
+```
+
+
+- Build a space–time cube.
+
+:::callout-important
+The GDPPC data set must follow certain orders to avoid the errors (time (integer), space, value).
+
+:::
+
+```{r}
+GDPPC_st <- spacetime(GDPPC, hunan, .loc_col = "County", .time_col ="year")
+#is_spacetime
+```
+
+
+- Calculate local Gi*.
+
+```{r}
+GDPPC_nb <- GDPPC_st %>%
+  activate("geometry") %>% ## this is important
+  mutate ()
+  
+```
+
+
+
+Gi* is computed per year (space–time cube bins). We report both z-scores and p-values; bins with p≥0.05 are labelled Insignificant.
+
+Mann–Kendall (MK) is a non-parametric trend test:
+H₀: no monotonic trend (flat).
+H₁: a monotonic trend exists (consistently increases or decreases).
+
+Kendall’s 
+τ ranges from −1 to +1 (direction = sign; strength = magnitude).
+
+In Kendall::MannKendall, sl is the p-value.
+
+Outliers/clusters vs hot/cold spots: Local Moran’s I (LISA) finds high–high/low–low clusters and outliers; EHSA/Gi* focuses on hot/cold spots.
+
+We select counties manually to show their Gi* time series and MK result (trend line figure).
+
+Bar chart: summarises counts (or proportions) of Hot, Cold, Insignificant bins by year (analogous to a Moran’s-I summary, but based on Gi* z-scores/p-values).
+group_by(Year) # that is why the table format is useful that we can calculate by year.
+
+
+Visualising EHSA should incorporate the p-value.
+Update the plot on slide p18 to include an “Insignificant” legend entry, consistent with the HCSA map in Chapter 10.
+
+Master the explanation chart for hot/cold-spot definitions.
+For example, for a Sporadic Hot Spot, point to the region on p18 and cross-reference its Gi* trend line on p11.
+
+Select sample locations for each category to explain the spatial patterns.
+
+Be careful with the steps (document thresholds, weights, and binning).
 
