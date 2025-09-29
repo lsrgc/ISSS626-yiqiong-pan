@@ -359,15 +359,17 @@ tm_shape(ehsa_sig) +
   tm_borders(alpha = 0.4)
 ```
 
+
+
+### Plot DIY
+
 ::: callout-important
 Gi\* is computed for each year (i.e., for the space–time cube bins). We report both z-scores and p-values; bins with p ≥ 0.05 are labelled as **Insignificant.** The summary of insignificant bins by year is analogous to a Moran’s I summary, but based on Gi\* z-scores and p-values. Visualising EHSA results should explicitly incorporate the p-value. Update the plot on slide p18 to include an **Insignificant** legend entry, consistent with the HCSA map shown in Chapter 10.
 :::
 
-### Plot DIY
-
 ```{r}
-#|eval: false
-#|echo: false
+#| eval: false
+#| echo: false
 hunan_ehsa2 <- hunan_ehsa %>%
   mutate(
     EHSA_cluster = if_else(p_value < 0.05 & !is.na(classification),
