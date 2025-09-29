@@ -1,8 +1,7 @@
 ---
-title: "0 "
-draft: true
+title: "06: Geographical Segmentation with Spatially Constrained Clustering Techniques"
 author: "Yiqiong PAN"
-date: "Sep 15, 2025"
+date: "Sep 30, 2025"
 date-modified: last-modified
 
 execute:
@@ -23,16 +22,21 @@ number-depth: 4
 editor: visual
 ---
 
-## Exerise Template
-```{r}
-for (i in 5:10) {
-  folder <- file.path("Hands-on_Ex", sprintf("Hands-on_Ex%02d",i))
-  
-  if (!dir.exists(folder)) dir.create(folder, recursive = TRUE)
-  
-  filename <- sprintf("Hands-on_Ex%02d.qmd", i)
-  
-  file.copy(from = "exercise_template.qmd",
-            to = file.path(folder, filename), overwrite = TRUE)}
-```
+## Overview
 
+### learning Outcome
+
+## Getting Started
+
+### The analytical question
+
+## The data
+
+| Dataset | Description |
+|----------------------------------------------|--------------------------|
+| myanmar_township_boundaries | Myanmar Township Boundary Data in ESRI shapefile format |
+| Shan-ICT.csv | 2014 Myanmar Population and Housing Census at the township level |
+
+The data can be downloaded from [Myanmar Information Management Unit (MIMU)](http://themimu.info/).
+
+{tbl-colwidths="\[30,70\]"}
