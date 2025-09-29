@@ -441,7 +441,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
   <li><a href="#step-1-creating-a-time-series-cube" id="toc-step-1-creating-a-time-series-cube" class="nav-link" data-scroll-target="#step-1-creating-a-time-series-cube"><span class="header-section-number">6</span> Step 1: Creating a Time Series Cube</a></li>
   <li>
-<a href="#step-2-calculate-local-gi." id="toc-step-2-calculate-local-gi." class="nav-link" data-scroll-target="#step-2-calculate-local-gi."><span class="header-section-number">7</span> Step 2: Calculate local Gi*.</a>
+<a href="#step-2-calculate-local-gi" id="toc-step-2-calculate-local-gi" class="nav-link" data-scroll-target="#step-2-calculate-local-gi"><span class="header-section-number">7</span> Step 2: Calculate local Gi*</a>
   <ul class="collapse">
 <li><a href="#deriving-the-spatial-weights" id="toc-deriving-the-spatial-weights" class="nav-link" data-scroll-target="#deriving-the-spatial-weights"><span class="header-section-number">7.1</span> Deriving the spatial weights</a></li>
   <li><a href="#computing-gi" id="toc-computing-gi" class="nav-link" data-scroll-target="#computing-gi"><span class="header-section-number">7.2</span> Computing Gi*</a></li>
@@ -494,7 +494,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">September 29, 2025</p>
+      <p class="date-modified">September 30, 2025</p>
     </div>
   </div>
     
@@ -728,8 +728,15 @@ Caution
 </section></section><section id="in-class-ex-part-2-emerging-hot-spot-analysis-ehsa" class="level2" data-number="4"><h2 data-number="4" class="anchored" data-anchor-id="in-class-ex-part-2-emerging-hot-spot-analysis-ehsa">
 <span class="header-section-number">4</span> In-class Ex Part-2: Emerging Hot Spot Analysis (EHSA)</h2>
 <p><a href="https://sfdep.josiahparry.com/articles/understanding-emerging-hotspots">**EHSA*</a></p>
-<p><strong>EHSA Four steps:</strong> - Build a space–time cube. - Calculate local Gi<em>. - Evaluate the hot/cold-spot trend using the Mann–Kendall test. - Categorise each study-area location by combining the trend (MK z-score and p-value) with the - per-bin hot/cold status (Gi</em> z-score and p-value).</p>
-</section><section id="getting-started" class="level2" data-number="5"><h2 data-number="5" class="anchored" data-anchor-id="getting-started">
+<p><strong>EHSA Four steps:</strong></p>
+<ul>
+<li><p>Build a space–time cube.</p></li>
+<li><p>Calculate local Gi*.</p></li>
+</ul>
+<p>-Evaluate the hot/cold-spot trend using the Mann–Kendall test.</p>
+<ul>
+<li>Categorising each study area location by referring to the resultant trend z-score and p-value for each location with data, and with the hot spot z-score and p-value for each bin.</li>
+</ul></section><section id="getting-started" class="level2" data-number="5"><h2 data-number="5" class="anchored" data-anchor-id="getting-started">
 <span class="header-section-number">5</span> Getting started</h2>
 <section id="installing-and-loading-the-r-packages" class="level3" data-number="5.1"><h3 data-number="5.1" class="anchored" data-anchor-id="installing-and-loading-the-r-packages">
 <span class="header-section-number">5.1</span> Installing and Loading the R Packages</h3>
@@ -839,8 +846,8 @@ Important
 <pre><code>[1] TRUE</code></pre>
 </div>
 </div>
-</section><section id="step-2-calculate-local-gi." class="level2" data-number="7"><h2 data-number="7" class="anchored" data-anchor-id="step-2-calculate-local-gi.">
-<span class="header-section-number">7</span> Step 2: Calculate local Gi*.</h2>
+</section><section id="step-2-calculate-local-gi" class="level2" data-number="7"><h2 data-number="7" class="anchored" data-anchor-id="step-2-calculate-local-gi">
+<span class="header-section-number">7</span> Step 2: Calculate local Gi*</h2>
 <section id="deriving-the-spatial-weights" class="level3" data-number="7.1"><h3 data-number="7.1" class="anchored" data-anchor-id="deriving-the-spatial-weights">
 <span class="header-section-number">7.1</span> Deriving the spatial weights</h3>
 <p>The code chunk below uses:</p>
@@ -863,6 +870,27 @@ Important
 <span>  <span class="fu">set_wts</span><span class="op">(</span><span class="st">"wt"</span><span class="op">)</span>  <span class="co">#Registers the "wt" column as the active weight matrix.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Dataset now has neighbours and weights for each time-slice.</p>
+<p>Here we explicitly build a distance-based weight matrix.</p>
+<ul>
+<li><p>Each neighbour’s influence is weighted by the inverse of its distance (1/d^α).</p></li>
+<li><p>scale and alpha control the functional form (scale factor and decay rate).</p></li>
+<li><p>This is suitable when we want weights to reflect spatial proximity (closer neighbours contribute more, farther neighbours less).</p></li>
+</ul>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>In short, we chose inverse distance weights to capture continuous spatial interaction (e.g., GDPPC similarity decays with distance, not just borders).</p>
+<p>In <a href="https://sfdep.josiahparry.com/articles/understanding-emerging-hotspots">Guerry example</a>, they used simple contiguity weights <a href="https://sfdep.josiahparry.com/reference/st_weights"><code>(st_weights(nb)</code></a> because the analysis follows the classic adjacency-based LISA (Local Indicators of Spatial Association) tradition.</p>
+<p>Either is fine for EHSA; just keep it consistent over time.</p>
+</div>
+</div>
 </section><section id="computing-gi" class="level3" data-number="7.2"><h3 data-number="7.2" class="anchored" data-anchor-id="computing-gi">
 <span class="header-section-number">7.2</span> Computing Gi*</h3>
 <p>The code chunk below uses <a href="https://sfdep.josiahparry.com/reference/local_gstar"><code>local_gstar_perm()</code></a> of sfdep package and <code>groupb_by()</code> to calculate the Gi* by year for each location, and flatten out Gi* statisitc matrix as gi_star column and attach to the sf dataset.</p>
@@ -872,14 +900,58 @@ Important
 <span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">Year</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu">mutate</span><span class="op">(</span>gi_star <span class="op">=</span> <span class="fu">local_gstar_perm</span><span class="op">(</span></span>
 <span>    <span class="va">GDPPC</span>, <span class="va">nb</span>, <span class="va">wt</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html">unnest</a></span><span class="op">(</span><span class="va">gi_star</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span>  <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html">unnest</a></span><span class="op">(</span><span class="va">gi_star</span><span class="op">)</span></span>
+<span><span class="va">gi_stars</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1,496 × 15
+# Groups:   Year [17]
+    Year County    GDPPC nb        wt    gi_star cluster   e_gi  var_gi  std_dev
+   &lt;dbl&gt; &lt;chr&gt;     &lt;dbl&gt; &lt;list&gt;    &lt;lis&gt;   &lt;dbl&gt; &lt;fct&gt;    &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;
+ 1  2005 Anxiang    8184 &lt;int [6]&gt; &lt;dbl&gt;   0.398 High    0.0115 2.84e-6  0.359  
+ 2  2005 Hanshou    6560 &lt;int [6]&gt; &lt;dbl&gt;  -0.237 Low     0.0109 2.73e-6 -0.00637
+ 3  2005 Jinshi     9956 &lt;int [5]&gt; &lt;dbl&gt;   1.05  High    0.0126 3.03e-6  0.541  
+ 4  2005 Li         8394 &lt;int [5]&gt; &lt;dbl&gt;   0.966 High    0.0117 3.08e-6  0.937  
+ 5  2005 Linli      8850 &lt;int [5]&gt; &lt;dbl&gt;   1.05  High    0.0120 3.31e-6  0.848  
+ 6  2005 Shimen     9244 &lt;int [6]&gt; &lt;dbl&gt;   0.210 High    0.0120 2.55e-6 -0.141  
+ 7  2005 Liuyang   13406 &lt;int [5]&gt; &lt;dbl&gt;   3.91  High    0.0143 3.00e-6  3.02   
+ 8  2005 Ningxiang 11687 &lt;int [8]&gt; &lt;dbl&gt;   1.61  High    0.0128 2.23e-6  0.865  
+ 9  2005 Wangcheng 14659 &lt;int [7]&gt; &lt;dbl&gt;   3.88  High    0.0139 2.93e-6  2.56   
+10  2005 Anren      7423 &lt;int [9]&gt; &lt;dbl&gt;   1.67  Low     0.0113 2.29e-6  1.81   
+# ℹ 1,486 more rows
+# ℹ 5 more variables: p_value &lt;dbl&gt;, p_sim &lt;dbl&gt;, p_folded_sim &lt;dbl&gt;,
+#   skewness &lt;dbl&gt;, kurtosis &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>local_gstar_perm</p>
+<ul>
+<li><p>x, # numeric vector</p></li>
+<li><p>nb, # nb list created by st_contiguity() etc</p></li>
+<li><p>wt, # listw created by st_weights() etc</p></li>
+<li><p>nsim = 499, #default 99? or 499?</p></li>
+<li><p>alternative = “two.sided”, # default</p></li>
+</ul>
+<p>… )</p>
+</div>
 </div>
 </section></section><section id="step-3-mann-kendall-test" class="level2" data-number="8"><h2 data-number="8" class="anchored" data-anchor-id="step-3-mann-kendall-test">
 <span class="header-section-number">8</span> Step 3: Mann-Kendall Test</h2>
-<p><a href="https://vsp.pnnl.gov/help/vsample/design_trend_mann_kendall.htm">Mann–Kendall</a> (MK) is a non-parametric trend test: H₀: no monotonic trend (flat). H₁: a monotonic trend exists (consistently increases or decreases).</p>
+<p><a href="https://vsp.pnnl.gov/help/vsample/design_trend_mann_kendall.htm">Mann–Kendall</a> (MK) is a non-parametric trend test:</p>
+<p>H₀: no monotonic trend (flat).</p>
+<p>H₁: a monotonic trend exists (consistently increases or decreases).</p>
 <section id="interpreting-kendalls" class="level3" data-number="8.1"><h3 data-number="8.1" class="anchored" data-anchor-id="interpreting-kendalls">
 <span class="header-section-number">8.1</span> Interpreting Kendall’s</h3>
-<p>τ ranges from −1 to +1 (direction = sign; strength = magnitude). In Kendall::MannKendall, sl is the p-value.</p>
+<p>τ ranges from −1 to +1 (direction = sign; strength = magnitude).</p>
+<p>In Kendall::MannKendall, sl is the p-value.</p>
 </section><section id="mann-kendall-test-on-gi" class="level3" data-number="8.2"><h3 data-number="8.2" class="anchored" data-anchor-id="mann-kendall-test-on-gi">
 <span class="header-section-number">8.2</span> Mann-Kendall Test on Gi</h3>
 <p>Outliers/clusters vs hot/cold spots: Local Moran’s I (LISA) finds high–high/low–low clusters and outliers;</p>
@@ -887,13 +959,13 @@ Important
 <p>We select counties manually to show their Gi* time series and MK result (trend line figure).</p>
 <p>The code chunk below filters the required region: Changsha county and plot the result to evaluate local tread using Mann-Kendall test.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cbg</span> <span class="op">&lt;-</span> <span class="va">gi_stars</span> <span class="op">%&gt;%</span> </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cbg</span> <span class="op">&lt;-</span> <span class="va">gi_stars</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">County</span> <span class="op">==</span> <span class="st">"Changsha"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">select</span><span class="op">(</span><span class="va">County</span>, <span class="va">Year</span>, <span class="va">gi_star</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">cbg</span>, </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">cbg</span>, </span>
 <span>       <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">Year</span>, </span>
 <span>           y <span class="op">=</span> <span class="va">gi_star</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_line</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
@@ -907,7 +979,7 @@ Important
 </div>
 <p>THe code chunk below uses <code>ggplotly()</code> of <strong>plotly</strong> package for an interactive plot where we can observe the exact Gi* value for each year.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">cbg</span>, </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">cbg</span>, </span>
 <span>       <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">Year</span>, </span>
 <span>           y <span class="op">=</span> <span class="va">gi_star</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_line</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
@@ -916,7 +988,7 @@ Important
 <span><span class="fu">ggplotly</span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div class="plotly html-widget html-fill-item" id="htmlwidget-316e0b4e41f764f025fa" style="width:100%;height:464px;"></div>
-<script type="application/json" data-for="htmlwidget-316e0b4e41f764f025fa">{"x":{"data":[{"x":[2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021],"y":[5.0282995066289047,5.1692011079782345,5.2958892892912894,5.6039537096873993,6.2788862246004742,5.9357455762937326,5.7508709054298892,5.6942475830114576,5.7085054237054784,5.7608121561733521,6.097127241257188,6.0036547779673146,6.2028053540357906,6.0371816202738318,6.579432171885526,5.7669155664195504,5.7486534794156494],"text":["Year: 2005<br />gi_star: 5.028300","Year: 2006<br />gi_star: 5.169201","Year: 2007<br />gi_star: 5.295889","Year: 2008<br />gi_star: 5.603954","Year: 2009<br />gi_star: 6.278886","Year: 2010<br />gi_star: 5.935746","Year: 2011<br />gi_star: 5.750871","Year: 2012<br />gi_star: 5.694248","Year: 2013<br />gi_star: 5.708505","Year: 2014<br />gi_star: 5.760812","Year: 2015<br />gi_star: 6.097127","Year: 2016<br />gi_star: 6.003655","Year: 2017<br />gi_star: 6.202805","Year: 2018<br />gi_star: 6.037182","Year: 2019<br />gi_star: 6.579432","Year: 2020<br />gi_star: 5.766916","Year: 2021<br />gi_star: 5.748653"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)","dash":"solid"},"hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":23.305936073059364,"r":7.3059360730593621,"b":37.260273972602747,"l":43.105022831050235},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.611872146118724},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[2004.2,2021.8],"tickmode":"array","ticktext":["2005","2010","2015","2020"],"tickvals":[2005,2010,2015,2020],"categoryorder":"array","categoryarray":["2005","2010","2015","2020"],"nticks":null,"ticks":"outside","tickcolor":"rgba(179,179,179,1)","ticklen":3.6529680365296811,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.68949771689498},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(222,222,222,1)","gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"Year","font":{"color":"rgba(0,0,0,1)","family":"","size":14.611872146118724}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[4.9507428733660737,6.656988805148357],"tickmode":"array","ticktext":["5.0","5.5","6.0","6.5"],"tickvals":[5,5.5,6,6.5],"categoryorder":"array","categoryarray":["5.0","5.5","6.0","6.5"],"nticks":null,"ticks":"outside","tickcolor":"rgba(179,179,179,1)","ticklen":3.6529680365296811,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.68949771689498},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(222,222,222,1)","gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"gi_star","font":{"color":"rgba(0,0,0,1)","family":"","size":14.611872146118724}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":"rgba(255,255,255,1)","line":{"color":"rgba(179,179,179,1)","width":0,"linetype":"solid"},"yref":"paper","xref":"paper","layer":"below","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.68949771689498}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"59a014f7c64":{"x":{},"y":{},"type":"scatter"}},"cur_data":"59a014f7c64","visdat":{"59a014f7c64":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-316e0b4e41f764f025fa">{"x":{"data":[{"x":[2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021],"y":[5.0282995066289047,5.1692011079782345,5.2958892892912894,5.6039537096873993,6.2788862246004742,5.9357455762937326,5.7508709054298892,5.6942475830114576,5.7085054237054784,5.7608121561733521,6.097127241257188,6.0036547779673146,6.2028053540357906,6.0371816202738318,6.579432171885526,5.7669155664195504,5.7486534794156494],"text":["Year: 2005<br />gi_star: 5.028300","Year: 2006<br />gi_star: 5.169201","Year: 2007<br />gi_star: 5.295889","Year: 2008<br />gi_star: 5.603954","Year: 2009<br />gi_star: 6.278886","Year: 2010<br />gi_star: 5.935746","Year: 2011<br />gi_star: 5.750871","Year: 2012<br />gi_star: 5.694248","Year: 2013<br />gi_star: 5.708505","Year: 2014<br />gi_star: 5.760812","Year: 2015<br />gi_star: 6.097127","Year: 2016<br />gi_star: 6.003655","Year: 2017<br />gi_star: 6.202805","Year: 2018<br />gi_star: 6.037182","Year: 2019<br />gi_star: 6.579432","Year: 2020<br />gi_star: 5.766916","Year: 2021<br />gi_star: 5.748653"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)","dash":"solid"},"hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":23.305936073059364,"r":7.3059360730593621,"b":37.260273972602747,"l":43.105022831050235},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.611872146118724},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[2004.2,2021.8],"tickmode":"array","ticktext":["2005","2010","2015","2020"],"tickvals":[2005,2010,2015,2020],"categoryorder":"array","categoryarray":["2005","2010","2015","2020"],"nticks":null,"ticks":"outside","tickcolor":"rgba(179,179,179,1)","ticklen":3.6529680365296811,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.68949771689498},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(222,222,222,1)","gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"Year","font":{"color":"rgba(0,0,0,1)","family":"","size":14.611872146118724}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[4.9507428733660737,6.656988805148357],"tickmode":"array","ticktext":["5.0","5.5","6.0","6.5"],"tickvals":[5,5.5,6,6.5],"categoryorder":"array","categoryarray":["5.0","5.5","6.0","6.5"],"nticks":null,"ticks":"outside","tickcolor":"rgba(179,179,179,1)","ticklen":3.6529680365296811,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.68949771689498},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(222,222,222,1)","gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"gi_star","font":{"color":"rgba(0,0,0,1)","family":"","size":14.611872146118724}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":"rgba(255,255,255,1)","line":{"color":"rgba(179,179,179,1)","width":0,"linetype":"solid"},"yref":"paper","xref":"paper","layer":"below","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.68949771689498}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"6b40694e3f4a":{"x":{},"y":{},"type":"scatter"}},"cur_data":"6b40694e3f4a","visdat":{"6b40694e3f4a":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </section><section id="printing-mann-kendall-test-report" class="level3" data-number="8.3"><h3 data-number="8.3" class="anchored" data-anchor-id="printing-mann-kendall-test-report">
@@ -924,7 +996,7 @@ Important
 <p>The code chunk below generates a summary on the Kendall test for <strong>Changsha</strong>.</p>
 <p>The Mann–Kendall test yields a Kendall’s tau of 0.48, indicating a moderate positive monotonic trend. Since the p-value (0.007) is less than 0.05, we reject the null hypothesis of no trend and conclude that the data exhibit a statistically significant upward trend.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cbg</span> <span class="op">%&gt;%</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cbg</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">summarise</span><span class="op">(</span>mk <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/class.html">unclass</a></span><span class="op">(</span></span>
 <span>      <span class="fu">Kendall</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Kendall/man/MannKendall.html">MannKendall</a></span><span class="op">(</span><span class="va">gi_star</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
@@ -940,7 +1012,7 @@ Important
 <span class="header-section-number">8.4</span> Mann-Kendall test data.frame</h3>
 <p>We can replicate this for each location by using <code>group_by()</code> of <strong>dplyr</strong> package.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ehsa</span> <span class="op">&lt;-</span> <span class="va">gi_stars</span> <span class="op">%&gt;%</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ehsa</span> <span class="op">&lt;-</span> <span class="va">gi_stars</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">County</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">summarise</span><span class="op">(</span>mk <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/class.html">unclass</a></span><span class="op">(</span></span>
@@ -961,7 +1033,7 @@ Important
 </div>
 <p>We can also sort to show <strong>significant</strong> emerging hot/cold spots</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb33"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">emerging</span> <span class="op">&lt;-</span> <span class="va">ehsa</span> <span class="op">%&gt;%</span> </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb34"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">emerging</span> <span class="op">&lt;-</span> <span class="va">ehsa</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu">arrange</span><span class="op">(</span><span class="va">sl</span>, <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">tau</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>  <span class="co">#Sorts the ehsa table by sl and tau in asc order ### arrange(sl, desc(abs(tau)))</span></span>
 <span>  <span class="fu">slice</span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span>  <span class="co">#top 10 emerging</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">emerging</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -980,14 +1052,39 @@ Important
 </section></section><section id="step-4-performing-emerging-hotspot-analysis" class="level2" data-number="9"><h2 data-number="9" class="anchored" data-anchor-id="step-4-performing-emerging-hotspot-analysis">
 <span class="header-section-number">9</span> Step 4: Performing Emerging Hotspot Analysis</h2>
 <p>Lastly, we will perform EHSA analysis by using <a href="https://sfdep.josiahparry.com/reference/emerging_hotspot_analysis.html"><code>emerging_hotspot_analysis()</code></a> of <strong>sfdep</strong> package.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>emerging_hotspot_analysis(</p>
+<ul>
+<li>x, #spacetime object</li>
+<li>.var, # numeric vector with no missing value</li>
+<li>k = 1, # 3 consecutive for annual (3 years), if quarterly/monthly consider 4-6</li>
+<li>include_gi = FALSE, # True recommended, but False for speed</li>
+<li>nb_col = NULL,</li>
+<li>wt_col = NULL,</li>
+<li>nsim = 199, #default</li>
+<li>threshold = 0.01, #The significance threshold to use. … )</li>
+</ul>
+<p>Gi_Bin = case_when( - gi_star &gt;= 2.58 ~ 3L, #99% - gi_star &gt;= 1.96 ~ 2L, #95% - gi_star &gt;= 1.65 ~ 1L, #90% - gi_star &lt;= -2.58 ~ -3L,<br>
+- gi_star &lt;= -1.96 ~ -2L, - gi_star &lt;= -1.65 ~ -1L, - TRUE ~ 0L #not sig</p>
+</div>
+</div>
 <section id="ehsa" class="level3" data-number="9.1"><h3 data-number="9.1" class="anchored" data-anchor-id="ehsa">
 <span class="header-section-number">9.1</span> EHSA</h3>
-<p>The code chunk below generates the EHSA statisitics for each region.</p>
+<p>The code chunk below generates the EHSA statistics for each region.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb35"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ehsa_sim</span> <span class="op">&lt;-</span> <span class="fu">emerging_hotspot_analysis</span><span class="op">(</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ehsa_sim</span> <span class="op">&lt;-</span> <span class="fu">emerging_hotspot_analysis</span><span class="op">(</span></span>
 <span>  x <span class="op">=</span> <span class="va">GDPPC_st</span>,    <span class="co"># spacetime object</span></span>
 <span>  .var <span class="op">=</span> <span class="st">"GDPPC"</span>,  <span class="co"># variable of interest</span></span>
 <span>  k <span class="op">=</span> <span class="fl">1</span>,           <span class="co"># Number of time lags, default 1</span></span>
@@ -998,13 +1095,15 @@ Important
 <span class="header-section-number">9.2</span> Viusalising the EHSA Class Distribution</h3>
 <p>Bar chart summarises counts of Hot/Cold spots. Figure above shows that sporadic cold spots class has the high numbers of county.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">ehsa_sim</span>, <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">classification</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">geom_bar</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb38"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">ehsa_sim</span>, <span class="va">p_value</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span>, <span class="co"># we see the auto-classification is misleading</span></span>
 <span>       <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">classification</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_bar</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="In-class_Ex05_files/figure-html/unnamed-chunk-25-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
 </div>
 </section><section id="visualising-ehsa" class="level3" data-number="9.3"><h3 data-number="9.3" class="anchored" data-anchor-id="visualising-ehsa">
 <span class="header-section-number">9.3</span> Visualising EHSA</h3>
@@ -1034,6 +1133,35 @@ Important
 </div>
 </section><section id="plot-diy" class="level3" data-number="9.4"><h3 data-number="9.4" class="anchored" data-anchor-id="plot-diy">
 <span class="header-section-number">9.4</span> Plot DIY</h3>
+<ol type="1">
+<li>Gi*</li>
+</ol>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb41"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">gi_stars</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>bins <span class="op">=</span> <span class="fu">case_when</span><span class="op">(</span></span>
+<span>    <span class="va">gi_star</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">p_sim</span> <span class="op">&lt;=</span> <span class="fl">0.01</span> <span class="op">~</span> <span class="st">"Hot 99%"</span>,</span>
+<span>    <span class="va">gi_star</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">p_sim</span> <span class="op">&lt;=</span> <span class="fl">0.05</span> <span class="op">~</span> <span class="st">"Hot 95%"</span>,</span>
+<span>    <span class="va">gi_star</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">p_sim</span> <span class="op">&lt;=</span> <span class="fl">0.10</span> <span class="op">~</span> <span class="st">"Hot 90%"</span>,</span>
+<span>    <span class="va">gi_star</span> <span class="op">&lt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">p_sim</span> <span class="op">&lt;=</span> <span class="fl">0.01</span> <span class="op">~</span> <span class="st">"Cold 99%"</span>,</span>
+<span>    <span class="va">gi_star</span> <span class="op">&lt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">p_sim</span> <span class="op">&lt;=</span> <span class="fl">0.05</span> <span class="op">~</span> <span class="st">"Cold 95%"</span>,</span>
+<span>    <span class="va">gi_star</span> <span class="op">&lt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">p_sim</span> <span class="op">&lt;=</span> <span class="fl">0.10</span> <span class="op">~</span> <span class="st">"Cold 90%"</span>,</span>
+<span>    <span class="cn">TRUE</span>                        <span class="op">~</span> <span class="st">"Not Sig"</span></span>
+<span>  <span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">ggplot</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>fill <span class="op">=</span> <span class="va">bins</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_sf</span><span class="op">(</span>lwd <span class="op">=</span> <span class="fl">0.2</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">scale_fill_manual</span><span class="op">(</span></span>
+<span>    values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span></span>
+<span>      <span class="st">"Cold 99%"</span><span class="op">=</span><span class="st">"#08306B"</span>,<span class="st">"Cold 95%"</span><span class="op">=</span><span class="st">"#2171B5"</span>,<span class="st">"Cold 90%"</span><span class="op">=</span><span class="st">"#6BAED6"</span>,</span>
+<span>      <span class="st">"Not Sig"</span><span class="op">=</span><span class="st">"#D9D9D9"</span>,</span>
+<span>      <span class="st">"Hot 90%"</span><span class="op">=</span><span class="st">"#FC9272"</span>,<span class="st">"Hot 95%"</span><span class="op">=</span><span class="st">"#FB6A4A"</span>,<span class="st">"Hot 99%"</span><span class="op">=</span><span class="st">"#CB181D"</span></span>
+<span>    <span class="op">)</span>,</span>
+<span>    drop <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">theme_void</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<ol start="2" type="1">
+<li>EHSA: DONE</li>
+</ol>
 <div class="callout callout-style-default callout-important callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1063,8 +1191,38 @@ Tip
 <li><p>Select sample locations for each category to explain the spatial patterns.</p></li>
 <li><p>Be careful with the steps (document thresholds, weights, and binning).</p></li>
 </ul>
+<p>TL;DR</p>
+<ul>
+<li><p>Use local_gstar_perm() for fine-grained diagnostics &amp; sensitivity analysis.</p></li>
+<li><p>Use emerging_hotspot_analysis() for a clean, reproducible end result.</p></li>
+<li><p>Keep nb/wt fixed across years; match nsim/alpha; and compare outputs with a small reconciliation table before final mapping.</p></li>
+</ul>
 </div>
 </div>
+<p>ArcGIS defines 18 categories:</p>
+<p>Hot Spot families (9 types):</p>
+<ul>
+<li><p>New Hot Spot: First time a Hot Spot appears, and it’s recent.</p></li>
+<li><p>Consecutive Hot Spot: Hot Spot in each of the last k time steps (default k=3).</p></li>
+<li><p>Intensifying Hot Spot: Hot in ≥90% of all time steps and Gi* z-scores show a significant upward MK trend.</p></li>
+<li><p>Persistent Hot Spot: Hot in ≥90% of all time steps, no significant MK trend.</p></li>
+<li><p>Diminishing Hot Spot: Hot in ≥90% of all time steps and significant downward MK trend.</p></li>
+<li><p>Sporadic Hot Spot: Hot in &lt;90% of time steps, nonconsecutive, not just one.</p></li>
+<li><p>Oscillating Hot Spot: Alternates between Hot and Cold across time.</p></li>
+<li><p>Historical Hot Spot: Was Hot before but not in the last k slices.</p></li>
+<li><p>No Pattern Detected (applies if Insig or no strong classification).</p></li>
+</ul>
+<p>Cold Spot families (mirror 8 types):</p>
+<ul>
+<li><p>New Cold Spot</p></li>
+<li><p>Consecutive Cold Spot</p></li>
+<li><p>Intensifying Cold Spot</p></li>
+<li><p>Persistent Cold Spot</p></li>
+<li><p>Diminishing Cold Spot</p></li>
+<li><p>Sporadic Cold Spot</p></li>
+<li><p>Oscillating Hot/Cold</p></li>
+<li><p>Historical Cold Spot</p></li>
+</ul>
 <p><img src="img/Screenshot 2025-09-29 234329.png" class="img-fluid"></p>
 <p><img src="img/Screenshot 2025-09-29 234337.png" class="img-fluid"></p>
 <p><img src="img/Screenshot 2025-09-29 234344.png" class="img-fluid"></p>
