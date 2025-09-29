@@ -22,8 +22,8 @@ number-depth: 4
 
 editor: visual
 ---
-## In-class Ex Part 1: sfdep Global Measure SA
 
+## In-class Ex Part 1: sfdep Global Measure SA
 
 [sfdep](https://sfdep.josiahparry.com/) built on [spdep](https://cran.r-project.org/web/packages/spdep/index.html) ( tools for computing spatial weights and calculating spatially lagged variables), provides a tidyverse-friendly interface with list-columns and additional functionality, more importantly inlcuding functions to analyse spatial temporal data.
 
@@ -33,8 +33,7 @@ pacman:: p_load(sf, tmap, tidyverse, sfdep)
 
 ## Getting the Data into R environment
 
-:::panel-tabset
-
+::: panel-tabset
 ### Importing Geospatial data in Shapefile
 
 ```{r}
@@ -60,8 +59,6 @@ hunan2012 <- read_csv ("data/aspatial/hunan_2012.csv")
 hunan_GDPPC <- left_join(hunan, hunan2012) %>%
   select(1:4, 7,15)
 ```
-
-
 
 ### Visualising Regional Development Indicator
 
@@ -95,9 +92,7 @@ tmap_arrange(equal, quantile, asp = 1, ncol = 2)
 ```
 :::
 
-
 ## Global Measures of Spatial Association
-
 
 ### Computing Contiguity Spatial Weights
 
@@ -125,23 +120,15 @@ global_moran_perm(wm_q$GDPPC,
 
 **At the 95% confidence level, p-value is less than 0.05, we reject the null hypothesis. Moran's I value is 0.3 which is a sign of moderate clustering.**
 
-
-:::callout-caution
-
+::: callout-caution
 When we fail to reject the null hypothesis, we should continue to examine further, since there is still possibility that at local level there are hot spot and cold spot areas.
-
 :::
 
 ## In-class Ex Part-2: Emerging Hot Spot Analysis (EHSA)
 
+[\*\*EHSA\*](https://sfdep.josiahparry.com/articles/understanding-emerging-hotspots)
 
-[**EHSA*](https://sfdep.josiahparry.com/articles/understanding-emerging-hotspots)
-
-**EHSA Four steps:**
-- Build a space–time cube.
-- Calculate local Gi*.
-- Evaluate the hot/cold-spot trend using the Mann–Kendall test.
-- Categorise each study-area location by combining the trend (MK z-score and p-value) with the - per-bin hot/cold status (Gi* z-score and p-value).
+**EHSA Four steps:** - Build a space–time cube. - Calculate local Gi*. - Evaluate the hot/cold-spot trend using the Mann–Kendall test. - Categorise each study-area location by combining the trend (MK z-score and p-value) with the - per-bin hot/cold status (Gi* z-score and p-value).
 
 ## Getting started
 
@@ -152,7 +139,6 @@ pacman::p_load(sf, sfdep, tmap,
                plotly, tidyverse, 
                Kendall)
 ```
-
 
 ### Importing Data
 
@@ -174,29 +160,28 @@ The code chunk below imports Hunan_GDPPC, an attribute data set in csv format.
 GDPPC <- read_csv("data/aspatial/Hunan_GDPPC.csv")
 ```
 
-:::callout-important
+::: callout-important
 The GDPPC data set must follow certain orders to avoid the errors (time (integer), space, value).
 :::
 
 ## Step 1: Creating a Time Series Cube
 
- The code chunk below us [`spacetime()`](https://sfdep.josiahparry.com/reference/spacetime.html) of **sfdep**  to create an [**spatio-temporal cube**](https://sfdep.josiahparry.com/articles/spacetime-s3.html) and verifies the class using `is_spacetime_cube()`.
+The code chunk below us [`spacetime()`](https://sfdep.josiahparry.com/reference/spacetime.html) of **sfdep** to create an [**spatio-temporal cube**](https://sfdep.josiahparry.com/articles/spacetime-s3.html) and verifies the class using `is_spacetime_cube()`.
 
 ```{r}
 GDPPC_st <- spacetime(GDPPC, hunan, .loc_col = "County", .time_col ="Year")  # data, geometry, loc, time
 is_spacetime_cube(GDPPC_st)
 ```
-## Step 2: Calculate local Gi*.
 
+## Step 2: Calculate local Gi\*.
 
 ### Deriving the spatial weights
 
+The code chunk below uses:
 
-The code chunk below uses: 
+-   `activate()` of **dplyr** package to activate the geometry context;
 
-- `activate()` of **dplyr** package to activate the geometry context;
-
-- `mutate()` of **dplyr** package create two new columns `nb` and `wt`;
+-   `mutate()` of **dplyr** package create two new columns `nb` and `wt`;
 
 Then we will activate the data context again and copy over the **nb and wt columns** to each time-slice using `set_nbs()` and `set_wts()`. Row order is very important, so do not rearrange the observations after using `set_nbs()` or `set_wts()`.
 
@@ -216,10 +201,9 @@ GDPPC_nb <- GDPPC_st %>%
 
 Dataset now has neighbours and weights for each time-slice.
 
+### Computing Gi\*
 
-### Computing Gi*
-
-The code chunk below uses [`local_gstar_perm()`](https://sfdep.josiahparry.com/reference/local_gstar) of sfdep package and `groupb_by()` to calculate the Gi* by year for each location, and flatten out Gi* statisitc matrix as gi_star column and attach to the sf dataset. 
+The code chunk below uses [`local_gstar_perm()`](https://sfdep.josiahparry.com/reference/local_gstar) of sfdep package and `groupb_by()` to calculate the Gi\* by year for each location, and flatten out Gi\* statisitc matrix as gi_star column and attach to the sf dataset.
 
 **group_by(Year) that is why the table format is useful that we can calculate by year.**
 
@@ -231,32 +215,23 @@ gi_stars <- GDPPC_nb %>%
   tidyr::unnest(gi_star)
 ```
 
-
-
-
 ## Step 3: Mann-Kendall Test
 
-[Mann–Kendall](https://vsp.pnnl.gov/help/vsample/design_trend_mann_kendall.htm) (MK) is a non-parametric trend test:
-H₀: no monotonic trend (flat).
-H₁: a monotonic trend exists (consistently increases or decreases).
+[Mann–Kendall](https://vsp.pnnl.gov/help/vsample/design_trend_mann_kendall.htm) (MK) is a non-parametric trend test: H₀: no monotonic trend (flat). H₁: a monotonic trend exists (consistently increases or decreases).
 
+### Interpreting Kendall’s
 
-### Interpreting  Kendall’s 
-τ ranges from −1 to +1 (direction = sign; strength = magnitude).
-In Kendall::MannKendall, sl is the p-value.
-
+τ ranges from −1 to +1 (direction = sign; strength = magnitude). In Kendall::MannKendall, sl is the p-value.
 
 ### Mann-Kendall Test on Gi
 
 Outliers/clusters vs hot/cold spots: Local Moran’s I (LISA) finds high–high/low–low clusters and outliers;
 
-EHSA/Gi* focuses on hot/cold spots.
+EHSA/Gi\* focuses on hot/cold spots.
 
-We select counties manually to show their Gi* time series and MK result (trend line figure).
-
+We select counties manually to show their Gi\* time series and MK result (trend line figure).
 
 The code chunk below filters the required region: Changsha county and plot the result to evaluate local tread using Mann-Kendall test.
-
 
 ```{r}
 cbg <- gi_stars %>% 
@@ -273,7 +248,7 @@ ggplot(data = cbg,
   theme_light()
 ```
 
-THe code chunk below uses `ggplotly()` of **plotly** package for an interactive plot where we can observe the exact Gi* value for each year.
+THe code chunk below uses `ggplotly()` of **plotly** package for an interactive plot where we can observe the exact Gi\* value for each year.
 
 ```{r}
 p <- ggplot(data = cbg, 
@@ -302,7 +277,6 @@ cbg %>%
 ### Mann-Kendall test data.frame
 
 We can replicate this for each location by using `group_by()` of **dplyr** package.
-
 
 ```{r}
 ehsa <- gi_stars %>%
@@ -346,14 +320,27 @@ ehsa_sim <- emerging_hotspot_analysis(
 
 ### Viusalising the EHSA Class Distribution
 
-Bar chart summarises counts of Hot/Cold spots.
-Figure above shows that sporadic cold spots class has the high numbers of county.
+Bar chart summarises counts of Hot/Cold spots. Figure above shows that sporadic cold spots class has the high numbers of county.
 
 ```{r}
-ggplot(data = ehsa_sim,
+#| eval: false
+ggplot(data = ehsa_sim, aes(x = classification)) +
+  geom_bar()
+```
+
+
+
+```{r}
+#| eval: false
+ggplot(data = subset(ehsa_sim, p_value < 0.05), # we see the auto-classification is misleading
        aes(x = classification)) +
   geom_bar()
 ```
+
+
+
+
+
 
 ### Visualising EHSA
 
@@ -364,7 +351,6 @@ hunan_ehsa <- hunan %>%
   left_join(ehsa_sim,
             by = join_by(County == location))
 ```
-
 
 Next, tmap functions will be used to plot a categorical choropleth map by using the code chunk below.
 
@@ -379,15 +365,16 @@ tm_shape(ehsa_sig) +
   tm_fill("classification") + 
   tm_borders(alpha = 0.4)
 ```
-:::callout-important
 
-Gi* is computed for each year (i.e., for the space–time cube bins). We report both z-scores and p-values; bins with p ≥ 0.05 are labelled as **Insignificant.** The summary of insignificant bins by year is analogous to a Moran’s I summary, but based on Gi* z-scores and p-values. Visualising EHSA results should explicitly incorporate the p-value. Update the plot on slide p18 to include an **Insignificant** legend entry, consistent with the HCSA map shown in Chapter 10.
-
+::: callout-important
+Gi\* is computed for each year (i.e., for the space–time cube bins). We report both z-scores and p-values; bins with p ≥ 0.05 are labelled as **Insignificant.** The summary of insignificant bins by year is analogous to a Moran’s I summary, but based on Gi\* z-scores and p-values. Visualising EHSA results should explicitly incorporate the p-value. Update the plot on slide p18 to include an **Insignificant** legend entry, consistent with the HCSA map shown in Chapter 10.
 :::
 
 ### Plot DIY
-    
+
 ```{r}
+#|eval: false
+#|echo: false
 hunan_ehsa2 <- hunan_ehsa %>%
   mutate(
     EHSA_cluster = if_else(p_value < 0.05 & !is.na(classification),
@@ -407,12 +394,11 @@ legend_levels <- c("Insignificant", sort(cold_levels), sort(hot_levels))
 # Apply factor with ordered levels
 hunan_ehsa2 <- hunan_ehsa2 %>%
   mutate(EHSA_cluster = factor(EHSA_cluster, levels = legend_levels))
-
 ```
 
-
-
 ```{r}
+#| echo: false
+#| eval: false
 lv       <- levels(hunan_ehsa2$EHSA_cluster)
 other_lv <- setdiff(lv, "Insignificant")
 
@@ -436,8 +422,9 @@ ehsa_map <- tm_shape(hunan_ehsa2) +
 ehsa_map
 ```
 
-
 ```{r, fig.width=12, fig.height=8}
+#| echo: false
+#| eval: false
 Gi_star_map <- tm_shape(hunan_ehsa) +
   tm_polygons(fill = "tau",
               fill.scale = tm_scale_intervals(
@@ -466,14 +453,12 @@ p_values_map <- tm_shape(hunan_ehsa) +
 tmap_arrange(Gi_star_map, p_values_map, asp=1, ncol=2)
 ```
 
+::: callout-tip
+-   Master the explanation chart for hot/cold-spot definitions, p 19-22.
 
-:::callout-tip
+-   For example, for a Sporadic Hot Spot, point to the region on p18 and cross-reference its Gi\* trend line on p11.
 
-- Master the explanation chart for hot/cold-spot definitions, p 19-22.
+-   Select sample locations for each category to explain the spatial patterns.
 
-- For example, for a Sporadic Hot Spot, point to the region on p18 and cross-reference its Gi* trend line on p11.
-
-- Select sample locations for each category to explain the spatial patterns.
-
-- Be careful with the steps (document thresholds, weights, and binning).
+-   Be careful with the steps (document thresholds, weights, and binning).
 :::
