@@ -1,14 +1,11 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.8.23">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-
 <meta name="author" content="Yiqiong PAN">
 <meta name="dcterms.date" content="2025-09-30">
-
 <title>06: Geographical Segmentation with Spatially Constrained Clustering Techniques – ISSS626-yiqiong-pan</title>
 <style>
 code{white-space: pre-wrap;}
@@ -22,8 +19,42 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
-
 
 <script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../../site_libs/quarto-nav/headroom.min.js"></script>
@@ -46,8 +77,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="../../site_libs/bootstrap/bootstrap-ffa9a6279353761231ec249df0a7fdd3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
 <link href="../../site_libs/bootstrap/bootstrap-dark-24772959a0e306aba8d7698078628ce7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../site_libs/bootstrap/bootstrap-ffa9a6279353761231ec249df0a7fdd3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
-<script id="quarto-search-options" type="application/json">{
+<link href="../../site_libs/bootstrap/bootstrap-ffa9a6279353761231ec249df0a7fdd3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
   "collapse-after": 3,
@@ -73,12 +103,8 @@ ul.task-list li input[type="checkbox"] {
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
-}</script>
-
-
-<link rel="stylesheet" href="../../styles.css">
+}</script><link rel="stylesheet" href="../../styles.css">
 </head>
-
 <body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
     const toggleBodyColorMode = (bsSheetEl) => {
       const mode = bsSheetEl.getAttribute("data-mode");
@@ -253,9 +279,7 @@ ul.task-list li input[type="checkbox"] {
   </script>
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top">
-    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
-      <div class="navbar-container container-fluid">
+  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a href="../../index.html" class="navbar-brand navbar-brand-logo">
     </a>
@@ -269,12 +293,12 @@ ul.task-list li input[type="checkbox"] {
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
-  <li class="nav-item dropdown ">
+<li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-hands-on-exercise" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Hands-on Exercise</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-hands-on-exercise">    
-        <li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-hands-on-exercise">
+<li>
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex01_1/Hands-on_Ex01_1.html">
  <span class="dropdown-text">01-1 Geospatial Data Science with R</span></a>
   </li>  
@@ -327,13 +351,13 @@ ul.task-list li input[type="checkbox"] {
  <span class="dropdown-text">10:</span></a>
   </li>  
     </ul>
-  </li>
+</li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-in-class-exercise" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">In-class Exercise</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-in-class-exercise">    
-        <li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-in-class-exercise">
+<li>
     <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex03/In-class_Ex03a.html">
  <span class="dropdown-text">In-class Exercise 03a</span></a>
   </li>  
@@ -350,25 +374,25 @@ ul.task-list li input[type="checkbox"] {
  <span class="dropdown-text">In-class Exercise 05</span></a>
   </li>  
     </ul>
-  </li>
+</li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-take-home-exercise" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Take-home Exercise</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-take-home-exercise">    
-        <li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-take-home-exercise">
+<li>
     <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html">
  <span class="dropdown-text">01: Geospatial Analytics for Public Good</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex02/Take-home_Ex02.qmd">
+    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex02/Take-home_Ex02.html">
  <span class="dropdown-text">Take-home Exercise 2</span></a>
   </li>  
     </ul>
-  </li>
+</li>
 </ul>
-            <ul class="navbar-nav navbar-nav-scroll ms-auto">
-  <li class="nav-item">
+<ul class="navbar-nav navbar-nav-scroll ms-auto">
+<li class="nav-item">
     <a class="nav-link" href="../../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
@@ -383,40 +407,55 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text"></span></a>
   </li>  
 </ul>
-          </div> <!-- /navcollapse -->
+</div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
   <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
 </div>
       </div> <!-- /container-fluid -->
-    </nav>
-</header>
-<!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+    </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">On this page</h2>
+        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview"><span class="header-section-number">1</span> Overview</a>
+<li>
+<a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview"><span class="header-section-number">1</span> Overview</a>
   <ul class="collapse">
-  <li><a href="#learning-outcome" id="toc-learning-outcome" class="nav-link" data-scroll-target="#learning-outcome"><span class="header-section-number">1.1</span> learning Outcome</a></li>
-  </ul></li>
-  <li><a href="#getting-started" id="toc-getting-started" class="nav-link" data-scroll-target="#getting-started"><span class="header-section-number">2</span> Getting Started</a>
-  <ul class="collapse">
-  <li><a href="#the-analytical-question" id="toc-the-analytical-question" class="nav-link" data-scroll-target="#the-analytical-question"><span class="header-section-number">2.1</span> The analytical question</a></li>
-  </ul></li>
-  <li><a href="#the-data" id="toc-the-data" class="nav-link" data-scroll-target="#the-data"><span class="header-section-number">3</span> The data</a></li>
+<li><a href="#learning-outcome" id="toc-learning-outcome" class="nav-link" data-scroll-target="#learning-outcome"><span class="header-section-number">1.1</span> Learning Outcome</a></li>
   </ul>
-</nav>
+</li>
+  <li>
+<a href="#getting-started" id="toc-getting-started" class="nav-link" data-scroll-target="#getting-started"><span class="header-section-number">2</span> Getting Started</a>
+  <ul class="collapse">
+<li><a href="#the-analytical-question" id="toc-the-analytical-question" class="nav-link" data-scroll-target="#the-analytical-question"><span class="header-section-number">2.1</span> The Analytical Question</a></li>
+  </ul>
+</li>
+  <li>
+<a href="#the-data" id="toc-the-data" class="nav-link" data-scroll-target="#the-data"><span class="header-section-number">3</span> The Data</a>
+  <ul class="collapse">
+<li><a href="#installing-and-loading-r-packages" id="toc-installing-and-loading-r-packages" class="nav-link" data-scroll-target="#installing-and-loading-r-packages"><span class="header-section-number">3.1</span> Installing and Loading R Packages</a></li>
+  </ul>
+</li>
+  <li>
+<a href="#data-import-and-preparation" id="toc-data-import-and-preparation" class="nav-link" data-scroll-target="#data-import-and-preparation"><span class="header-section-number">4</span> Data Import and Preparation</a>
+  <ul class="collapse">
+<li><a href="#importing-geospatial-data-into-r-environment" id="toc-importing-geospatial-data-into-r-environment" class="nav-link" data-scroll-target="#importing-geospatial-data-into-r-environment"><span class="header-section-number">4.1</span> Importing Geospatial Data into R Environment</a></li>
+  <li><a href="#importing-aspatial-data-into-r-environment" id="toc-importing-aspatial-data-into-r-environment" class="nav-link" data-scroll-target="#importing-aspatial-data-into-r-environment"><span class="header-section-number">4.2</span> Importing Aspatial Data into R Environment</a></li>
+  <li><a href="#derive-bew-variables-using-dplyr-package" id="toc-derive-bew-variables-using-dplyr-package" class="nav-link" data-scroll-target="#derive-bew-variables-using-dplyr-package"><span class="header-section-number">4.3</span> Derive Bew Variables Using dplyr Package</a></li>
+  </ul>
+</li>
+  <li>
+<a href="#exploratory-data-analysis-eda" id="toc-exploratory-data-analysis-eda" class="nav-link" data-scroll-target="#exploratory-data-analysis-eda"><span class="header-section-number">5</span> Exploratory Data Analysis (EDA)</a>
+  <ul class="collapse">
+<li><a href="#eda-using-statistical-graphics" id="toc-eda-using-statistical-graphics" class="nav-link" data-scroll-target="#eda-using-statistical-graphics"><span class="header-section-number">5.1</span> EDA Using Statistical Graphics</a></li>
+  </ul>
+</li>
+  <li><a href="#reference" id="toc-reference" class="nav-link" data-scroll-target="#reference"><span class="header-section-number">6</span> Reference</a></li>
+  </ul></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content">
-
-
-<header id="title-block-header" class="quarto-title-block default">
-<div class="quarto-title">
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
 <h1 class="title">06: Geographical Segmentation with Spatially Constrained Clustering Techniques</h1>
 </div>
 
@@ -441,7 +480,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">September 30, 2025</p>
+      <p class="date-modified">October 1, 2025</p>
     </div>
   </div>
     
@@ -449,53 +488,412 @@ ul.task-list li input[type="checkbox"] {
   
 
 
-</header>
-
-
-<section id="overview" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="overview"><span class="header-section-number">1</span> Overview</h2>
-<section id="learning-outcome" class="level3" data-number="1.1">
-<h3 data-number="1.1" class="anchored" data-anchor-id="learning-outcome"><span class="header-section-number">1.1</span> learning Outcome</h3>
-</section>
-</section>
-<section id="getting-started" class="level2" data-number="2">
-<h2 data-number="2" class="anchored" data-anchor-id="getting-started"><span class="header-section-number">2</span> Getting Started</h2>
-<section id="the-analytical-question" class="level3" data-number="2.1">
-<h3 data-number="2.1" class="anchored" data-anchor-id="the-analytical-question"><span class="header-section-number">2.1</span> The analytical question</h3>
-</section>
-</section>
-<section id="the-data" class="level2" data-number="3">
-<h2 data-number="3" class="anchored" data-anchor-id="the-data"><span class="header-section-number">3</span> The data</h2>
+</header><section id="overview" class="level2" data-number="1"><h2 data-number="1" class="anchored" data-anchor-id="overview">
+<span class="header-section-number">1</span> Overview</h2>
+<p>In this exercise, we use methods like <strong>Hierarchical Cluster Analysis</strong> (HCA) and Spatially Constrained Cluster Analysis (SCCA) including (<strong>SKATER and ClusGeo</strong>) to group neighbouring spatial units into homogeneous regions (areas that are similar to each other in terms of variables, i.e.&nbsp;geographically referenced <strong>multivariate</strong>).</p>
+<section id="learning-outcome" class="level3" data-number="1.1"><h3 data-number="1.1" class="anchored" data-anchor-id="learning-outcome">
+<span class="header-section-number">1.1</span> Learning Outcome</h3>
+<p>The tasks to be completed are to:</p>
+<ul>
+<li><p>convert simple feature data.frame into R’s SpatialPolygonDataFrame object using <code>as_Spatial()</code> of <strong>sf</strong> package</p></li>
+<li><p>perform cluster analysis with <code><a href="https://rdrr.io/r/stats/hclust.html">hclust()</a></code> of Base R</p></li>
+<li><p>perform spatially constrained cluster analysis using <code>skater()</code> of Base R</p></li>
+<li><p>visualise the analysis using <strong>ggplot2</strong> and <strong>tmap</strong> package.</p></li>
+</ul></section></section><section id="getting-started" class="level2" data-number="2"><h2 data-number="2" class="anchored" data-anchor-id="getting-started">
+<span class="header-section-number">2</span> Getting Started</h2>
+<section id="the-analytical-question" class="level3" data-number="2.1"><h3 data-number="2.1" class="anchored" data-anchor-id="the-analytical-question">
+<span class="header-section-number">2.1</span> The Analytical Question</h3>
+<p>In real world application likes geobusiness and geospatail related policy making, regions are defined by statistical similarity in the multivariate data. In the case study of <a href="https://en.wikipedia.org/wiki/Shan_State">Shan State</a> <a href="https://en.wikipedia.org/wiki/Myanmar">Myanmar</a>, we find and outline the clusters of areas that share similar characteristics, through multiple <strong>Information and Communication technology</strong> (ICT) measures, namely: Radio, Television, Land line phone, Mobile phone, Computer, and Internet at home.</p>
+</section></section><section id="the-data" class="level2" data-number="3"><h2 data-number="3" class="anchored" data-anchor-id="the-data">
+<span class="header-section-number">3</span> The Data</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 63%">
-<col style="width: 36%">
+<col style="width: 34%">
+<col style="width: 35%">
+<col style="width: 30%">
 </colgroup>
-<thead>
-<tr class="header">
+<thead><tr class="header">
 <th>Dataset</th>
 <th>Description</th>
-</tr>
-</thead>
+<th>Format</th>
+</tr></thead>
 <tbody>
 <tr class="odd">
 <td>myanmar_township_boundaries</td>
-<td>Myanmar Township Boundary Data&nbsp;in ESRI shapefile format</td>
+<td>GIS Myanmar Township Boundary Data represented as polygon features</td>
+<td>ESRI shapefile</td>
 </tr>
 <tr class="even">
 <td>Shan-ICT.csv</td>
 <td>2014 Myanmar Population and Housing Census at the township level</td>
+<td>CSV</td>
 </tr>
 </tbody>
 </table>
 <p>The data can be downloaded from <a href="http://themimu.info/">Myanmar Information Management Unit (MIMU)</a>.</p>
-<p>{tbl-colwidths=“[30,70]”}</p>
+<section id="installing-and-loading-r-packages" class="level3" data-number="3.1"><h3 data-number="3.1" class="anchored" data-anchor-id="installing-and-loading-r-packages">
+<span class="header-section-number">3.1</span> Installing and Loading R Packages</h3>
+<p>There are <strong>14</strong> packages used in this exercise.</p>
+<ul>
+<li><p>Spatial data (<strong>sf, spdep, tmap</strong>)</p></li>
+<li><p>Cluster analysis (<strong>ClustGeo, cluster, NbClust, factoextra</strong>)</p></li>
+<li><p>Multivariate exploration (<strong>corrplot, heatmaply, psych, GGally</strong>)</p></li>
+<li><p>Visualisation / general workflow (<strong>tidyverse, ggpubr</strong>)</p></li>
+</ul>
+<table class="caption-top table">
+<thead><tr class="header">
+<th>Package</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><a href="https://r-spatial.github.io/sf/">sf</a></td>
+<td>Handles importing, managing, and processing vector-based geospatial data</td>
+</tr>
+<tr class="even">
+<td><a href="https://cran.r-project.org/package=rgdal">rgdal</a></td>
+<td>Provides bindings to the GDAL/OGR library for reading/writing spatial data formats.</td>
+</tr>
+<tr class="odd">
+<td><a href="https://cran.r-project.org/package=spdep">spdep</a></td>
+<td>Tools for spatial dependence: building neighbour lists, spatial weights, and spatial autocorrelation analysis.</td>
+</tr>
+<tr class="even">
+<td><a href="https://www.tidyverse.org/">tidyverse</a></td>
+<td>A collection of R packages for data wrangling and visualization, including <strong>readr</strong>, <strong>dplyr</strong>, and <strong>ggplot2</strong>.</td>
+</tr>
+<tr class="odd">
+<td><a href="https://r-tmap.github.io/tmap/">tmap</a></td>
+<td>Creates cartographic quality static and interactive thematic (choropleth) maps.</td>
+</tr>
+<tr class="even">
+<td><a href="https://cran.r-project.org/package=corrplot">corrplot</a></td>
+<td>Provides graphical displays of correlation matrices for multivariate data exploration.</td>
+</tr>
+<tr class="odd">
+<td><a href="https://cran.r-project.org/package=ggpubr">ggpubr</a></td>
+<td>Simplifies publication-ready plots based on <strong>ggplot2</strong> with statistical annotations.</td>
+</tr>
+<tr class="even">
+<td><a href="https://cran.r-project.org/package=heatmaply">heatmaply</a></td>
+<td>Generates interactive heatmaps for exploring multivariate data relationships.</td>
+</tr>
+<tr class="odd">
+<td><a href="https://cran.r-project.org/package=cluster">cluster</a></td>
+<td>Functions for cluster analysis, including hierarchical, partitioning, and silhouette methods.</td>
+</tr>
+<tr class="even">
+<td><a href="https://cran.r-project.org/package=ClustGeo">ClustGeo</a></td>
+<td>Performs spatially constrained clustering by balancing attribute similarity with geographical contiguity.</td>
+</tr>
+<tr class="odd">
+<td><a href="https://cran.r-project.org/package=NbClust">NbClust</a></td>
+<td>Determines the optimal number of clusters using multiple indices and methods.</td>
+</tr>
+<tr class="even">
+<td><a href="https://cran.r-project.org/package=factoextra">facoextra</a></td>
+<td>Visualisation tools for clustering and multivariate analyses (e.g., PCA, CA, HCPC).</td>
+</tr>
+<tr class="odd">
+<td><a href="https://ggobi.github.io/ggally/">GGally</a></td>
+<td>Extension of ggplot2 with functions for pair plots, network plots, and correlation plots.</td>
+</tr>
+<tr class="even">
+<td><a href="https://cran.r-project.org/package=psych">psych</a></td>
+<td>rocedures for psychometric and multivariate analysis, including factor analysis.</td>
+</tr>
+</tbody>
+</table>
+<p>The code chunk below loads the packages into R environment.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">pacman</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pacman/man/p_load.html">p_load</a></span><span class="op">(</span><span class="va">spdep</span>, <span class="va">tmap</span>, <span class="va">sf</span>, <span class="va">ClustGeo</span>, </span>
+<span>               <span class="va">ggpubr</span>, <span class="va">cluster</span>, <span class="va">factoextra</span>, <span class="va">NbClust</span>,</span>
+<span>               <span class="va">heatmaply</span>, <span class="va">corrplot</span>, <span class="va">psych</span>, <span class="va">tidyverse</span>, <span class="va">GGally</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section></section><section id="data-import-and-preparation" class="level2" data-number="4"><h2 data-number="4" class="anchored" data-anchor-id="data-import-and-preparation">
+<span class="header-section-number">4</span> Data Import and Preparation</h2>
+<section id="importing-geospatial-data-into-r-environment" class="level3" data-number="4.1"><h3 data-number="4.1" class="anchored" data-anchor-id="importing-geospatial-data-into-r-environment">
+<span class="header-section-number">4.1</span> Importing Geospatial Data into R Environment</h3>
+<p>The code chunk below uses<a href="https://www.rdocumentation.org/packages/sf/versions/0.7-2/topics/st_read"><code>st_read()</code></a> from <strong>sf</strong> package to import Mayanmar Township Boundary (<code>myanmar_township_boundaries</code>) in shapefile format into R as a simple feature data.frame.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">shan_sf</span> <span class="op">&lt;-</span> <span class="fu">st_read</span><span class="op">(</span>dsn <span class="op">=</span> <span class="st">"data/geospatial"</span>,</span>
+<span>                   layer <span class="op">=</span> <span class="st">"myanmar_township_boundaries"</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span> <span class="op">(</span><span class="va">ST</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Shan (East)"</span>, <span class="st">"Shan (North)"</span>, <span class="st">"Shan (South)"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># filter Shan State</span></span>
+<span>  <span class="fu">select</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span><span class="op">:</span><span class="fl">7</span><span class="op">)</span><span class="op">)</span>    <span class="co"># select columns on ST, DT, and TS</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading layer `myanmar_township_boundaries' from data source 
+  `C:\lsrgc\ISSS626-yiqiong-pan\Hands-on_Ex\Hands-on_Ex06\data\geospatial' 
+  using driver `ESRI Shapefile'
+Simple feature collection with 330 features and 14 fields
+Geometry type: MULTIPOLYGON
+Dimension:     XY
+Bounding box:  xmin: 92.17275 ymin: 9.671252 xmax: 101.1699 ymax: 28.54554
+Geodetic CRS:  WGS 84</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">shan_sf</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Simple feature collection with 55 features and 6 fields
+Geometry type: MULTIPOLYGON
+Dimension:     XY
+Bounding box:  xmin: 96.15107 ymin: 19.29932 xmax: 101.1699 ymax: 24.15907
+Geodetic CRS:  WGS 84
+First 10 features:
+             ST ST_PCODE       DT   DT_PCODE        TS  TS_PCODE
+1  Shan (North)   MMR015  Mongmit MMR015D008   Mongmit MMR015017
+2  Shan (South)   MMR014 Taunggyi MMR014D001   Pindaya MMR014006
+3  Shan (South)   MMR014 Taunggyi MMR014D001   Ywangan MMR014007
+4  Shan (South)   MMR014 Taunggyi MMR014D001  Pinlaung MMR014009
+5  Shan (North)   MMR015  Mongmit MMR015D008    Mabein MMR015018
+6  Shan (South)   MMR014 Taunggyi MMR014D001     Kalaw MMR014005
+7  Shan (South)   MMR014 Taunggyi MMR014D001     Pekon MMR014010
+8  Shan (South)   MMR014 Taunggyi MMR014D001  Lawksawk MMR014008
+9  Shan (North)   MMR015  Kyaukme MMR015D003 Nawnghkio MMR015013
+10 Shan (North)   MMR015  Kyaukme MMR015D003   Kyaukme MMR015012
+                         geometry
+1  MULTIPOLYGON (((96.96001 23...
+2  MULTIPOLYGON (((96.7731 21....
+3  MULTIPOLYGON (((96.78483 21...
+4  MULTIPOLYGON (((96.49518 20...
+5  MULTIPOLYGON (((96.66306 24...
+6  MULTIPOLYGON (((96.49518 20...
+7  MULTIPOLYGON (((97.14738 19...
+8  MULTIPOLYGON (((96.94981 22...
+9  MULTIPOLYGON (((96.75648 22...
+10 MULTIPOLYGON (((96.95498 22...</code></pre>
+</div>
+</div>
+<p>The <code>sf</code> object follows Hardy Wickham’s <a href="https://edzer.github.io/rstudio_conf/#1">tidyverse</a> principles, so we can handle it like a tidy tibble (rows = observations, cols = variables), with an extra geometry column.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">glimpse</span><span class="op">(</span><span class="va">shan_sf</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 55
+Columns: 7
+$ ST       &lt;chr&gt; "Shan (North)", "Shan (South)", "Shan (South)", "Shan (South)…
+$ ST_PCODE &lt;chr&gt; "MMR015", "MMR014", "MMR014", "MMR014", "MMR015", "MMR014", "…
+$ DT       &lt;chr&gt; "Mongmit", "Taunggyi", "Taunggyi", "Taunggyi", "Mongmit", "Ta…
+$ DT_PCODE &lt;chr&gt; "MMR015D008", "MMR014D001", "MMR014D001", "MMR014D001", "MMR0…
+$ TS       &lt;chr&gt; "Mongmit", "Pindaya", "Ywangan", "Pinlaung", "Mabein", "Kalaw…
+$ TS_PCODE &lt;chr&gt; "MMR015017", "MMR014006", "MMR014007", "MMR014009", "MMR01501…
+$ geometry &lt;MULTIPOLYGON [°]&gt; MULTIPOLYGON (((96.96001 23..., MULTIPOLYGON (((…</code></pre>
+</div>
+</div>
+</section><section id="importing-aspatial-data-into-r-environment" class="level3" data-number="4.2"><h3 data-number="4.2" class="anchored" data-anchor-id="importing-aspatial-data-into-r-environment">
+<span class="header-section-number">4.2</span> Importing Aspatial Data into R Environment</h3>
+<p>The chunk below imports ICT variables via <code>read_csv()</code> function of <strong>readr</strong> package as a <strong>tibble</strong> data.frame. The data are from <strong>The 2014 Myanmar Population and Housing Census Myanmar</strong>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ict</span> <span class="op">&lt;-</span> <span class="fu">read_csv</span> <span class="op">(</span><span class="st">"data/aspatial/Shan-ICT.csv"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The code chunk below summrises the statistics from attribute table. There are a total of eleven fields and 55 observation in the tibble data.frame.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">ict</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> District Pcode     District Name      Township Pcode     Township Name     
+ Length:55          Length:55          Length:55          Length:55         
+ Class :character   Class :character   Class :character   Class :character  
+ Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+                                                                            
+                                                                            
+                                                                            
+ Total households     Radio         Television    Land line phone 
+ Min.   : 3318    Min.   :  115   Min.   :  728   Min.   :  20.0  
+ 1st Qu.: 8711    1st Qu.: 1260   1st Qu.: 3744   1st Qu.: 266.5  
+ Median :13685    Median : 2497   Median : 6117   Median : 695.0  
+ Mean   :18369    Mean   : 4487   Mean   :10183   Mean   : 929.9  
+ 3rd Qu.:23471    3rd Qu.: 6192   3rd Qu.:13906   3rd Qu.:1082.5  
+ Max.   :82604    Max.   :30176   Max.   :62388   Max.   :6736.0  
+  Mobile phone      Computer      Internet at home
+ Min.   :  150   Min.   :  20.0   Min.   :   8.0  
+ 1st Qu.: 2037   1st Qu.: 121.0   1st Qu.:  88.0  
+ Median : 3559   Median : 244.0   Median : 316.0  
+ Mean   : 6470   Mean   : 575.5   Mean   : 760.2  
+ 3rd Qu.: 7177   3rd Qu.: 507.0   3rd Qu.: 630.5  
+ Max.   :48461   Max.   :6705.0   Max.   :9746.0  </code></pre>
+</div>
+</div>
+</section><section id="derive-bew-variables-using-dplyr-package" class="level3" data-number="4.3"><h3 data-number="4.3" class="anchored" data-anchor-id="derive-bew-variables-using-dplyr-package">
+<span class="header-section-number">4.3</span> Derive Bew Variables Using dplyr Package</h3>
+<p>The code chunk below derives the <strong>penetration rate of each ICT variable</strong> based on total household number in township. We should always transform absolute values to <strong>relative measures</strong> before doing spatial analysis or clustering, otherwise the results will be dominated by township size.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ict_derived</span> <span class="op">&lt;-</span> <span class="va">ict</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>`RADIO_PR` <span class="op">=</span> <span class="va">`Radio`</span><span class="op">/</span><span class="va">`Total households`</span><span class="op">*</span><span class="fl">1000</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>`TV_PR` <span class="op">=</span> <span class="va">`Television`</span><span class="op">/</span><span class="va">`Total households`</span><span class="op">*</span><span class="fl">1000</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>`LLPHONE_PR` <span class="op">=</span> <span class="va">`Land line phone`</span><span class="op">/</span><span class="va">`Total households`</span><span class="op">*</span><span class="fl">1000</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>`MPHONE_PR` <span class="op">=</span> <span class="va">`Mobile phone`</span><span class="op">/</span><span class="va">`Total households`</span><span class="op">*</span><span class="fl">1000</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>`COMPUTER_PR` <span class="op">=</span> <span class="va">`Computer`</span><span class="op">/</span><span class="va">`Total households`</span><span class="op">*</span><span class="fl">1000</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>`INTERNET_PR` <span class="op">=</span> <span class="va">`Internet at home`</span><span class="op">/</span><span class="va">`Total households`</span><span class="op">*</span><span class="fl">1000</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">rename</span><span class="op">(</span>`DT_PCODE` <span class="op">=</span><span class="va">`District Pcode`</span>,`DT`<span class="op">=</span><span class="va">`District Name`</span>,</span>
+<span>         `TS_PCODE`<span class="op">=</span><span class="va">`Township Pcode`</span>, `TS`<span class="op">=</span><span class="va">`Township Name`</span>,</span>
+<span>         `TT_HOUSEHOLDS`<span class="op">=</span><span class="va">`Total households`</span>,</span>
+<span>         `RADIO`<span class="op">=</span><span class="va">`Radio`</span>, `TV`<span class="op">=</span><span class="va">`Television`</span>, </span>
+<span>         `LLPHONE`<span class="op">=</span><span class="va">`Land line phone`</span>, `MPHONE`<span class="op">=</span><span class="va">`Mobile phone`</span>,</span>
+<span>         `COMPUTER`<span class="op">=</span><span class="va">`Computer`</span>, `INTERNET`<span class="op">=</span><span class="va">`Internet at home`</span><span class="op">)</span> </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Let’s have a quick check on the new talbe.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">ict_derived</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   DT_PCODE              DT              TS_PCODE              TS           
+ Length:55          Length:55          Length:55          Length:55         
+ Class :character   Class :character   Class :character   Class :character  
+ Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+                                                                            
+                                                                            
+                                                                            
+ TT_HOUSEHOLDS       RADIO             TV           LLPHONE      
+ Min.   : 3318   Min.   :  115   Min.   :  728   Min.   :  20.0  
+ 1st Qu.: 8711   1st Qu.: 1260   1st Qu.: 3744   1st Qu.: 266.5  
+ Median :13685   Median : 2497   Median : 6117   Median : 695.0  
+ Mean   :18369   Mean   : 4487   Mean   :10183   Mean   : 929.9  
+ 3rd Qu.:23471   3rd Qu.: 6192   3rd Qu.:13906   3rd Qu.:1082.5  
+ Max.   :82604   Max.   :30176   Max.   :62388   Max.   :6736.0  
+     MPHONE         COMPUTER         INTERNET         RADIO_PR     
+ Min.   :  150   Min.   :  20.0   Min.   :   8.0   Min.   : 21.05  
+ 1st Qu.: 2037   1st Qu.: 121.0   1st Qu.:  88.0   1st Qu.:138.95  
+ Median : 3559   Median : 244.0   Median : 316.0   Median :210.95  
+ Mean   : 6470   Mean   : 575.5   Mean   : 760.2   Mean   :215.68  
+ 3rd Qu.: 7177   3rd Qu.: 507.0   3rd Qu.: 630.5   3rd Qu.:268.07  
+ Max.   :48461   Max.   :6705.0   Max.   :9746.0   Max.   :484.52  
+     TV_PR         LLPHONE_PR       MPHONE_PR       COMPUTER_PR    
+ Min.   :116.0   Min.   :  2.78   Min.   : 36.42   Min.   : 3.278  
+ 1st Qu.:450.2   1st Qu.: 22.84   1st Qu.:190.14   1st Qu.:11.832  
+ Median :517.2   Median : 37.59   Median :305.27   Median :18.970  
+ Mean   :509.5   Mean   : 51.09   Mean   :314.05   Mean   :24.393  
+ 3rd Qu.:606.4   3rd Qu.: 69.72   3rd Qu.:428.43   3rd Qu.:29.897  
+ Max.   :842.5   Max.   :181.49   Max.   :735.43   Max.   :92.402  
+  INTERNET_PR     
+ Min.   :  1.041  
+ 1st Qu.:  8.617  
+ Median : 22.829  
+ Mean   : 30.644  
+ 3rd Qu.: 41.281  
+ Max.   :117.985  </code></pre>
+</div>
+</div>
+<p>New columns, RADIO_PR, TV_PR, LLPHONE_PR, MPHONE_PR, COMPUTER_PR, and INTERNET_PR,are created as planned.</p>
+</section></section><section id="exploratory-data-analysis-eda" class="level2" data-number="5"><h2 data-number="5" class="anchored" data-anchor-id="exploratory-data-analysis-eda">
+<span class="header-section-number">5</span> Exploratory Data Analysis (EDA)</h2>
+<section id="eda-using-statistical-graphics" class="level3" data-number="5.1"><h3 data-number="5.1" class="anchored" data-anchor-id="eda-using-statistical-graphics">
+<span class="header-section-number">5.1</span> EDA Using Statistical Graphics</h3>
+<p>To examine the variables such as the number of households with radio, we can use graphical methods that highlight different aspects of the data distribution:</p>
+<p><strong>Histogram</strong></p>
+<ul>
+<li><p>Shows the overall shape of the distribution.</p></li>
+<li><p>Helps identify whether the data is left-skewed, right-skewed, or approximately normal.</p></li>
+<li><p>Useful for understanding the frequency of values and detecting clustering or gaps in the data.</p></li>
+</ul>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">ggplot</span><span class="op">(</span>data<span class="op">=</span><span class="va">ict_derived</span>, </span>
+<span>       <span class="fu">aes</span><span class="op">(</span>x<span class="op">=</span><span class="va">`RADIO`</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_histogram</span><span class="op">(</span>bins<span class="op">=</span><span class="fl">20</span>, </span>
+<span>                 color<span class="op">=</span><span class="st">"black"</span>, </span>
+<span>                 fill<span class="op">=</span><span class="st">"light blue"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="Hands-on_Ex06_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="384"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Boxplot</strong>:</p>
+<ul>
+<li><p>Summarises the distribution using the five-number summary (minimum, Q1, median, Q3, maximum).</p></li>
+<li><p>Makes it easy to detect outliers and understand the spread and central tendency of the data.</p></li>
+<li><p>Allows quick comparison across multiple variables or groups (e.g., by township).</p></li>
+</ul>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">ggplot</span><span class="op">(</span>data<span class="op">=</span><span class="va">ict_derived</span>, </span>
+<span>       <span class="fu">aes</span><span class="op">(</span>x<span class="op">=</span> <span class="va">RADIO</span> <span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_boxplot</span><span class="op">(</span>color<span class="op">=</span><span class="st">"black"</span>, </span>
+<span>               fill<span class="op">=</span><span class="st">"light blue"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="Hands-on_Ex06_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="384"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Let’s also visualise the distribution of the newly derived variables (i.e.&nbsp;Radio penetration rate).</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">ict_derived</span>,</span>
+<span>       <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">RADIO_PR</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_histogram</span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>                 color <span class="op">=</span> <span class="st">"black"</span>,</span>
+<span>                 fill <span class="op">=</span> <span class="st">"light blue"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="Hands-on_Ex06_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="384"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">ict_derived</span>,</span>
+<span>       <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">RADIO_PR</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_boxplot</span><span class="op">(</span>color <span class="op">=</span> <span class="st">"black"</span>, fill <span class="op">=</span> <span class="st">"light blue"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="Hands-on_Ex06_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="384"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>What can you observed from the distributions reveal in the histogram and boxplot?</li>
+</ul>
+<p>The penetration rate data are more normally distributed and show fewer outliers than the raw ownership counts, since the effect of township size has been normalised.</p>
+</div>
+</div>
+<p>In the figure below, <strong>multiple</strong> histograms are plotted to reveal the distribution of the selected variables in the <code>ict_derived</code> data.frame.</p>
+<p>In <strong>tmap</strong>, <code>tmap_arrange()</code> (or <code>tmarange</code>) is used to arrange multiple map plots side by side or in a grid layout.</p>
+<p>In <strong>ggplot2</strong>, the equivalent is <a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html"><code>ggarrange()</code></a> from the <a href="https://rpkgs.datanovia.com/ggpubr/index.html"><strong>ggpubr</strong></a> package.</p>
+<div class="cell">
+<details class="code-fold"><summary>View code</summary><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">radio</span> <span class="op">&lt;-</span> <span class="fu">ggplot</span><span class="op">(</span>data<span class="op">=</span> <span class="va">ict_derived</span>,</span>
+<span>                <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">RADIO_PR</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_histogram</span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">20</span>, color <span class="op">=</span> <span class="st">"black"</span>, fill <span class="op">=</span> <span class="st">"light blue"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">tv</span> <span class="op">&lt;-</span> <span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">ict_derived</span>, <span class="fu">aes</span><span class="op">(</span>x<span class="op">=</span> <span class="va">TV_PR</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_histogram</span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">20</span>, color <span class="op">=</span> <span class="st">"black"</span>, fill <span class="op">=</span> <span class="st">"light blue"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">llphone</span> <span class="op">&lt;-</span> <span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">ict_derived</span>, <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">LLPHONE_PR</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_histogram</span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">20</span>, color <span class="op">=</span> <span class="st">"black"</span>,fill <span class="op">=</span> <span class="st">"light blue"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">mphone</span> <span class="op">&lt;-</span> <span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">ict_derived</span>, <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">MPHONE_PR</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_histogram</span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">20</span>, color <span class="op">=</span> <span class="st">"black"</span>, fill <span class="op">=</span> <span class="st">"light blue"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">computer</span> <span class="op">&lt;-</span> <span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">ict_derived</span>, <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">COMPUTER_PR</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_histogram</span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">20</span>, color <span class="op">=</span> <span class="st">"black"</span>, fill <span class="op">=</span><span class="st">"light blue"</span><span class="op">)</span> </span>
+<span></span>
+<span><span class="va">internet</span> <span class="op">&lt;-</span> <span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">ict_derived</span>, <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">INTERNET_PR</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_histogram</span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">20</span>, color <span class="op">=</span> <span class="st">"black"</span>, fill <span class="op">=</span> <span class="st">"light blue"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">ggarrange</span><span class="op">(</span><span class="va">radio</span>, <span class="va">tv</span>, <span class="va">llphone</span>, <span class="va">mphone</span>, <span class="va">computer</span>, <span class="va">internet</span>, </span>
+<span>          ncol <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>          nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details><div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="Hands-on_Ex06_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section></section><section id="reference" class="level2" data-number="6"><h2 data-number="6" class="anchored" data-anchor-id="reference">
+<span class="header-section-number">6</span> Reference</h2>
+<p>Kam, T. S. 8 Spatial Weights and Applications. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap12</p>
 
 
-</section>
-
-</main> <!-- /main -->
-<script id="quarto-html-after-body" type="application/javascript">
+</section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     // Ensure there is a toggle, if there isn't float one in the top right
     if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
@@ -909,7 +1307,6 @@ ul.task-list li input[type="checkbox"] {
   });
   </script>
 </div> <!-- /content -->
-
 
 
 
