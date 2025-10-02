@@ -128,15 +128,15 @@ When we fail to reject the null hypothesis, we should continue to examine furthe
 
 [\*\*EHSA\*](https://sfdep.josiahparry.com/articles/understanding-emerging-hotspots)
 
-**EHSA Four steps:** 
+**EHSA Four steps:**
 
-- Build a space–time cube. 
+-   Build a space–time cube.
 
-- Calculate local Gi*. 
+-   Calculate local Gi\*.
 
--Evaluate the hot/cold-spot trend using the Mann–Kendall test. 
+-Evaluate the hot/cold-spot trend using the Mann–Kendall test.
 
-- Categorising each study area location by referring to the resultant trend z-score and p-value for each location with data, and with the hot spot z-score and p-value for each bin.
+-   Categorising each study area location by referring to the resultant trend z-score and p-value for each location with data, and with the hot spot z-score and p-value for each bin.
 
 ## Getting started
 
@@ -211,21 +211,19 @@ Dataset now has neighbours and weights for each time-slice.
 
 Here we explicitly build a distance-based weight matrix.
 
-- Each neighbour’s influence is weighted by the inverse of its distance (1/d^α).
+-   Each neighbour’s influence is weighted by the inverse of its distance (1/d\^α).
 
-- scale and alpha control the functional form (scale factor and decay rate).
+-   scale and alpha control the functional form (scale factor and decay rate).
 
-- This is suitable when we want weights to reflect spatial proximity (closer neighbours contribute more, farther neighbours less). 
+-   This is suitable when we want weights to reflect spatial proximity (closer neighbours contribute more, farther neighbours less).
 
-:::callout-important
-
+::: callout-important
 In short, we chose inverse distance weights to capture continuous spatial interaction (e.g., GDPPC similarity decays with distance, not just borders).
 
 In [Guerry example](https://sfdep.josiahparry.com/articles/understanding-emerging-hotspots), they used simple contiguity weights [`(st_weights(nb)`](https://sfdep.josiahparry.com/reference/st_weights) because the analysis follows the classic adjacency-based LISA (Local Indicators of Spatial Association) tradition.
 
 Either is fine for EHSA; just keep it consistent over time.
 :::
-
 
 ### Computing Gi\*
 
@@ -242,26 +240,21 @@ gi_stars <- GDPPC_nb %>%
 gi_stars
 ```
 
-
-:::callout-note
+::: callout-note
 local_gstar_perm
 
-- x, # numeric vector
+-   x, \# numeric vector
 
-- nb, # nb list created by st_contiguity() etc
+-   nb, \# nb list created by st_contiguity() etc
 
-- wt, # listw created by st_weights() etc
+-   wt, \# listw created by st_weights() etc
 
-- nsim = 499, #default 99? or 499?
+-   nsim = 499, #default 99? or 499?
 
-- alternative = "two.sided", # default
+-   alternative = "two.sided", \# default
 
-...
-)
-
+... )
 :::
-
-
 
 ## Step 3: Mann-Kendall Test
 
@@ -273,7 +266,7 @@ H₁: a monotonic trend exists (consistently increases or decreases).
 
 ### Interpreting Kendall’s
 
-τ ranges from −1 to +1 (direction = sign; strength = magnitude). 
+τ ranges from −1 to +1 (direction = sign; strength = magnitude).
 
 In Kendall::MannKendall, sl is the p-value.
 
@@ -355,31 +348,21 @@ head(emerging)
 
 Lastly, we will perform EHSA analysis by using [`emerging_hotspot_analysis()`](https://sfdep.josiahparry.com/reference/emerging_hotspot_analysis.html) of **sfdep** package.
 
-:::callout-note
-
+::: callout-note
 emerging_hotspot_analysis(
 
-  - x,  #spacetime object
-  - .var, # numeric vector with no missing value
-  - k = 1, # 3 consecutive for annual (3 years), if quarterly/monthly consider 4-6
-  - include_gi = FALSE, # True recommended, but False for speed
-  - nb_col = NULL,
-  - wt_col = NULL,
-  - nsim = 199, #default
-  - threshold = 0.01, #The significance threshold to use.
-  ...
-)
+-   x, #spacetime object
+-   .var, \# numeric vector with no missing value
+-   k = 1, \# 3 consecutive for annual (3 years), if quarterly/monthly consider 4-6
+-   include_gi = FALSE, \# True recommended, but False for speed
+-   nb_col = NULL,
+-   wt_col = NULL,
+-   nsim = 199, #default
+-   threshold = 0.01, #The significance threshold to use. ... )
 
-Gi_Bin = case_when(
-  - gi_star >=  2.58 ~  3L,  #99%
-  - gi_star >=  1.96 ~  2L,  #95%
-  - gi_star >=  1.65 ~  1L,  #90%
-  - gi_star <= -2.58 ~ -3L,  
-  - gi_star <= -1.96 ~ -2L,
-  - gi_star <= -1.65 ~ -1L,
-  - TRUE             ~  0L   #not sig
+Gi_Bin = case_when( - gi_star \>= 2.58 \~ 3L, #99% - gi_star \>= 1.96 \~ 2L, #95% - gi_star \>= 1.65 \~ 1L, #90% - gi_star \<= -2.58 \~ -3L,\
+- gi_star \<= -1.96 \~ -2L, - gi_star \<= -1.65 \~ -1L, - TRUE \~ 0L #not sig
 :::
-
 
 ### EHSA
 
@@ -441,7 +424,7 @@ tm_shape(ehsa_sig) +
 
 ### Plot DIY
 
-1. Gi*
+1.  Gi\*
 
 ```{r}
 #| eval: false
@@ -469,9 +452,7 @@ gi_stars |>
 
 ```
 
-
-
-2. EHSA: DONE
+2.  EHSA: DONE
 
 ::: callout-important
 Gi\* is computed for each year (i.e., for the space–time cube bins). We report both z-scores and p-values; bins with p ≥ 0.05 are labelled as **Insignificant.** The summary of insignificant bins by year is analogous to a Moran’s I summary, but based on Gi\* z-scores and p-values. Visualising EHSA results should explicitly incorporate the p-value. Update the plot on slide p18 to include an **Insignificant** legend entry, consistent with the HCSA map shown in Chapter 10.
@@ -567,57 +548,54 @@ tmap_arrange(Gi_star_map, p_values_map, asp=1, ncol=2)
 
 -   Be careful with the steps (document thresholds, weights, and binning).
 
-
 TL;DR
 
-- Use local_gstar_perm() for fine-grained diagnostics & sensitivity analysis.
+-   Use local_gstar_perm() for fine-grained diagnostics & sensitivity analysis.
 
-- Use emerging_hotspot_analysis() for a clean, reproducible end result.
+-   Use emerging_hotspot_analysis() for a clean, reproducible end result.
 
-- Keep nb/wt fixed across years; match nsim/alpha; and compare outputs with a small reconciliation table before final mapping.
-
-
+-   Keep nb/wt fixed across years; match nsim/alpha; and compare outputs with a small reconciliation table before final mapping.
 :::
 
 ArcGIS defines 18 categories:
 
 Hot Spot families (9 types):
 
-- New Hot Spot: First time a Hot Spot appears, and it’s recent.
+-   New Hot Spot: First time a Hot Spot appears, and it’s recent.
 
-- Consecutive Hot Spot: Hot Spot in each of the last k time steps (default k=3).
+-   Consecutive Hot Spot: Hot Spot in each of the last k time steps (default k=3).
 
-- Intensifying Hot Spot: Hot in ≥90% of all time steps and Gi* z-scores show a significant upward MK trend.
+-   Intensifying Hot Spot: Hot in ≥90% of all time steps and Gi\* z-scores show a significant upward MK trend.
 
-- Persistent Hot Spot: Hot in ≥90% of all time steps, no significant MK trend.
+-   Persistent Hot Spot: Hot in ≥90% of all time steps, no significant MK trend.
 
-- Diminishing Hot Spot: Hot in ≥90% of all time steps and significant downward MK trend.
+-   Diminishing Hot Spot: Hot in ≥90% of all time steps and significant downward MK trend.
 
-- Sporadic Hot Spot: Hot in <90% of time steps, nonconsecutive, not just one.
+-   Sporadic Hot Spot: Hot in \<90% of time steps, nonconsecutive, not just one.
 
-- Oscillating Hot Spot: Alternates between Hot and Cold across time.
+-   Oscillating Hot Spot: Alternates between Hot and Cold across time.
 
-- Historical Hot Spot: Was Hot before but not in the last k slices.
+-   Historical Hot Spot: Was Hot before but not in the last k slices.
 
-- No Pattern Detected (applies if Insig or no strong classification).
+-   No Pattern Detected (applies if Insig or no strong classification).
 
 Cold Spot families (mirror 8 types):
 
-- New Cold Spot
+-   New Cold Spot
 
-- Consecutive Cold Spot
+-   Consecutive Cold Spot
 
-- Intensifying Cold Spot
+-   Intensifying Cold Spot
 
-- Persistent Cold Spot
+-   Persistent Cold Spot
 
-- Diminishing Cold Spot
+-   Diminishing Cold Spot
 
-- Sporadic Cold Spot
+-   Sporadic Cold Spot
 
-- Oscillating Hot/Cold
+-   Oscillating Hot/Cold
 
-- Historical Cold Spot
+-   Historical Cold Spot
 
 ![](img/Screenshot%202025-09-29%20234329.png)
 
