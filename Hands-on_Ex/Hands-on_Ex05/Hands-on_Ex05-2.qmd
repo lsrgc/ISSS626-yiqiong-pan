@@ -26,8 +26,7 @@ editor: visual
 
 **Local Measures of Spatial Autocorrelation (LMSA)** deepen the analysis of spatial patterns by providing location-specific scores. These measures are mathematically connected to the global indices, such as **Local Indicators of Spatial Association (LISA)** and **Getis–Ord’s Gi**-statistics.
 
-For detecting **outliers and local clusters**, we use **LISA (Local Moran’s I)** with **distance-based** or **contiguity-based** weights matrix.
-For identifying **hot spots and cold spots**, we use **Getis-Ord Local Gi\***, only with a **distance-based weights matrix**.
+For detecting **outliers and local clusters**, we use **LISA (Local Moran’s I)** with **distance-based** or **contiguity-based** weights matrix. For identifying **hot spots and cold spots**, we use **Getis-Ord Local Gi\***, only with a **distance-based weights matrix**.
 
 Results are only reliable if the input feature class contains at least **30** features.
 
@@ -64,7 +63,7 @@ The main development objective for urban planners is to achieve **equal developm
 The following two data sets are used here:
 
 | Data Name | Format | Descrption |
-|---------------------------|-------------------|---------------------------|
+|----|----|----|
 | Hunan | shapefile | Geospatial data for county boundary layer |
 | Hunan_2012 | csv | Aspatial data for Hunan’s local development indicators in 2012 |
 
@@ -75,7 +74,7 @@ The following two data sets are used here:
 A total of **five** R packages will be used in this exercise.
 
 | Package | Description |
-|------------------------------------|------------------------------------|
+|----|----|
 | [sf](https://r-spatial.github.io/sf/) | Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data. |
 | [spdep](https://cran.r-project.org/web/packages/spdep/index.html) | Tools for computing spatial weights and calculating spatially lagged variables. |
 | [tmap](https://r-tmap.github.io/tmap/) | Creates cartographic quality static or interactive choropleth maps. |
@@ -218,7 +217,7 @@ The newly created columns are:
 -   `z.ii`:the standard deviate of local moran statistic (z-value)
 -   `p.ii`: the p-value of local moran statistic
 -   `p_ii_sim`: p-value from randomisation (Monte Carlo simulations)
--   `p_folded_sim`: p-value from k-folded simulations (more conservative, treats extreme values both tails), from pysal (python's equivalent ESDA). 
+-   `p_folded_sim`: p-value from k-folded simulations (more conservative, treats extreme values both tails), from pysal (python's equivalent ESDA).
 -   `skewness, kurtosis`: diagnostics for the distribution of simulated ii values (shape compared to normal)
 -   `mean, median,pysal`: mean, median, quandrant classifications based on comparing the region’s value to the value of neighbours, in the format of self - neighbours, e.g., "High-High".
 
@@ -648,7 +647,7 @@ At the 95% confidence level, HCSA map shows **hot spots** of high GDP per capita
 
 ## Plotting Summary
 
-Both Local Moran’s I (LISA) and Hot Spot/Cold Spot Analysis (HCSA) reveal similar spatial patterns of GDPPC in Hunan. LISA identifies hot clusters in the eastern–central counties and cold clusters in the western–southern counties, while also detecting spatial outliers (e.g.low surrounded by high and/or high surrounded by low). HCSA confirms the same hot spots and cold spots, but focuses only on statistically significant clustering, without distinguishing outliers. Thus, LISA provides finer diagnostic detail, whereas HCSA highlights the most robust clusters. There is high possibility to observe overlapped hot spots in LISA and HCSA, but there might not be sthe ame for cold spots since the methods are different. 
+Both Local Moran’s I (LISA) and Hot Spot/Cold Spot Analysis (HCSA) reveal similar spatial patterns of GDPPC in Hunan. LISA identifies hot clusters in the eastern–central counties and cold clusters in the western–southern counties, while also detecting spatial outliers (e.g.low surrounded by high and/or high surrounded by low). HCSA confirms the same hot spots and cold spots, but focuses only on statistically significant clustering, without distinguishing outliers. Thus, LISA provides finer diagnostic detail, whereas HCSA highlights the most robust clusters. There is high possibility to observe overlapped hot spots in LISA and HCSA, but there might not be sthe ame for cold spots since the methods are different.
 
 The code chunk below shows the LISA map and HCSA map together.
 

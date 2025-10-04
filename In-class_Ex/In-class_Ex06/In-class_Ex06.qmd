@@ -1,0 +1,225 @@
+---
+title: "In-class Ex06 "
+author: "Yiqiong PAN"
+date: "Oct 3, 2025"
+date-modified: last-modified
+
+execute:
+  echo: true    # display the code
+  eval: true    # run the code
+  message: false
+  warning: false
+  freeze: true  # do not re-render if nothing edited
+
+format: 
+  html:
+    toc: true
+    code-link: true
+
+number-sections: true
+number-depth: 4
+
+editor: visual
+---
+
+## Overview
+side note: use knitr to general reports.
+
+## Getting started
+
+### Loading Packages in to R
+
+```{r}
+pacman::p_load(sf,tmap,tidyverse,rvest, knitr, sfdep)
+```
+
+### Getting the Data into R environment
+
+1. Singapore boundary data, that we explored in Hands-on Ex 1-2
+
+2. LTADataMall: bus stop locations in SHP
+
+3. LTADataMall: bus trips during Aug 2025. We untilise the getpostman to download the csv file.
+
+```{r}
+mpsz <- st_read("data/geospatial/MasterPlan2019SubzoneBoundaryNoSeaKML.kml")
+```
+
+```{r}
+extract_kml_field <- function(html_text, field_name) {
+  # return NA if missing or empty
+  if (is.na(html_text) || html_text == "") return(NA_character_)
+  
+  page <- read_html(html_text)          #parse the HTML string 
+  rows <- page %>% html_elements("tr")  #get all table rows <tr>
+  
+  value <- rows %>%
+    keep(~ html_text2(html_element(.x, "th")) == field_name) %>% #keep row where <th> table header text = field_name
+    html_element("td") %>%                                       #take its <td> table data
+    html_text2()                                                 #extract clean text
+  
+  if (length(value) == 0) NA_character_ else value        #return NA if no match, otherwise the value
+}
+```
+
+
+```{r}
+mpsz <- mpsz %>%
+  mutate(
+     #for each description string, call the function, It returns a length-1 character per row (or NA)
+    REGION_N = map_chr(Description, extract_kml_field, "REGION_N"),
+    PLN_AREA_N = map_chr(Description, extract_kml_field, "PLN_AREA_N"),
+    SUBZONE_N = map_chr(Description, extract_kml_field, "SUBZONE_N"),
+    SUBZONE_C = map_chr(Description, extract_kml_field, "SUBZONE_C")
+  ) %>%
+  select(-Name, -Description) %>% #drop the raw KML attributes
+  relocate(geometry, .after = last_col()) #move the geometry column to the end
+```
+
+
+```{r}
+write_rds(mpsz, "data/rds/mpsz.rds")
+
+```
+
+```{r}
+class(mpsz)
+mpsz <- st_transform(mpsz, 3414)
+st_crs(mpsz)
+```
+
+```{r}
+BusStop <- st_read(dsn = "data/LTADataMall",
+                   layer = "BusStop") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+odbus <- read_csv("data/LTADataMall/origin_destination_bus_202508.csv")
+summary(odbus)
+```
+
+
+Here we plot the bus stops in Singapore to see the distribution of their locations.
+
+```{r}
+plot(st_geometry(mpsz))
+plot(st_geometry(BusStop), add = TRUE, cex = 0.5, col ="blue")
+```
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(BusStop) +
+  tm_dots()
+```
+Since there are a few points outside the Singapore boundaries, we need to exclude these. If we see the error messages that st_crs(x) != st_crs(y), it reminds us to assign the correct/same projection crs (i.e. 3414). (t_transform() or st_set_crs both work the same way to pass on the crs.
+
+```{r}
+BusStop_in_SG <- st_join(
+  BusStop, mpsz,
+  join = st_within,
+  left = FALSE)
+```
+
+Next we double check we have filtered the points in Singapore.
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(BusStop_in_SG) +
+  tm_dots()
+```
+### Creating the analytical hexagons (Singapore with Honeycomb Grid)
+
+- cellsize: A numeric value (length 1 or 2) specifying the target cell size. For square/rectangular cells, this defines width and height. For hexagonal cells, it defines the distance between opposite edges. 
+
+```{r}
+hexagon <- st_make_grid(mpsz,
+                        cellsize = 700,  ## attention 375m required for take-home ex.
+                        what = "polygon",
+                        square = FALSE) %>%
+  st_sf()                                ## this st_* function doesn't return sf data.frame, we need to specifically coerce the file to sf object.
+
+```
+
+Two Tasks:
+- In mpsz, there are two unique IDs that are SUBZONE_N and SUBZONE_C. We need to add the reference to the geometry values.
+- Als owe only want hexagons with bus stops.
+
+
+We filter the hexgaons with bus stops.
+
+Recall: 
+
+- St_intersections() returns the geographic catchment of the intersection. 
+
+- St_intersects() returns true/false (1/0) of the intersection. 
+
+We reduce the hexagon number from 4524 to 924. 
+
+```{r}
+hexagon$n_collisions = 
+  lengths(st_intersects(hexagon, BusStop_in_SG))
+```
+
+```{r}
+hexagon <- filter(hexagon, n_collisions >0)
+```
+
+
+```{r}
+hexagon <- hexagon %>%
+  select(, -n_collisions)  #- to drop the column
+
+hexagon$HEX_ID <- sprintf(
+  "H%04d", seq_len(nrow(hexagon))) %>%  #04 is to accommodate the hexagon number
+  as.factor()  #ordinal scale
+
+kable(head(hexagon))
+```
+
+
+### Tidying the trip data
+
+Year_Month and destination_pt_code could be excluded for this analysis. 
+
+```{r}
+# select the variables
+trips <- odbus %>%
+  select (c(ORIGIN_PT_CODE, DAY_TYPE, TIME_PER_HOUR, TOTAL_TRIPS)) %>%
+  rename(BUS_STOP_N = ORIGIN_PT_CODE) %>%  # easier when performing join later
+  rename(HOUR_OF_DAY= TIME_PER_HOUR) %>%
+  rename(TRIPS = TOTAL_TRIPS) #easy interpration
+``` 
+
+```{r}
+trips$BUS_STOP_N <- as.factor(trips$BUS_STOP_N)
+kable(head(trips))
+```
+
+
+Next we combine the hexagon with bus stops and trips together.
+
+Hexagon and bus stops
+
+```{r}
+bs_hex <- st_intersection(
+  BusStop, hexagon) %>%
+  st_drop_geometry() %>%
+  select(c(BUS_STOP_N, HEX_ID))
+
+kable(head(bs_hex))
+```
+
+We add HEX_ID into bus trips.
+
+```{r}
+trips<- inner_join(trips, bs_hex)
+kable(head(trips))
+```
+
+Note: two more steps to go before we can start the analysis.
+convert time-space cube..... for EHSA. before doing any analysis.
+
+
+
