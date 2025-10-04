@@ -23,7 +23,6 @@ editor: visual
 ---
 
 ## Overview
-side note: use knitr to general reports.
 
 ## Getting started
 
@@ -33,13 +32,16 @@ side note: use knitr to general reports.
 pacman::p_load(sf,tmap,tidyverse,rvest, knitr, sfdep)
 ```
 
+Side note: use knitr to general reports.
+
+
 ### Getting the Data into R environment
 
 1. Singapore boundary data, that we explored in Hands-on Ex 1-2
 
 2. LTADataMall: bus stop locations in SHP
 
-3. LTADataMall: bus trips during Aug 2025. We untilise the getpostman to download the csv file.
+3. LTADataMall: the bus trip data for August 2025 were retrieved using GetPostman to download the CSV file.
 
 ```{r}
 mpsz <- st_read("data/geospatial/MasterPlan2019SubzoneBoundaryNoSeaKML.kml")
@@ -112,7 +114,7 @@ tm_shape(mpsz) +
 tm_shape(BusStop) +
   tm_dots()
 ```
-Since there are a few points outside the Singapore boundaries, we need to exclude these. If we see the error messages that st_crs(x) != st_crs(y), it reminds us to assign the correct/same projection crs (i.e. 3414). (t_transform() or st_set_crs both work the same way to pass on the crs.
+Since there are a few points located outside the Singapore boundary, these need to be excluded. If we encounter an error message such as st_crs(x) != st_crs(y), it indicates that the coordinate reference systems (CRS) of the two objects are not the same. In such cases, we should assign the correct and consistent CRS (i.e., EPSG:3414). Both st_transform() and st_set_crs() can be used to apply the appropriate CRS.
 
 ```{r}
 BusStop_in_SG <- st_join(
@@ -121,8 +123,7 @@ BusStop_in_SG <- st_join(
   left = FALSE)
 ```
 
-Next we double check we have filtered the points in Singapore.
-
+Next, we double-check that the points have been correctly filtered to include only those within Singapore.
 ```{r}
 tm_shape(mpsz) +
   tm_polygons() +
@@ -131,7 +132,7 @@ tm_shape(BusStop_in_SG) +
 ```
 ### Creating the analytical hexagons (Singapore with Honeycomb Grid)
 
-- cellsize: A numeric value (length 1 or 2) specifying the target cell size. For square/rectangular cells, this defines width and height. For hexagonal cells, it defines the distance between opposite edges. 
+- cellsize: A numeric value (length 1 or 2) specifying the target cell size. For square/rectangular cells, this defines width and height. For hexagonal cells, it defines the distance between opposite edges. So for the actual analysis, we should use `cellsize = 750`.
 
 ```{r}
 hexagon <- st_make_grid(mpsz,
@@ -142,20 +143,15 @@ hexagon <- st_make_grid(mpsz,
 
 ```
 
-Two Tasks:
-- In mpsz, there are two unique IDs that are SUBZONE_N and SUBZONE_C. We need to add the reference to the geometry values.
-- Als owe only want hexagons with bus stops.
+We identified two tasks from the hexagon:
 
+1. In mpsz, the unique IDs SUBZONE_N or SUBZONE_C should be attached to the hexagon geometries.
 
-We filter the hexgaons with bus stops.
+2. Keep only hexagons that contain at least one bus stop.
 
-Recall: 
+To implement this, we first filter the hexagons using a spatial intersection with the bus-stop points. 
 
-- St_intersections() returns the geographic catchment of the intersection. 
-
-- St_intersects() returns true/false (1/0) of the intersection. 
-
-We reduce the hexagon number from 4524 to 924. 
+Recall: st_intersection() returns the geometric overlap (catchment), while st_intersects() returns a logical relation (TRUE/FALSE). After filtering, the hexagon count is reduced from 4,524 to 924.
 
 ```{r}
 hexagon$n_collisions = 
@@ -166,22 +162,22 @@ hexagon$n_collisions =
 hexagon <- filter(hexagon, n_collisions >0)
 ```
 
+The code chunk below removes the unwanted column and generates a set of 4-digit HEX_ID strings with leading zeros, then converts them from character to factor (ID) type using as.factor().
 
 ```{r}
 hexagon <- hexagon %>%
   select(, -n_collisions)  #- to drop the column
 
 hexagon$HEX_ID <- sprintf(
-  "H%04d", seq_len(nrow(hexagon))) %>%  #04 is to accommodate the hexagon number
+  "H%04d", seq_len(nrow(hexagon))) %>%  #4d is to accommodate the hexagon number
   as.factor()  #ordinal scale
 
 kable(head(hexagon))
 ```
 
-
 ### Tidying the trip data
 
-Year_Month and destination_pt_code could be excluded for this analysis. 
+Year_Month and destination_pt_code can be excluded from this analysis.
 
 ```{r}
 # select the variables
@@ -192,15 +188,16 @@ trips <- odbus %>%
   rename(TRIPS = TOTAL_TRIPS) #easy interpration
 ``` 
 
+The BUS_STOP_N (post code of bus stop origination) is converted to factor since they are unique identifier and easier grouping group_by later.
 ```{r}
 trips$BUS_STOP_N <- as.factor(trips$BUS_STOP_N)
 kable(head(trips))
 ```
 
 
-Next we combine the hexagon with bus stops and trips together.
+Next, we combine the hexagon, bus stop, and trip datasets.
 
-Hexagon and bus stops
+This code creates a lookup table linking each bus stop BUS_STOP_N to the hexagon it belongs to HEX_ID
 
 ```{r}
 bs_hex <- st_intersection(
@@ -211,15 +208,19 @@ bs_hex <- st_intersection(
 kable(head(bs_hex))
 ```
 
-We add HEX_ID into bus trips.
-
+We merge the HEX_ID and Bus Stop into trip data.
 ```{r}
 trips<- inner_join(trips, bs_hex)
 kable(head(trips))
 ```
 
-Note: two more steps to go before we can start the analysis.
-convert time-space cube..... for EHSA. before doing any analysis.
+Two more steps are required before we begin the analysis:
+
+Plot the hexagons.
+
+Convert the data into a space–time cube to run EHSA on that cube.
+
+
 
 
 
