@@ -334,22 +334,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex06/Hands-on_Ex06.html">
  <span class="dropdown-text">06: Geographical Segmentation with Spatially Constrained Clustering Techniques</span></a>
   </li>  
-        <li>
-    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex07/Hands-on_Ex07.html">
- <span class="dropdown-text">07:</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex08/Hands-on_Ex08.html">
- <span class="dropdown-text">08:</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html">
- <span class="dropdown-text">09:</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex10/Hands-on_Ex10.html">
- <span class="dropdown-text">10:</span></a>
-  </li>  
     </ul>
 </li>
   <li class="nav-item dropdown ">
@@ -387,10 +371,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>
     <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html">
  <span class="dropdown-text">01: Geospatial Analytics for Public Good</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex02/Take-home_Ex02.html">
- <span class="dropdown-text">Take-home Exercise 2</span></a>
   </li>  
     </ul>
 </li>
@@ -461,7 +441,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">October 4, 2025</p>
+      <p class="date-modified">October 5, 2025</p>
     </div>
   </div>
     
@@ -907,9 +887,15 @@ Projected CRS: SVY21</code></pre>
 </div>
 <p>Plot the hexagons.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">tm_shape</span><span class="op">(</span><span class="va">hexagon</span><span class="op">)</span> <span class="op">+</span> <span class="fu">tm_borders</span><span class="op">(</span>col <span class="op">=</span> <span class="st">"grey60"</span><span class="op">)</span> <span class="op">+</span></span>
-<span><span class="fu">tm_shape</span><span class="op">(</span><span class="va">mpsz</span><span class="op">)</span> <span class="op">+</span> <span class="fu">tm_borders</span><span class="op">(</span>col <span class="op">=</span> <span class="st">"red"</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
-<span><span class="fu">tm_layout</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Hexagons within Singapore Boundary"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">tm_shape</span><span class="op">(</span><span class="va">mpsz</span><span class="op">)</span> <span class="op">+</span> <span class="fu">tm_polygons</span><span class="op">(</span><span class="st">"green"</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="fu">tm_shape</span><span class="op">(</span><span class="va">hexagon</span><span class="op">)</span> <span class="op">+</span> <span class="fu">tm_polygons</span><span class="op">(</span><span class="st">"grey90"</span><span class="op">)</span> <span class="op">+</span> <span class="fu">tm_borders</span><span class="op">(</span><span class="st">"gray60"</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="fu">tm_shape</span><span class="op">(</span><span class="va">BusStop_in_SG</span><span class="op">)</span> <span class="op">+</span> <span class="fu">tm_dots</span><span class="op">(</span><span class="st">"black"</span>,  size <span class="op">=</span> <span class="fl">0.1</span>,shape <span class="op">=</span> <span class="fl">19</span><span class="op">)</span> <span class="op">+</span> </span>
+<span><span class="fu">tm_compass</span><span class="op">(</span>type <span class="op">=</span> <span class="st">"8star"</span>, size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_scalebar</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_grid</span><span class="op">(</span>lwd <span class="op">=</span> <span class="fl">0.1</span>, alpha <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_credits</span><span class="op">(</span><span class="st">"Source: data.gov.sg &amp; LTADataMall"</span>,</span>
+<span>            position <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"right"</span>, <span class="st">"bottom"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="fu">tm_title</span><span class="op">(</span><span class="st">"Honeycomb Grid with Bus Stops in Singapore"</span>, size <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="In-class_Ex06_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid figure-img" width="672"></p>

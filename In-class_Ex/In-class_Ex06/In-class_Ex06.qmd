@@ -34,14 +34,13 @@ pacman::p_load(sf,tmap,tidyverse,rvest, knitr, sfdep)
 
 Side note: use knitr to general reports.
 
-
 ### Getting the Data into R environment
 
-1. Singapore boundary data, that we explored in Hands-on Ex 1-2
+1.  Singapore boundary data, that we explored in Hands-on Ex 1-2
 
-2. LTADataMall: bus stop locations in SHP
+2.  LTADataMall: bus stop locations in SHP
 
-3. LTADataMall: the bus trip data for August 2025 were retrieved using GetPostman to download the CSV file.
+3.  LTADataMall: the bus trip data for August 2025 were retrieved using GetPostman to download the CSV file.
 
 ```{r}
 mpsz <- st_read("data/geospatial/MasterPlan2019SubzoneBoundaryNoSeaKML.kml")
@@ -64,7 +63,6 @@ extract_kml_field <- function(html_text, field_name) {
 }
 ```
 
-
 ```{r}
 mpsz <- mpsz %>%
   mutate(
@@ -77,7 +75,6 @@ mpsz <- mpsz %>%
   select(-Name, -Description) %>% #drop the raw KML attributes
   relocate(geometry, .after = last_col()) #move the geometry column to the end
 ```
-
 
 ```{r}
 write_rds(mpsz, "data/rds/mpsz.rds")
@@ -101,19 +98,20 @@ odbus <- read_csv("data/LTADataMall/origin_destination_bus_202508.csv")
 summary(odbus)
 ```
 
-
 Here we plot the bus stops in Singapore to see the distribution of their locations.
 
 ```{r}
 plot(st_geometry(mpsz))
 plot(st_geometry(BusStop), add = TRUE, cex = 0.5, col ="blue")
 ```
+
 ```{r}
 tm_shape(mpsz) +
   tm_polygons() +
 tm_shape(BusStop) +
   tm_dots()
 ```
+
 Since there are a few points located outside the Singapore boundary, these need to be excluded. If we encounter an error message such as st_crs(x) != st_crs(y), it indicates that the coordinate reference systems (CRS) of the two objects are not the same. In such cases, we should assign the correct and consistent CRS (i.e., EPSG:3414). Both st_transform() and st_set_crs() can be used to apply the appropriate CRS.
 
 ```{r}
@@ -124,15 +122,17 @@ BusStop_in_SG <- st_join(
 ```
 
 Next, we double-check that the points have been correctly filtered to include only those within Singapore.
+
 ```{r}
 tm_shape(mpsz) +
   tm_polygons() +
 tm_shape(BusStop_in_SG) +
   tm_dots()
 ```
+
 ### Creating the analytical hexagons (Singapore with Honeycomb Grid)
 
-- cellsize: A numeric value (length 1 or 2) specifying the target cell size. For square/rectangular cells, this defines width and height. For hexagonal cells, it defines the distance between opposite edges. So for the actual analysis, we should use `cellsize = 750`.
+-   cellsize: A numeric value (length 1 or 2) specifying the target cell size. For square/rectangular cells, this defines width and height. For hexagonal cells, it defines the distance between opposite edges. So for the actual analysis, we should use `cellsize = 750`.
 
 ```{r}
 hexagon <- st_make_grid(mpsz,
@@ -145,11 +145,11 @@ hexagon <- st_make_grid(mpsz,
 
 We identified two tasks from the hexagon:
 
-1. In mpsz, the unique IDs SUBZONE_N or SUBZONE_C should be attached to the hexagon geometries.
+1.  In mpsz, the unique IDs SUBZONE_N or SUBZONE_C should be attached to the hexagon geometries.
 
-2. Keep only hexagons that contain at least one bus stop.
+2.  Keep only hexagons that contain at least one bus stop.
 
-To implement this, we first filter the hexagons using a spatial intersection with the bus-stop points. 
+To implement this, we first filter the hexagons using a spatial intersection with the bus-stop points.
 
 Recall: st_intersection() returns the geometric overlap (catchment), while st_intersects() returns a logical relation (TRUE/FALSE). After filtering, the hexagon count is reduced from 4,524 to 924.
 
@@ -186,14 +186,14 @@ trips <- odbus %>%
   rename(BUS_STOP_N = ORIGIN_PT_CODE) %>%  # easier when performing join later
   rename(HOUR_OF_DAY= TIME_PER_HOUR) %>%
   rename(TRIPS = TOTAL_TRIPS) #easy interpration
-``` 
+```
 
 The BUS_STOP_N (post code of bus stop origination) is converted to factor since they are unique identifier and easier grouping group_by later.
+
 ```{r}
 trips$BUS_STOP_N <- as.factor(trips$BUS_STOP_N)
 kable(head(trips))
 ```
-
 
 Next, we combine the hexagon, bus stop, and trip datasets.
 
@@ -209,27 +209,27 @@ kable(head(bs_hex))
 ```
 
 We merge the HEX_ID and Bus Stop into trip data.
+
 ```{r}
 trips<- inner_join(trips, bs_hex)
 kable(head(trips))
 ```
 
-
 Plot the hexagons.
 
 ```{r}
-tm_shape(hexagon) + tm_borders(col = "grey60") +
-tm_shape(mpsz) + tm_borders(col = "red", lwd = 2) +
-tm_layout(title = "Hexagons within Singapore Boundary")
+tm_shape(mpsz) + tm_polygons("green") +
+tm_shape(hexagon) + tm_polygons("grey90") + tm_borders("gray60") +
+tm_shape(BusStop_in_SG) + tm_dots("black",  size = 0.1,shape = 19) + 
+tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+            position = c("right", "bottom")) +
+tm_title("Honeycomb Grid with Bus Stops in Singapore", size = 1)
 ```
 
 
 Two more steps are required before we begin the analysis:
 
-
 Convert the data into a space–time cube to run EHSA on that cube.
-
-
-
-
-
