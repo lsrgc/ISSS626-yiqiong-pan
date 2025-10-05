@@ -103,8 +103,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
-}</script><meta name="quarto:status" content="draft">
-<link rel="stylesheet" href="../../styles.css">
+}</script><link rel="stylesheet" href="../../styles.css">
 </head>
 <body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
     const toggleBodyColorMode = (bsSheetEl) => {
@@ -280,7 +279,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </script>
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top"><div id="quarto-draft-alert" class="alert alert-warning"><i class="bi bi-pencil-square"></i>Draft</div><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
+  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a href="../../index.html" class="navbar-brand navbar-brand-logo">
     </a>
@@ -468,7 +467,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header><section id="overview" class="level2" data-number="1"><h2 data-number="1" class="anchored" data-anchor-id="overview">
 <span class="header-section-number">1</span> Overview</h2>
-<p>side note: use knitr to general reports.</p>
 </section><section id="getting-started" class="level2" data-number="2"><h2 data-number="2" class="anchored" data-anchor-id="getting-started">
 <span class="header-section-number">2</span> Getting started</h2>
 <section id="loading-packages-in-to-r" class="level3" data-number="2.1"><h3 data-number="2.1" class="anchored" data-anchor-id="loading-packages-in-to-r">
@@ -476,12 +474,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">pacman</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pacman/man/p_load.html">p_load</a></span><span class="op">(</span><span class="va">sf</span>,<span class="va">tmap</span>,<span class="va">tidyverse</span>,<span class="va">rvest</span>, <span class="va">knitr</span>, <span class="va">sfdep</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<p>Side note: use knitr to general reports.</p>
 </section><section id="getting-the-data-into-r-environment" class="level3" data-number="2.2"><h3 data-number="2.2" class="anchored" data-anchor-id="getting-the-data-into-r-environment">
 <span class="header-section-number">2.2</span> Getting the Data into R environment</h3>
 <ol type="1">
 <li><p>Singapore boundary data, that we explored in Hands-on Ex 1-2</p></li>
 <li><p>LTADataMall: bus stop locations in SHP</p></li>
-<li><p>LTADataMall: bus trips during Aug 2025. We untilise the getpostman to download the csv file.</p></li>
+<li><p>LTADataMall: the bus trip data for August 2025 were retrieved using GetPostman to download the CSV file.</p></li>
 </ol>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">mpsz</span> <span class="op">&lt;-</span> <span class="fu">st_read</span><span class="op">(</span><span class="st">"data/geospatial/MasterPlan2019SubzoneBoundaryNoSeaKML.kml"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -636,14 +635,14 @@ Projected CRS: SVY21</code></pre>
 </div>
 </div>
 </div>
-<p>Since there are a few points outside the Singapore boundaries, we need to exclude these. If we see the error messages that st_crs(x) != st_crs(y), it reminds us to assign the correct/same projection crs (i.e.&nbsp;3414). (t_transform() or st_set_crs both work the same way to pass on the crs.</p>
+<p>Since there are a few points located outside the Singapore boundary, these need to be excluded. If we encounter an error message such as st_crs(x) != st_crs(y), it indicates that the coordinate reference systems (CRS) of the two objects are not the same. In such cases, we should assign the correct and consistent CRS (i.e., EPSG:3414). Both st_transform() and st_set_crs() can be used to apply the appropriate CRS.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">BusStop_in_SG</span> <span class="op">&lt;-</span> <span class="fu">st_join</span><span class="op">(</span></span>
 <span>  <span class="va">BusStop</span>, <span class="va">mpsz</span>,</span>
 <span>  join <span class="op">=</span> <span class="va">st_within</span>,</span>
 <span>  left <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Next we double check we have filtered the points in Singapore.</p>
+<p>Next, we double-check that the points have been correctly filtered to include only those within Singapore.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">tm_shape</span><span class="op">(</span><span class="va">mpsz</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">tm_polygons</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
@@ -659,23 +658,22 @@ Projected CRS: SVY21</code></pre>
 </section><section id="creating-the-analytical-hexagons-singapore-with-honeycomb-grid" class="level3" data-number="2.3"><h3 data-number="2.3" class="anchored" data-anchor-id="creating-the-analytical-hexagons-singapore-with-honeycomb-grid">
 <span class="header-section-number">2.3</span> Creating the analytical hexagons (Singapore with Honeycomb Grid)</h3>
 <ul>
-<li>cellsize: A numeric value (length 1 or 2) specifying the target cell size. For square/rectangular cells, this defines width and height. For hexagonal cells, it defines the distance between opposite edges.</li>
+<li>cellsize: A numeric value (length 1 or 2) specifying the target cell size. For square/rectangular cells, this defines width and height. For hexagonal cells, it defines the distance between opposite edges. So for the actual analysis, we should use <code>cellsize = 750</code>.</li>
 </ul>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">hexagon</span> <span class="op">&lt;-</span> <span class="fu">st_make_grid</span><span class="op">(</span><span class="va">mpsz</span>,</span>
-<span>                        cellsize <span class="op">=</span> <span class="fl">700</span>,  <span class="co">## attention 375m required for take-home ex.</span></span>
+<span>                        cellsize <span class="op">=</span> <span class="fl">750</span>,  <span class="co">## attention 375m required for take-home ex.</span></span>
 <span>                        what <span class="op">=</span> <span class="st">"polygon"</span>,</span>
 <span>                        square <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">st_sf</span><span class="op">(</span><span class="op">)</span>                                <span class="co">## this st_* function doesn't return sf data.frame, we need to specifically coerce the file to sf object.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Two Tasks: - In mpsz, there are two unique IDs that are SUBZONE_N and SUBZONE_C. We need to add the reference to the geometry values. - Als owe only want hexagons with bus stops.</p>
-<p>We filter the hexgaons with bus stops.</p>
-<p>Recall:</p>
-<ul>
-<li><p>St_intersections() returns the geographic catchment of the intersection.</p></li>
-<li><p>St_intersects() returns true/false (1/0) of the intersection.</p></li>
-</ul>
-<p>We reduce the hexagon number from 4524 to 924.</p>
+<p>We identified two tasks from the hexagon:</p>
+<ol type="1">
+<li><p>In mpsz, the unique IDs SUBZONE_N or SUBZONE_C should be attached to the hexagon geometries.</p></li>
+<li><p>Keep only hexagons that contain at least one bus stop.</p></li>
+</ol>
+<p>To implement this, we first filter the hexagons using a spatial intersection with the bus-stop points.</p>
+<p>Recall: st_intersection() returns the geometric overlap (catchment), while st_intersects() returns a logical relation (TRUE/FALSE). After filtering, the hexagon count is reduced from 4,524 to 924.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">hexagon</span><span class="op">$</span><span class="va">n_collisions</span> <span class="op">=</span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/lengths.html">lengths</a></span><span class="op">(</span><span class="fu">st_intersects</span><span class="op">(</span><span class="va">hexagon</span>, <span class="va">BusStop_in_SG</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -683,12 +681,13 @@ Projected CRS: SVY21</code></pre>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">hexagon</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">hexagon</span>, <span class="va">n_collisions</span> <span class="op">&gt;</span><span class="fl">0</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<p>The code chunk below removes the unwanted column and generates a set of 4-digit HEX_ID strings with leading zeros, then converts them from character to factor (ID) type using as.factor().</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">hexagon</span> <span class="op">&lt;-</span> <span class="va">hexagon</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">select</span><span class="op">(</span>, <span class="op">-</span><span class="va">n_collisions</span><span class="op">)</span>  <span class="co">#- to drop the column</span></span>
 <span></span>
 <span><span class="va">hexagon</span><span class="op">$</span><span class="va">HEX_ID</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html">sprintf</a></span><span class="op">(</span></span>
-<span>  <span class="st">"H%04d"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">hexagon</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>  <span class="co">#04 is to accommodate the hexagon number</span></span>
+<span>  <span class="st">"H%04d"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">hexagon</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>  <span class="co">#4d is to accommodate the hexagon number</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/factor.html">as.factor</a></span><span class="op">(</span><span class="op">)</span>  <span class="co">#ordinal scale</span></span>
 <span></span>
 <span><span class="fu">kable</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">hexagon</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -700,27 +699,27 @@ Projected CRS: SVY21</code></pre>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">POLYGON ((4067.538 27468.93…</td>
+<td style="text-align: left;">POLYGON ((3792.538 27656.57…</td>
 <td style="text-align: left;">H0001</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">POLYGON ((4417.538 28075.15…</td>
+<td style="text-align: left;">POLYGON ((4167.538 28306.09…</td>
 <td style="text-align: left;">H0002</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">POLYGON ((4417.538 30500.02…</td>
+<td style="text-align: left;">POLYGON ((4542.538 30254.65…</td>
 <td style="text-align: left;">H0003</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">POLYGON ((4767.538 28681.37…</td>
+<td style="text-align: left;">POLYGON ((4542.538 31553.68…</td>
 <td style="text-align: left;">H0004</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">POLYGON ((4767.538 29893.8,…</td>
+<td style="text-align: left;">POLYGON ((4917.538 28306.09…</td>
 <td style="text-align: left;">H0005</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">POLYGON ((4767.538 31106.24…</td>
+<td style="text-align: left;">POLYGON ((4917.538 29605.13…</td>
 <td style="text-align: left;">H0006</td>
 </tr>
 </tbody>
@@ -729,7 +728,7 @@ Projected CRS: SVY21</code></pre>
 </div>
 </section><section id="tidying-the-trip-data" class="level3" data-number="2.4"><h3 data-number="2.4" class="anchored" data-anchor-id="tidying-the-trip-data">
 <span class="header-section-number">2.4</span> Tidying the trip data</h3>
-<p>Year_Month and destination_pt_code could be excluded for this analysis.</p>
+<p>Year_Month and destination_pt_code can be excluded from this analysis.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># select the variables</span></span>
 <span><span class="va">trips</span> <span class="op">&lt;-</span> <span class="va">odbus</span> <span class="op">%&gt;%</span></span>
@@ -738,6 +737,7 @@ Projected CRS: SVY21</code></pre>
 <span>  <span class="fu">rename</span><span class="op">(</span>HOUR_OF_DAY<span class="op">=</span> <span class="va">TIME_PER_HOUR</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">rename</span><span class="op">(</span>TRIPS <span class="op">=</span> <span class="va">TOTAL_TRIPS</span><span class="op">)</span> <span class="co">#easy interpration</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<p>The BUS_STOP_N (post code of bus stop origination) is converted to factor since they are unique identifier and easier grouping group_by later.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">trips</span><span class="op">$</span><span class="va">BUS_STOP_N</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">as.factor</a></span><span class="op">(</span><span class="va">trips</span><span class="op">$</span><span class="va">BUS_STOP_N</span><span class="op">)</span></span>
 <span><span class="fu">kable</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">trips</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -790,8 +790,8 @@ Projected CRS: SVY21</code></pre>
 </table>
 </div>
 </div>
-<p>Next we combine the hexagon with bus stops and trips together.</p>
-<p>Hexagon and bus stops</p>
+<p>Next, we combine the hexagon, bus stop, and trip datasets.</p>
+<p>This code creates a lookup table linking each bus stop BUS_STOP_N to the hexagon it belongs to HEX_ID</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">bs_hex</span> <span class="op">&lt;-</span> <span class="fu">st_intersection</span><span class="op">(</span></span>
 <span>  <span class="va">BusStop</span>, <span class="va">hexagon</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
@@ -818,30 +818,30 @@ Projected CRS: SVY21</code></pre>
 <td style="text-align: left;">H0002</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2554</td>
-<td style="text-align: left;">25761</td>
-<td style="text-align: left;">H0002</td>
-</tr>
-<tr class="even">
 <td style="text-align: left;">241</td>
 <td style="text-align: left;">26379</td>
 <td style="text-align: left;">H0003</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;">2652</td>
-<td style="text-align: left;">25741</td>
+<tr class="even">
+<td style="text-align: left;">1468</td>
+<td style="text-align: left;">26299</td>
 <td style="text-align: left;">H0004</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2554</td>
+<td style="text-align: left;">25761</td>
+<td style="text-align: left;">H0005</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">1635</td>
 <td style="text-align: left;">26399</td>
-<td style="text-align: left;">H0005</td>
+<td style="text-align: left;">H0006</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
-<p>We add HEX_ID into bus trips.</p>
+<p>We merge the HEX_ID and Bus Stop into trip data.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">trips</span><span class="op">&lt;-</span> <span class="fu">inner_join</span><span class="op">(</span><span class="va">trips</span>, <span class="va">bs_hex</span><span class="op">)</span></span>
 <span><span class="fu">kable</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">trips</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -860,48 +860,61 @@ Projected CRS: SVY21</code></pre>
 <td style="text-align: left;">WEEKENDS/HOLIDAY</td>
 <td style="text-align: right;">9</td>
 <td style="text-align: right;">3</td>
-<td style="text-align: left;">H0842</td>
+<td style="text-align: left;">H0765</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">10099</td>
 <td style="text-align: left;">WEEKENDS/HOLIDAY</td>
 <td style="text-align: right;">13</td>
 <td style="text-align: right;">31</td>
-<td style="text-align: left;">H0424</td>
+<td style="text-align: left;">H0393</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">64601</td>
 <td style="text-align: left;">WEEKENDS/HOLIDAY</td>
 <td style="text-align: right;">21</td>
 <td style="text-align: right;">3</td>
-<td style="text-align: left;">H0700</td>
+<td style="text-align: left;">H0633</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">53009</td>
 <td style="text-align: left;">WEEKENDS/HOLIDAY</td>
 <td style="text-align: right;">16</td>
 <td style="text-align: right;">10</td>
-<td style="text-align: left;">H0564</td>
+<td style="text-align: left;">H0529</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">80051</td>
 <td style="text-align: left;">WEEKENDS/HOLIDAY</td>
 <td style="text-align: right;">18</td>
 <td style="text-align: right;">4</td>
-<td style="text-align: left;">H0665</td>
+<td style="text-align: left;">H0601</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">70031</td>
 <td style="text-align: left;">WEEKDAY</td>
 <td style="text-align: right;">14</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: left;">H0678</td>
+<td style="text-align: left;">H0612</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
-<p>Note: two more steps to go before we can start the analysis. convert time-space cube….. for EHSA. before doing any analysis.</p>
+<p>Plot the hexagons.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">tm_shape</span><span class="op">(</span><span class="va">hexagon</span><span class="op">)</span> <span class="op">+</span> <span class="fu">tm_borders</span><span class="op">(</span>col <span class="op">=</span> <span class="st">"grey60"</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="fu">tm_shape</span><span class="op">(</span><span class="va">mpsz</span><span class="op">)</span> <span class="op">+</span> <span class="fu">tm_borders</span><span class="op">(</span>col <span class="op">=</span> <span class="st">"red"</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="fu">tm_layout</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Hexagons within Singapore Boundary"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="In-class_Ex06_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Two more steps are required before we begin the analysis:</p>
+<p>Convert the data into a space–time cube to run EHSA on that cube.</p>
 
 
 </section></section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
