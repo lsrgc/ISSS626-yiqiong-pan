@@ -45,7 +45,7 @@ For this exercise, the two datasets used are as follows:
 A total of **six** R packages will be used in this exercise.
 
 | Package | Description |
-|----|----|
+|------------------------------------|------------------------------------|
 | [sf](https://r-spatial.github.io/sf/) | Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data. |
 | [raster](https://rspatial.org/raster/) | Tools for reading, writing, and analyzing raster (gridded) spatial data in R |
 | [spatstat](https://spatstat.org/) | Provides useful functions for SPPA, including kcross, Lcross etc. |
@@ -212,10 +212,10 @@ As mentioned above, in `spatstat`, the marks of a `ppp` object could be:
 -   character marks, converted to `factor`, which are then used for for categorical analysis
 
 ```{r}
-fire_month <- fire_sf %>%
-  select(Month_num)
 
-str(fire_month)
+fire_month <- fire_sf %>% 
+  dplyr::select(Month_num)
+
 plot(fire_month)
 ```
 
@@ -300,7 +300,7 @@ Similar to the steps for computing STKDE by month, the code chunk below selects 
 
 ```{r}
 fire_yday_ppp <- fire_sf %>%
-  select(DayofYear) %>%
+  dplyr::select(DayofYear) %>%
   as.ppp()
 
 summary(fire_yday_ppp)
