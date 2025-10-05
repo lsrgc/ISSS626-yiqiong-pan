@@ -66,7 +66,7 @@ There are **14** packages used in this exercise.
 -   Visualisation / general workflow (**tidyverse, ggpubr**)
 
 | Package | Description |
-|-------------------|-----------------------------------------------------|
+|--------------------|----------------------------------------------------|
 | [sf](https://r-spatial.github.io/sf/) | Handles importing, managing, and processing vector-based geospatial data |
 | [rgdal](https://cran.r-project.org/package=rgdal) | Provides bindings to the GDAL/OGR library for reading/writing spatial data formats. |
 | [spdep](https://cran.r-project.org/package=spdep) | Tools for spatial dependence: building neighbour lists, spatial weights, and spatial autocorrelation analysis. |
@@ -760,7 +760,7 @@ The `skater()` stands for Spatial 'K'luster Analysis by Tree Edge Removal.
 
 ### Converting into SpatialPolygonsDataFrame
 
-The code chunk below uses [`as_Spatial()'](https://r-spatial.github.io/sf/reference/coerce-methods.html) to coerce`shan_sf`as`sf`into Spatial*Polygons*DataFrame which can be processed by`skater()\`function later.
+The code chunk below uses \[`as_Spatial()'](https://r-spatial.github.io/sf/reference/coerce-methods.html) to coerce`shan_sf`as`sf`into Spatial*Polygons*DataFrame which can be processed by`skater()\`function later.
 
 ```{r}
 shan_sp <- as_Spatial(shan_sf)
@@ -783,7 +783,6 @@ coords <- st_coordinates(
 )
 ```
 
-
 ```{r}
 plot(st_geometry(shan_sf),
      border = gray(0.5))
@@ -797,15 +796,14 @@ plot(shan.nb,
 
 The code chunk below uses [`nbcosts()`](https://r-spatial.github.io/spdep/reference/nbcosts.html) of **spdep** to computes attribute-based costs, e.g. the absolute difference in attribute values (or Euclidean distance in attribute space) between neighbours, as passing in a data.frame of attributes.
 
-
 ```{r}
 lcosts <- nbcosts(shan.nb, shan_ict)
 head(lcosts, 3)
 ```
+
 For each observation, this computes the pairwise dissimilarity on the five variables with its neighbours, serving as a generalised spatial weight. We then convert the neighbour list into a weights object, using the calculated lcosts as the weights, similar to how inverse distance weights were derived.
 
 In order to achieve this, [*nb2listw()*](https://r-spatial.github.io/spdep/reference/nb2listw.html) of **spdep** package is used as shown in the code chunk below.
-
 
 ```{r}
 shan.w <- nb2listw(shan.nb, 
@@ -813,6 +811,7 @@ shan.w <- nb2listw(shan.nb,
                    style="B")
 summary(shan.w)
 ```
+
 ### Computing minimum spanning tree
 
 The code chunk below calculates the minimum spanning tree by using [`mtree()`](https://r-spatial.github.io/spdep/reference/mstree.html) of spdep.
@@ -825,16 +824,16 @@ dim(shan.mst)
 head(shan.mst,3)
 ```
 
-The minimum spanning tree has n-1 edges(links). 
+The minimum spanning tree has n-1 edges(links).
 
-:::callout-note
-
+::: callout-note
 MST is about connecting everything cheaply (like designing a road or utility network). V1, V2, V3 are self row index, neighbour's row index, and edge weight (distance or dissimilarity).
 
 Hamiltonian Path and Travelling Salesman Problem are about visiting everything in a sequence (like a salesman’s route).
 :::
 
 The code chunk plots a minimum spanning tree that connects all townships using edges weighted by attribute-based similarity.
+
 ```{r}
 plot(st_geometry(shan_sf), border = gray(0.5))
 plot.mst(shan.mst, coords,
@@ -853,27 +852,20 @@ clust6 <- skater(edges = shan.mst[,1:2],
                  ncuts = 5)
 ```
 
-
 ```{r}
 str(clust6)
 ```
 
+::: callout-note
+skater(edges, data, ncuts, crit, vec.crit, method = c("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski", "mahalanobis"), p = 2, cov, inverted = FALSE)
 
+-   Three Mandatory Arguments:
 
-:::callout-note
-skater(edges, data, ncuts, crit, vec.crit, method = c("euclidean", 
-    "maximum", "manhattan", "canberra", "binary", "minkowski", 
-    "mahalanobis"), p = 2, cov, inverted = FALSE)
-    
-    
-- Three Mandatory Arguments: 
+the first two columns of the MST matrix (i.e. not the cost),
 
-the first two columns of the MST matrix (i.e. not the cost), 
+the data matrix (to update the costs as units are being grouped),
 
-the data matrix (to update the costs as units are being grouped), 
-
-the number of cuts. Note: **It is set to one less than the number of clusters.** 
-
+the number of cuts. Note: **It is set to one less than the number of clusters.**
 :::
 
 The output of `skater` object consists of `groups` vector which labels cluster for each observation.
@@ -882,17 +874,17 @@ The edges.groups list provides a summary for each cluster.
 
 Sum-of-squares measures e.g. ssto (total) and ssw (within) shows how each cut affects the overall criterion.
 
-The chunk blow stores the `groups`vector from `skater` object `clust6`  which assigns each row(township) to a cluster. If we want the number of neighbours for each township, we could use nb list `shan.nb` to check the cadinality.
+The chunk blow stores the `groups`vector from `skater` object `clust6` which assigns each row(township) to a cluster. If we want the number of neighbours for each township, we could use nb list `shan.nb` to check the cadinality.
 
 ```{r}
 ccs6 <- clust6$groups
 ccs6
 ```
 
-
 ```{r}
 table(ccs6)
 ```
+
 ```{r}
 clust6$edges.groups[[1]]$node
 ```
@@ -906,6 +898,7 @@ plot(clust6, coords, cex.lab = .7,
      cex.circles = 0.005,
      add = TRUE)
 ```
+
 ### Visualising the Clusters in Choropleth Map
 
 ```{r}
@@ -917,8 +910,7 @@ qtm(shan_sf_spatialcluster, "SP_CLUSTER")
 
 The code chunk below plots the hierarchical clustering ad spatially constrained hierarchical clustering maps side by side.
 
-
-```{r, fig.width=12, fig.height=6}
+```{r, fig.width=14, fig.height=6}
 
 hclust.map <- qtm(shan_sf_cluster, "CLUSTER") + 
   tm_borders() +
@@ -939,40 +931,37 @@ tmap_arrange(hclust.map, shclust.map,
 
 In this section, we perform non-spatially constrained hierarchical cluster analysis and spatially constrained cluster analysis with **ClustGeo** package.
 
-
 ### A short note about ClustGeo package
 
-[ClustGeo](https://cran.r-project.org/web/packages/ClustGeo/) is an R package for spatially constrained clustering. 
+[ClustGeo](https://cran.r-project.org/web/packages/ClustGeo/) is an R package for spatially constrained clustering.
 
 It implements a Ward-like (variance-minimising) hierarchical method, `hclustgeo()`, that blends two dissimilarities:
 
-- D0: a `dist` object represents dissimilarity in the **attribute space** (can be non-Euclidean; observations may be weighted).
+-   D0: a `dist` object represents dissimilarity in the **attribute space** (can be non-Euclidean; observations may be weighted).
 
-- D1: a `dist` object represents dissimilarity in the **spatial/constraint space**.
+-   D1: a `dist` object represents dissimilarity in the **spatial/constraint space**.
 
 A mixing parameter alpha (0,1) controls the trade-off via a convex combination of homogeneity criteria:
 
-criterion= (1-a) * crit(D0) + a * crit*(D1)
+criterion= (1-a) \* crit(D0) + a \* crit\*(D1)
 
 The goal is to choose alpha to increase spatial contiguity without unduly harming cluster quality on the variables of interest. The function `choicealpha()` estimates a suitable alpha by comparing solutions across alpha values.
 
-
-:::callout-note
+::: callout-note
 hclustgeo(D0, D1 = NULL, alpha = 0, scale = TRUE, wt = NULL)
 
-- hclustgeo(D0) = non-spatial (standard Ward).
+-   hclustgeo(D0) = non-spatial (standard Ward).
 
-- hclustgeo(D0, D1, alpha) = spatially constrained clustering.
+-   hclustgeo(D0, D1, alpha) = spatially constrained clustering.
 
-- Scale is used when both D0 and D1 are included, and scaled by i.e. divided by their max.
-
+-   Scale is used when both D0 and D1 are included, and scaled by i.e. divided by their max.
 :::
 
 ### Ward-like hierarchical clustering: ClustGeo
 
-`hclustgeo()` extends the base R function hclust(). Under the hood, it constructs a dendrogram object with the same structure as stats::hclust. 
+`hclustgeo()` extends the base R function hclust(). Under the hood, it constructs a dendrogram object with the same structure as stats::hclust.
 
- The code chunk below use `hclustgeo()` to perform hierarchical clustering. 
+The code chunk below use `hclustgeo()` to perform hierarchical clustering.
 
 ```{r}
 nongeo_cluster <- hclustgeo(proxmat)
@@ -982,6 +971,7 @@ rect.hclust(nongeo_cluster, k = 6, border = 2:5)
 #`border = 2:5` means: to use **red, green, blue, and cyan** as the rectangle borders.
 
 ```
+
 ### Mapping the clusters formed
 
 The code chunk below plots the non-spatial constrained hierachical clustering.
@@ -998,6 +988,7 @@ shan_sf_ngeo_cluster <- cbind(shan_sf, as.matrix(groups)) %>%
 ```{r}
 qtm(shan_sf_ngeo_cluster, "CLUSTER")
 ```
+
 ```{r, fig.width=12, fig.height=6}
 
 hclust.map <- qtm(shan_sf_cluster, "CLUSTER") + 
@@ -1025,12 +1016,12 @@ head(dist,1)
 distmat <- as.dist(dist)
 summary(distmat)
 ```
+
 ```{r}
 cr <- choicealpha(proxmat, distmat, range.alpha = seq(0,1,0.1), K = 6, graph = TRUE)
 ```
 
 The two diagnostic plots show that at an **alpha** level of **0.2–0.3**, the trade-off between attribute quality and spatial quality is well balanced. Here, Q denotes the **partition quality index**, analogous to an R2 measure, indicating how much of the variability is explained by the clustering partition.
-
 
 The code chunk below uses alpha = 0.2 to derive the clusters.
 
@@ -1062,7 +1053,6 @@ tmap_arrange(hclust.map, shclust.map,
              asp = NA, ncol = 2)
 ```
 
-
 ## Visual Interpretation of Clusters
 
 ### Visualising Individual Clustering Variable
@@ -1074,8 +1064,8 @@ ggplot(data = shan_sf_ngeo_cluster,
        aes(x = CLUSTER, y = RADIO_PR)) +
   geom_boxplot()
 ```
-The boxplot shows Cluster 3 has the highest Radio Ownership per thousand household on average and followed by Cluster 2, 1, 4, 5 and 6.
 
+The boxplot shows Cluster 3 has the highest Radio Ownership per thousand household on average and followed by Cluster 2, 1, 4, 5 and 6.
 
 ```{r}
 plot_boxplots <- function(var) {
@@ -1086,10 +1076,10 @@ plot_boxplots <- function(var) {
 vars <- names(shan_ict)
 for (v in vars) {print(plot_boxplots(v))}
 ```
+
 ### Multivariate Visualisation
 
-The code chunk creates parallel coordinate plots to reveal clustering variables by cluster using  [`ggparcoord()`](https://ggobi.github.io/ggally/reference/ggparcoord.html) of [**GGally**](https://ggobi.github.io/ggally/index.html) package.
-
+The code chunk creates parallel coordinate plots to reveal clustering variables by cluster using [`ggparcoord()`](https://ggobi.github.io/ggally/reference/ggparcoord.html) of [**GGally**](https://ggobi.github.io/ggally/index.html) package.
 
 ```{r, fig.width=12}
 ggparcoord(data = shan_sf_ngeo_cluster,
@@ -1102,22 +1092,21 @@ ggparcoord(data = shan_sf_ngeo_cluster,
   theme(axis.text.x = element_text(angle = 30))
 
 ```
-The parallel coordinate plot shows that households in **Cluster 4** townships tend to own the **highest** numbers of **TVs and mobile phones**, whereas households in **Cluster 5** townships record the **lowest** ownership across all five ICT assets.
 
+The parallel coordinate plot shows that households in **Cluster 4** townships tend to own the **highest** numbers of **TVs and mobile phones**, whereas households in **Cluster 5** townships record the **lowest** ownership across all five ICT assets.
 
 Below is a summary of the **`scale` options in `ggparcoord()`**:
 
-* **std**: standardise by mean and standard deviation.
-* **robust**: standardise by median and median absolute deviation.
-* **uniminmax**: rescale each variable to [0, 1] range.
-* **globalminmax**: no scaling; all variables share the same global min–max.
-* **center**: uniminmax scaling, then centre at a chosen summary value.
-* **centerObs**: uniminmax scaling, then centre at a chosen observation.
+-   **std**: standardise by mean and standard deviation.
+-   **robust**: standardise by median and median absolute deviation.
+-   **uniminmax**: rescale each variable to \[0, 1\] range.
+-   **globalminmax**: no scaling; all variables share the same global min–max.
+-   **center**: uniminmax scaling, then centre at a chosen summary value.
+-   **centerObs**: uniminmax scaling, then centre at a chosen observation.
 
-There is no universally best method. 
+There is no universally best method.
 
 Finally, the code chunk below calculates summary statistics such as mean, median, sd, etc.
-
 
 ```{r}
 shan_sf_ngeo_cluster %>%
@@ -1152,10 +1141,6 @@ summary_table_t <- cluster_summary(shan_sf_ngeo_cluster, "CLUSTER", vars) %>%
 kable(summary_table_t, caption = "Cluster Summary (Mean, SD, Median)")
   
 ```
-
-
-
-
 
 ## Reference
 
