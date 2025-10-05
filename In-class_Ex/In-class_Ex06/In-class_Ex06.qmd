@@ -229,6 +229,7 @@ tm_compass(type = "8star", size = 2) +
 tm_title("Honeycomb Grid with Bus Stops in Singapore", size = 1)
 ```
 
+Bubble map?
 
 Two more steps are required before we begin the analysis:
 
