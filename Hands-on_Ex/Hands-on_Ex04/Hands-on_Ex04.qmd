@@ -37,7 +37,7 @@ The following two data sets are used here:
 A total of **five** R packages will be used in this exercise.
 
 | Package | Description |
-|------------------------------------|------------------------------------|
+|----|----|
 | [sf](https://r-spatial.github.io/sf/) | Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data. |
 | [spdep](https://cran.r-project.org/web/packages/spdep/index.html) | Tools for computing spatial weights and calculating spatially lagged variables. |
 | [knitr](https://cran.r-project.org/web/packages/knitr/index.html) | Provides useful functions for dynamic document generation. |
