@@ -47,7 +47,7 @@ In real world application likes geobusiness and geospatail related policy making
 ## The Data
 
 | Dataset | Description | Format |
-|-------------------------|--------------------------|----------------------|
+|----|----|----|
 | myanmar_township_boundaries | GIS Myanmar Township Boundary Data represented as polygon features | ESRI shapefile |
 | Shan-ICT.csv | 2014 Myanmar Population and Housing Census at the township level | CSV |
 
@@ -66,7 +66,7 @@ There are **14** packages used in this exercise.
 -   Visualisation / general workflow (**tidyverse, ggpubr**)
 
 | Package | Description |
-|--------------------|----------------------------------------------------|
+|----|----|
 | [sf](https://r-spatial.github.io/sf/) | Handles importing, managing, and processing vector-based geospatial data |
 | [rgdal](https://cran.r-project.org/package=rgdal) | Provides bindings to the GDAL/OGR library for reading/writing spatial data formats. |
 | [spdep](https://cran.r-project.org/package=spdep) | Tools for spatial dependence: building neighbour lists, spatial weights, and spatial autocorrelation analysis. |
