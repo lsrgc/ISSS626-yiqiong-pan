@@ -34,15 +34,15 @@ This report demonstrates how to apply the Spatial and temporal Spatial Point Pat
 
 In this study, the following business types are selected for analysis:
 
-+----------------------+----------------------------------------------------------------------------------------------------------+-----------------------------+
-| SSIC Code            | Discrption                                                                                               | Number of Live Registration |
-+:====================:+:========================================================================================================:+:===========================:+
-| 46900                | Wholesale trade of a variety of goods without a dominant product                                         | 3862                        |
-+----------------------+----------------------------------------------------------------------------------------------------------+-----------------------------+
-| 62011                | Development of software and applications (except games and cybersecurity)                                | 1590                        |
-+----------------------+----------------------------------------------------------------------------------------------------------+-----------------------------+
-| 56140                | Stalls selling cooked food and prepared drinks (including stalls at food courts and mobile food hawkers) | 475                         |
-+----------------------+----------------------------------------------------------------------------------------------------------+-----------------------------+
++------------+----------------------------------------------------------------------------------------------------------+-----------------------------+
+| SSIC Code  | Discrption                                                                                               | Number of Live Registration |
++:==========:+:========================================================================================================:+:===========================:+
+| 46900      | Wholesale trade of a variety of goods without a dominant product                                         | 3862                        |
++------------+----------------------------------------------------------------------------------------------------------+-----------------------------+
+| 62011      | Development of software and applications (except games and cybersecurity)                                | 1590                        |
++------------+----------------------------------------------------------------------------------------------------------+-----------------------------+
+| 56140      | Stalls selling cooked food and prepared drinks (including stalls at food courts and mobile food hawkers) | 475                         |
++------------+----------------------------------------------------------------------------------------------------------+-----------------------------+
 
 The five-digit codes and their definitions are based on [Singapore Standard Industrial Classification](https://classification.codes/classifications/industry/ssic-singapore) (SSIC) 2020.
 
