@@ -102,7 +102,6 @@ st_write(mpsz14_shp,
         delete_dsn = TRUE)
 ```
 
-
 ## Working with Pre-school Location Data
 
 visit [data.gov.sg](data.gov.sg) and download **Pre-Schools Location** from the portal in both the kml and geojson files.
