@@ -24,7 +24,7 @@ editor: visual
 
 ## Overview
 
-In this exercise, we
+In this exercise, we try the basic geospatial data science with R.
 
 ## Getting Started in R
 
@@ -66,10 +66,6 @@ mpsz14_shp <- st_read(dsn = "data/", layer = "MP14_SUBZONE_WEB_PL")
 ```
 However, we encounter error message when importing the kml file.
 
-```{r}
-# mpsz14_kml <- st_read("data/MasterPlan2014SubzoneBoundaryWebKML.kml")
-```
-
 After receiving an error that the Web KML version cannot be opened, the code chunk below confirms that R can process KML files correctly.
 
 ```{r}
@@ -81,10 +77,6 @@ The code chunk below lists all the files in kml exension in the data folder.
 list.files("data/", pattern = "\\.kml$", full.names = TRUE)
 ```
 We also tested another 2014 Master Plan KML (“No Sea”), but it cannot be read either.
-
-```{r}
-# mpsz14_kml <- st_read("data/MasterPlan2014SubzoneBoundaryNoSeaKML.kml")
-```
 
 The 2019 version loads successfully, confirming that the issue lies with the 2014 KML file format.
 
