@@ -7,4 +7,4 @@
 /.quarto/
 data/
 **/*.quarto_ipynb
-exercise_template.qmd/
+- exercise_template.qmd

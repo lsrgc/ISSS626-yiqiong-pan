@@ -1,8 +1,7 @@
 ---
-title: "0 "
-draft: true
+title: "In-class Exercise 1: Geospatial Data Science with R"
 author: "Yiqiong PAN"
-date: "Sep 15, 2025"
+date: "Oct 05, 2025"
 date-modified: last-modified
 
 execute:
@@ -23,16 +22,99 @@ number-depth: 4
 editor: visual
 ---
 
-## Exerise Template
+## Overview
+
+In this exercise, we
+
+## Getting Started in R
+
+1.  Create a new project under **File - New Project**. Set up a new directory for easy navigation and launch the project.
+2.  Next, create a new folder named **In-class_Ex**.
+3.  Inside this folder, create a subfolder named **In-class_Ex01**. Then, create a new Quarto document and save it in the **In-class_Ex01** subfolder. Name the file **In-class_Ex01.qmd**.
+4.  Usually we also create another subfolder named **data** for storing datasets used during the analysis. Within the **data** folder, create three subfolders: **geospatial**, **aspatial (attribute table)**, and **rds** for saving different types of data.
+
+## Installing and Loading the R packages
+
+There are **4** packages used in this exercise.
+
+| Package | Description |
+|------------------------------------|------------------------------------|
+| [sf](https://r-spatial.github.io/sf/) | Handles importing, managing, and processing vector-based geospatial data |
+| [tidyverse](https://www.tidyverse.org/) | A collection of R packages for data wrangling and visualisation, including **readr**, **dplyr**, and **ggplot2**. |
+| [tmap](https://r-tmap.github.io/tmap/) | Creates cartographic quality static and interactive thematic (choropleth) maps. |
+| [ggstatsplot](https://indrajeetpatil.github.io/ggstatsplot/) | An extension of **ggplot2**.Provides graphical displays of statistical tests. |
+
+
+The code chunk below loads the required package into R.
+
 ```{r}
-for (i in 5:10) {
-  folder <- file.path("Hands-on_Ex", sprintf("Hands-on_Ex%02d",i))
-  
-  if (!dir.exists(folder)) dir.create(folder, recursive = TRUE)
-  
-  filename <- sprintf("Hands-on_Ex%02d.qmd", i)
-  
-  file.copy(from = "exercise_template.qmd",
-            to = file.path(folder, filename), overwrite = TRUE)}
+pacman::p_load(tidyverse, sf, tmap, ggstatsplot)
 ```
+
+If the required packages are not yet installed, use the function `install.packages()` to install them first. Remember to enclose the package names in double quotation marks ("") and separate them with commas (,) if installing more than one package.
+
+## Working with Master Plan Planning Sub-zone Data
+
+1. As mentioned earlier, create a subfolder named data inside the In-class_Ex01 folder.
+2. If necessary, visit [data.gov.sg](data.gov.sg) and download the **Master Plan 2014 Subzone Boundary (Web) dataset** from the portal in both the ESRI Shapefile and KML file formats.
+
+
+The code chunk below imports the **Master Plan 2014 Subzone Boundary (Web) dataset** in both **Shapefile** and **KML** formats, and saves them as sf (simple features) data frames. Note that the import syntax differs between the two formats: when importing a Shapefile, the file extension .shp is not required, while for a KML file, the full file name including the extension must be specified in the relative directory path.
+
+```{r}
+mpsz14_shp <- st_read(dsn = "data/", layer = "MP14_SUBZONE_WEB_PL")
+```
+However, we encounter error message when importing the kml file.
+
+```{r}
+mpsz14_kml <- st_read("data/MasterPlan2014SubzoneBoundaryWebKML.kml")
+```
+
+After receiving an error that the Web KML version cannot be opened, the code chunk below confirms that R can process KML files correctly.
+
+```{r}
+st_drivers()%>% filter(grepl("KML", name))
+```
+The code chunk below lists all the files in kml exension in the data folder.
+
+```{r}
+list.files("data/", pattern = "\\.kml$", full.names = TRUE)
+```
+We also tested another 2014 Master Plan KML (“No Sea”), but it cannot be read either.
+
+```{r}
+mpsz14_kml <- st_read("data/MasterPlan2014SubzoneBoundaryNoSeaKML.kml")
+```
+
+The 2019 version loads successfully, confirming that the issue lies with the 2014 KML file format.
+
+```{r}
+mpsz19_kml <- st_read("data/MasterPlan2019SubzoneBoundaryNoSeaKML.kml")
+```
+
+**Task**: 
+
+The code chunk exports mpsz14_shp sf data.frame into kml file save the output in data sub-folder and names the output file MP14_SUBZONE_WEB_PL. `delete_dsn = TRUE` checks if a file named MP14_SUBZONE_WEB_PL.kml already exists in the data folder, if so, it will delete it before writing a new kml file.
+
+```{r}
+st_write(mpsz14_shp, 
+        "data/MP14_SUBZONE_WEB_PL.kml",
+        delete_dsn = TRUE)
+```
+
+
+## Working with Pre-school Location Data
+
+visit [data.gov.sg](data.gov.sg) and download **Pre-Schools Location** from the portal in both the kml and geojson files.
+
+The code chunk imports Pre-Schools Location in kml and geojson and saves them in sf simple features data frame.
+
+```{r}
+preschool_kml <- st_read("data/PreSchoolsLocation.kml")
+```
+
+```{r}
+preschool_geojson <- st_read("data/PreSchoolsLocation.geojson")
+```
+
 

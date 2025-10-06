@@ -47,7 +47,7 @@ In real world application likes geobusiness and geospatail related policy making
 ## The Data
 
 | Dataset | Description | Format |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | myanmar_township_boundaries | GIS Myanmar Township Boundary Data represented as polygon features | ESRI shapefile |
 | Shan-ICT.csv | 2014 Myanmar Population and Housing Census at the township level | CSV |
 
@@ -66,11 +66,11 @@ There are **14** packages used in this exercise.
 -   Visualisation / general workflow (**tidyverse, ggpubr**)
 
 | Package | Description |
-|----|----|
+|------------------------------------|------------------------------------|
 | [sf](https://r-spatial.github.io/sf/) | Handles importing, managing, and processing vector-based geospatial data |
 | [rgdal](https://cran.r-project.org/package=rgdal) | Provides bindings to the GDAL/OGR library for reading/writing spatial data formats. |
 | [spdep](https://cran.r-project.org/package=spdep) | Tools for spatial dependence: building neighbour lists, spatial weights, and spatial autocorrelation analysis. |
-| [tidyverse](https://www.tidyverse.org/) | A collection of R packages for data wrangling and visualization, including **readr**, **dplyr**, and **ggplot2**. |
+| [tidyverse](https://www.tidyverse.org/) | A collection of R packages for data wrangling and visualisation, including **readr**, **dplyr**, and **ggplot2**. |
 | [tmap](https://r-tmap.github.io/tmap/) | Creates cartographic quality static and interactive thematic (choropleth) maps. |
 | [corrplot](https://cran.r-project.org/package=corrplot) | Provides graphical displays of correlation matrices for multivariate data exploration. |
 | [ggpubr](https://cran.r-project.org/package=ggpubr) | Simplifies publication-ready plots based on **ggplot2** with statistical annotations. |
@@ -80,7 +80,7 @@ There are **14** packages used in this exercise.
 | [NbClust](https://cran.r-project.org/package=NbClust) | Determines the optimal number of clusters using multiple indices and methods. |
 | [facoextra](https://cran.r-project.org/package=factoextra) | Visualisation tools for clustering and multivariate analyses (e.g., PCA, CA, HCPC). |
 | [GGally](https://ggobi.github.io/ggally/) | Extension of ggplot2 with functions for pair plots, network plots, and correlation plots. |
-| [psych](https://cran.r-project.org/package=psych) | rocedures for psychometric and multivariate analysis, including factor analysis. |
+| [psych](https://cran.r-project.org/package=psych) | Procedures for psychometric and multivariate analysis, including factor analysis. |
 
 The code chunk below loads the packages into R environment.
 
