@@ -38,32 +38,32 @@ In this exercise, we try the basic geospatial data science with R.
 There are **4** packages used in this exercise.
 
 | Package | Description |
-|------------------------------------|------------------------------------|
+|------------------|------------------------------------|
 | [sf](https://r-spatial.github.io/sf/) | Handles importing, managing, and processing vector-based geospatial data |
 | [tidyverse](https://www.tidyverse.org/) | A collection of R packages for data wrangling and visualisation, including **readr**, **dplyr**, and **ggplot2**. |
 | [tmap](https://r-tmap.github.io/tmap/) | Creates cartographic quality static and interactive thematic (choropleth) maps. |
 | [ggstatsplot](https://indrajeetpatil.github.io/ggstatsplot/) | An extension of **ggplot2**.Provides graphical displays of statistical tests. |
-
+| [rvest](https://rvest.tidyverse.org/) | Scrapes or harvests data from web pages. |
 
 The code chunk below loads the required package into R.
 
 ```{r}
-pacman::p_load(tidyverse, sf, tmap, ggstatsplot)
+pacman::p_load(tidyverse, sf, tmap, ggstatsplot, rvest)
 ```
 
 If the required packages are not yet installed, use the function `install.packages()` to install them first. Remember to enclose the package names in double quotation marks ("") and separate them with commas (,) if installing more than one package.
 
 ## Working with Master Plan Planning Sub-zone Data
 
-1. As mentioned earlier, create a subfolder named data inside the In-class_Ex01 folder.
-2. If necessary, visit [data.gov.sg](data.gov.sg) and download the **Master Plan 2014 Subzone Boundary (Web) dataset** from the portal in both the ESRI Shapefile and KML file formats.
-
+1.  As mentioned earlier, create a subfolder named data inside the In-class_Ex01 folder.
+2.  If necessary, visit [data.gov.sg](data.gov.sg) and download the **Master Plan 2014 Subzone Boundary (Web) dataset** from the portal in both the ESRI Shapefile and KML file formats.
 
 The code chunk below imports the **Master Plan 2014 Subzone Boundary (Web) dataset** in both **Shapefile** and **KML** formats, and saves them as sf (simple features) data frames. Note that the import syntax differs between the two formats: when importing a Shapefile, the file extension .shp is not required, while for a KML file, the full file name including the extension must be specified in the relative directory path.
 
 ```{r}
 mpsz14_shp <- st_read(dsn = "data/", layer = "MP14_SUBZONE_WEB_PL")
 ```
+
 However, we encounter error message when importing the kml file.
 
 After receiving an error that the Web KML version cannot be opened, the code chunk below confirms that R can process KML files correctly.
@@ -71,11 +71,13 @@ After receiving an error that the Web KML version cannot be opened, the code chu
 ```{r}
 st_drivers()%>% filter(grepl("KML", name))
 ```
+
 The code chunk below lists all the files in kml exension in the data folder.
 
 ```{r}
 list.files("data/", pattern = "\\.kml$", full.names = TRUE)
 ```
+
 We also tested another 2014 Master Plan KML (“No Sea”), but it cannot be read either.
 
 The 2019 version loads successfully, confirming that the issue lies with the 2014 KML file format.
@@ -84,7 +86,7 @@ The 2019 version loads successfully, confirming that the issue lies with the 201
 mpsz19_kml <- st_read("data/MasterPlan2019SubzoneBoundaryNoSeaKML.kml")
 ```
 
-**Task**: 
+**Task**:
 
 The code chunk exports mpsz14_shp sf data.frame into kml file save the output in data sub-folder and names the output file MP14_SUBZONE_WEB_PL. `delete_dsn = TRUE` checks if a file named MP14_SUBZONE_WEB_PL.kml already exists in the data folder, if so, it will delete it before writing a new kml file.
 
@@ -108,4 +110,468 @@ preschool_kml <- st_read("data/PreSchoolsLocation.kml")
 preschool_geojson <- st_read("data/PreSchoolsLocation.geojson")
 ```
 
+## Working with Master Plan 2019 Subzone Boundary Data
 
+### Importing Master Plan 2019 Subzone Boundary (No SEA) kml 
+
+Since the MPSZ-2019 shapefile is not available yet, the following code chunk extracts the required information from the `mpsz19_kml` for further analysis.
+
+```{r}
+extract_kml_field <- function(html_text, field_name) {
+  # return NA if missing or empty
+  if (is.na(html_text) || html_text == "") return(NA_character_)
+  
+  page <- read_html(html_text)          #parse the HTML string 
+  rows <- page %>% html_elements("tr")  #get all table rows <tr>
+  
+  value <- rows %>%
+    keep(~ html_text2(html_element(.x, "th")) == field_name) %>% #keep row where <th> table header text = field_name
+    html_element("td") %>%                                       #take its <td> table data
+    html_text2()                                                 #extract clean text
+  
+  if (length(value) == 0) NA_character_ else value        #return NA if no match, otherwise the value
+}
+```
+
+```{r}
+mpsz19_kml <- mpsz19_kml %>%
+  mutate(
+     #for each description string, call the function, It returns a length-1 character per row (or NA)
+    REGION_N = map_chr(Description, extract_kml_field, "REGION_N"),
+    PLN_AREA_N = map_chr(Description, extract_kml_field, "PLN_AREA_N"),
+    SUBZONE_N = map_chr(Description, extract_kml_field, "SUBZONE_N"),
+    SUBZONE_C = map_chr(Description, extract_kml_field, "SUBZONE_C")
+  ) %>%
+  select(-Name, -Description) %>% #drop the raw KML attributes
+  relocate(geometry, .after = last_col()) #move the geometry column to the end
+```
+
+
+### Handling Coordinate Systems
+
+The code chunk below checks the CRS of the imported sf objects (master plan and pre-school locations).
+
+```{r}
+class(mpsz19_kml)
+st_crs(mpsz19_kml)
+```
+```{r}
+class(preschool_kml)
+st_crs(preschool_kml)
+```
+
+
+The code chunk below assigns the appropriate CRS 3414 (SVY21) to both sf objects.
+```{r}
+mpsz19_kml <- st_transform(mpsz19_kml, crs = 3414)
+st_crs(mpsz19_kml)
+```
+```{r}
+preschool <- preschool_kml %>%
+  st_transform(crs = 3414)
+st_crs(preschool)
+```
+### Geospatial Data Wrangling
+
+#### Point-in-Polygon Count
+
+The code chunk below counts the number of pre-schools in each planning sub-zone. `st_intersects()` returns a true/false spatial relation and acts like a `group_by` in geometry term. The `presc_list` is a class of `sgbp` which stands for **Sparse Gometry Binary Predicate**. Each row corresponds to one subzone of mpsz19_kml and stores pre-school row indices in `value` column.
+
+
+```{r}
+presc_list <- st_intersects(mpsz19_kml, preschool)
+presc_list
+```
+The code chunk below first shows the first three rows, then lists the four preschool indices that fall within the first subzone and their details. It shows DEPOT ROAD has 4 preschools (rows 52, 255, 578, 1615 of `preschool`). 
+
+```{r}
+str(presc_list[1:3])
+presc_list[[1]]
+length(presc_list[[1]])
+preschool[presc_list[[1]],c("Name", "geometry")]
+mpsz19_kml$SUBZONE_N[1]
+```
+The code chunk below counts the number of pre-school in each subzone and stores the counts in a new column called PreSch Count in `mpsz19_kml`.
+
+```{r}
+mpsz19_kml <- mpsz19_kml %>%
+  mutate (`PreSch Count` = lengths(
+    st_intersects(mpsz19_kml, preschool)
+  ))
+```
+
+
+#### Computing Density
+
+The code chunk below derives the area of each planning sub-zone, drops the unit of measurement of the area (i.e. m^2) and calculate the density of pre-school (per km2) at the planning sub-zone level.
+
+```{r}
+mpsz19_kml <- mpsz19_kml %>%
+  mutate(
+    Area = units::drop_units(st_area(.)),   # st_area(.) calculates the area based on the polygon geometry;
+                                            # units::drop_units() removes the units class
+    `PreSch Density` = `PreSch Count` / Area * 1000000 # preschools per square kilometre
+  )
+```
+
+
+### Statistical Analysis
+
+The code chunk below uses [`ggscatterstats()`](https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggscatterstats.html) to explore and confirm the statistical relationship between Pre-school Density and Pre-school count. 
+
+`ggscatterstats()` checks linear association between two continuous variables and distribution of two continuous variables.
+
+
+When using **mpsz19_kml** directly in `ggscatterstats()`, the error message says **“x must be atomic.”**
+
+In R, atomic vectors are the basic data types: **numeric, integer, character, and logical**.
+
+Non-atomic types include lists, data frames, sf geometry columns (sfc), and factors with embedded attributes.
+
+```{r}
+str(mpsz19_kml$`PreSch Count`)
+str(mpsz19_kml$`PreSch Density`)
+```
+The code chunk below drops geometry and ensures the columns are numeric, ready for ggplot.
+
+```{r}
+mpsz19_kml$`PreSch Density` <- as.numeric(as.character(mpsz19_kml$`PreSch Density`))
+mpsz19_kml$`PreSch Count` <- as.numeric(as.character(mpsz19_kml$`PreSch Count`)) 
+mpsz19_kml <- as.data.frame(mpsz19_kml)
+```
+
+The code chunk below creates the scatter plot with Exploratory Data Analysis (EDA) and Confirmatory Data Analysis (CDA).
+
+```{r}
+ggscatterstats(data = mpsz19_kml,
+               x = `PreSch Count`,
+               y = `PreSch Density`,
+               type = "parametric")
+```
+
+The code chunk below creates the scatter plot under **Nonparametric" with Exploratory Data Analysis (EDA) and Confirmatory Data Analysis (CDA), since count is discrete and density is continuous. 
+
+```{r}
+ggscatterstats(data = mpsz19_kml,
+               x = `PreSch Count`,
+               y = `PreSch Density`,
+               type = "nonparametric")
+```
+
+With 95% confidence, the Spearman correlation is 0.86 with a p-value close to 0, that confirms a strong positive association between preschool count and preschool density. This suggests that subzones with more preschools are also more likely to have higher preschool density.
+
+## Working with Population Data
+
+### Importing Data
+
+The lastest dataset of **Singapore Residents by Planning Area / Subzone, Age Group, Sex and Type of Dwelling Jun 2025** can be download from [Singstat](https://www.singstat.gov.sg/) homepage.
+
+The code chunk below imports the population data into R.
+
+```{r}
+popdata <- read_csv("data/respopagesextod2025.csv")
+head(popdata,5)
+```
+### Data Wrangling
+
+The code chunk below shows population by Planning Area and Planning subzone. `summarise()` is similar to group_bu and aggragrate in SQL while `mutate()` is like window function.
+
+```{r}
+popdata2025 <- popdata %>%
+         group_by(PA, SZ, AG) %>%
+        summarise(`POP` = sum(`Pop`)) %>%
+        ungroup() %>%
+        pivot_wider(names_from = AG,     # spreads age groups into columns
+                    values_from = POP)
+colnames(popdata2025)
+```
+### Data Processing
+
+The code chunk derives a tibble data.frame with the following fields PA, SZ, YOUNG, ECONOMY ACTIVE, AGED, TOTAL, DEPENDENCY where by:
+
+- YOUNG: age group 0 to 4 until age groyup 20 to 24,
+
+- ECONOMY ACTIVE: age group 25-29 until age group 60-64,
+
+- AGED: age group 65 and above,
+
+- TOTAL: all age group, and
+
+- DEPENDENCY: the ratio between young and aged against economy active group.
+
+
+```{r}
+popdata2025 <- popdata2025 %>%
+  mutate(YOUNG=rowSums(.[3:6]) # Aged 0 - 24, 10 - 24
+         +rowSums(.[14])) %>% # Aged 5 - 9
+  mutate(`ECONOMY ACTIVE` = rowSums(.[7:13])+ # Aged 25 - 59
+  rowSums(.[15])) %>%  # Aged 60 -64
+  mutate(`AGED`=rowSums(.[16:21])) %>%
+  mutate(`TOTAL`=rowSums(.[3:21])) %>%
+  mutate(`DEPENDENCY`=(`YOUNG` + `AGED`)
+  / `ECONOMY ACTIVE`) %>% 
+  select(`PA`, `SZ`, `YOUNG`, 
+         `ECONOMY ACTIVE`, `AGED`,
+         `TOTAL`, `DEPENDENCY`)
+```
+
+
+### Joining popdata2025 and mpsz19_kml
+
+The code chunk blow converts the subzone and plan area to uppercase letters 
+```{r}
+popdata2025 <- popdata2025 %>%
+  mutate_at(.vars = vars(PA, SZ),  # apply the function to these two columns: PA and SZ. mutate_at() = cross()
+            .funs = list(toupper)) # #wrap the function(s) under list() and the function itself is toupper.
+```
+
+The code chunks below joins the subzone and population datasets together.
+
+```{r}
+mpsz_pop2025 <- left_join(mpsz19_kml, popdata2025,
+                          by = c("SUBZONE_N" = "SZ"))
+```
+
+```{r}
+pop2025_mpsz <- left_join(popdata2025, mpsz19_kml, 
+                          by = c("SZ" = "SUBZONE_N"))
+```
+
+The only difference is mpsz_pop2025 is data.frame and pop2025_mpsz is tbl_df. 
+The code chunk below converts the mpsz_pop2025 back to sf object and save for futher analysis.
+
+```{r}
+mpsz_pop2025 <- mpsz_pop2025 %>%
+  st_as_sf()
+```
+
+```{r}
+write_rds(mpsz_pop2025,"data/mpsz_pop2025.rds")
+```
+
+
+## Choropleth Map of Dependency Ratio by Planning Subzone
+
+The code chunk blow create the choropleth map of dependency ratio by planning subzone. 
+```{r}
+tm_shape(mpsz_pop2025) +
+  tm_polygons(fill = "DEPENDENCY",
+              fill.scale = tm_scale_intervals(
+                style = "quantile",
+                n = 5),
+              fill.legend = tm_legend(
+                title = "Dependency ratio")) +
+  tm_pos_auto_in() +
+  tm_borders(fill_alpha = 0.5) +
+  tm_compass(type ="8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & singstat",
+             position = c("left","bottom"))
+```
+
+##  Analytical Map: Percentile Map
+
+### The Concept
+
+The percentile map is a special type of quantile map with six specific categories: 0-1%,1-10%, 10-50%,50-90%,90-99%, and 99-100%. The corresponding breakpoints can be derived by means of the base R quantile command, passing an explicit vector of cumulative probabilities as c(0,.01,.1,.5,.9,.99,1). Note that the begin and endpoint need to be included.
+
+### Step 1: Data Preparation
+
+The code chunk below excludes records with NA by using the code chunk below, since we notices there are a few subzones that 
+
+```{r}
+mpsz_pop2025 <- mpsz_pop2025 %>%
+  drop_na()
+```
+
+```{r}
+sum(is.na(mpsz_pop2025[["DEPENDENCY"]]))
+```
+
+### Step 2: The get Function
+
+The code chunk below defines a function to get the input data and field to be used for creating the percentile map.
+
+```{r}
+get.var <- function(vname,df) {
+  v <- df[vname] %>% 
+    st_set_geometry(NULL)
+  v <- unname(v[,1])
+  return(v)
+}
+```
+
+
+### Step 3: A Percentile Mapping Function
+
+```{r}
+percentmap <- function(vnam, df, legtitle=NA, mtitle="Percentile Map"){
+  percent <- c(0,.01,.1,.5,.9,.99,1) # defines the breaks
+  var <- get.var(vnam, df)        #  retrieve the variable 
+  bperc <- quantile(var, percent) # calculates the percentile values
+  tm_shape(df) +
+  tm_polygons() +
+  tm_shape(df) +
+      tm_fill(vnam,
+        fill.scale = tm_scale(
+        breaks = bperc,
+        values = "brewer.blues",         
+        value.na = NA,            
+        labels = c("<1%", "1–10%", "10–50%", "50–90%", "90–99%", ">99%")),
+      fill.legend = tm_legend(
+        title = legtitle,        
+        na.show = FALSE)) +
+    tm_borders() +
+    tm_layout(main.title = mtitle)
+}
+
+```
+
+### Step 4: Running the functions
+
+```{r}
+percentmap("DEPENDENCY", mpsz_pop2025)
+```
+## Analytical Map: Box Map
+
+### The Concept
+
+In essence, a box map is an augmented quartile map, with an additional lower and upper category. When there are lower outliers, then the starting point for the breaks is the minimum value, and the second break is the lower fence. In contrast, when there are no lower outliers, then the starting point for the breaks will be the lower fence, and the second break is the minimum value (there will be no observations that fall in the interval between the lower fence and the minimum value).
+
+```{r}
+summary(mpsz_pop2025$DEPENDENCY)
+```
+The box plot does not tell too much about the dependency distribution.
+
+```{r}
+ggplot(data = mpsz_pop2025,
+       aes(x = "",
+           y = DEPENDENCY)) +
+  geom_boxplot()
+```
+
+### Step 1: Creating the Boxbreaks Function
+
+The code chunk is an R function that creating break points for a box map.
+
+- arguments:
+ - v: vector with observations
+ - mult: multiplier for IQR (default 1.5)
+- returns:
+ - bb: vector with 7 break points compute quartile and fences
+
+
+```{r}
+boxbreaks <- function(v,mult=1.5) {
+  qv <- unname(quantile(v))
+  iqr <- qv[4] - qv[2]
+  upfence <- qv[4] + mult * iqr
+  lofence <- qv[2] - mult * iqr
+  # initialize break points vector
+  bb <- vector(mode="numeric",length=7)
+  # logic for lower and upper fences
+  if (lofence < qv[1]) {  # no lower outliers
+    bb[1] <- lofence
+    bb[2] <- floor(qv[1])
+  } else {
+    bb[2] <- lofence
+    bb[1] <- qv[1]
+  }
+  if (upfence > qv[5]) { # no upper outliers
+    bb[7] <- upfence
+    bb[6] <- ceiling(qv[5])
+  } else {
+    bb[6] <- upfence
+    bb[7] <- qv[5]
+  }
+  bb[3:5] <- qv[2:4]
+  return(bb)
+}
+```
+
+
+### Step 2: Creating the get.var Function
+
+The code chunk below creates a function to extract a variable as a vector out of an sf data frame.
+
+- arguments:
+ - vname: variable name (as character, in quotes)
+ - df: name of sf data frame
+- returns:
+ - v: vector with values (without a column name
+ 
+```{r}
+get.var <- function(vname,df) {
+  v <- df[vname] %>% st_set_geometry(NULL)
+  v <- unname(v[,1])
+  return(v)
+}
+```
+ 
+### Step 3: Boxmap Function
+ 
+The code chunk below generates an R function to create a box map.
+
+- arguments:
+ - vnam: variable name (as character, in quotes)
+ - df: simple features polygon layer
+ - legtitle: legend title
+ - mtitle: map title
+ - mult: multiplier for IQR
+- returns:
+ - a tmap-element (plots a map)
+ 
+```{r}
+boxmap <- function(vnam, df, 
+                   legtitle=NA,
+                   mtitle="Box Map",
+                   mult=1.5){
+  var <- get.var(vnam,df)
+  bb <- boxbreaks(var)
+  tm_shape(df) +
+    tm_polygons() +
+  tm_shape(df) +
+        tm_fill(vnam,
+        fill.scale = tm_scale(
+        breaks = bb,
+        values = "brewer.blues",         
+        value.na = NA,            
+        labels = c("lower outlier", 
+                     "< 25%", 
+                     "25% - 50%", 
+                     "50% - 75%",
+                     "> 75%", 
+                     "upper outlier")),
+      fill.legend = tm_legend(
+        title = legtitle,        
+        na.show = FALSE)) +
+    tm_borders() +
+    tm_layout(main.title = mtitle)
+}
+```
+ 
+### Step 4: Plotting Box Map
+ 
+```{r}
+boxmap("DEPENDENCY", mpsz_pop2025)
+```
+ 
+### Plotting Interactive Box Map
+
+```{r}
+tmap_mode("view")
+boxmap("DEPENDENCY", mpsz_pop2025)
+```
+ 
+```{r}
+tmap_mode("plot")
+```
+ 
+ 
+
+I think we could learn from this and include like HDB or population in our assignment 2?
+
+## Reference
+
+Kam, T. S., 2025, In-class Exercise 1: Geospatial Data Science with R,ISSS626,SMU https://isss626-ay2025-26aug.netlify.app/in-class_ex/in-class_ex01/in-class_ex01#/title-slide
