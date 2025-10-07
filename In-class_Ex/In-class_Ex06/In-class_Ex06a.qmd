@@ -1,0 +1,408 @@
+---
+title: "In-class Exercise 6a: Take-Home Exercise 2 Kick Starter"
+author: "Yiqiong PAN"
+date: "Oct 3, 2025"
+date-modified: last-modified
+
+execute:
+  echo: true    # display the code
+  eval: true    # run the code
+  message: false
+  warning: false
+  freeze: true  # do not re-render if nothing edited
+
+format: 
+  html:
+    toc: true
+    code-link: true
+
+number-sections: true
+number-depth: 4
+
+editor: visual
+---
+
+## Overview
+
+In the exercise, we learn how to
+
+-   download dynamic data by using LTA DataMall API and [postman](https://www.postman.com/);
+
+-    import and tidy geospatial data using sf and tidyverse;
+
+-   import and tidy aspatial data using tidyverse;
+
+-   create analytic hexagon data using sf
+
+## Loading Packages in to R
+
+There are **six** packages used in this exercise.
+
+| Package | Description |
+|----------------------|--------------------------------------------------|
+| [sf](https://r-spatial.github.io/sf/) | Handles importing, managing, and processing vector-based geospatial data |
+| [tidyverse](https://www.tidyverse.org/) | A collection of R packages for data wrangling and visualisation, including **readr**, **dplyr**, and **ggplot2**. |
+| [tmap](https://r-tmap.github.io/tmap/) | Creates cartographic quality static and interactive thematic (choropleth) maps. |
+| [knitr](https://cran.r-project.org/web/packages/knitr/index.html/) | Provides an elegant, flexible, and fast static table generation with R |
+| [kableExtra](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html) | An extension of knitr for creating elegant html table with R |
+| [DT](https://rstudio.github.io/DT/) | Provides an R interface to the JavaScript library DataTables for create interactive htnl tables. |
+| [rvest](https://rvest.tidyverse.org/) | Scrapes or harvests data from web pages. |
+
+: {tbl-colwidths="\[15,85\]"}
+
+The code chunk below loads the required package into R.
+
+```{r}
+pacman::p_load(tidyverse, sf, sfdep, tmap, knitr, kableExtra, DT, rvest)
+```
+
+## Getting the Data into R environment
+
+1.  Singapore boundary data, that we explored in Hands-on Ex 1-2
+
+2.  LTADataMall: bus stop locations in SHP
+
+3.  LTADataMall: the bus trip data for August 2025 were retrieved using GetPostman to download the CSV file.
+
+### Importing the Geospatial Ploygon Data: Master Plan 2019 Subzone
+
+The code chunk below imports Master Plan 2019 Subzone Boundary (No Sea) from Singapore’s open data portal.
+
+```{r}
+mpsz <- st_read("data/geospatial/MasterPlan2019SubzoneBoundaryNoSeaKML.kml")
+```
+
+```{r}
+extract_kml_field <- function(html_text, field_name) {
+  # return NA if missing or empty
+  if (is.na(html_text) || html_text == "") return(NA_character_)
+  
+  page <- read_html(html_text)          #parse the HTML string 
+  rows <- page %>% html_elements("tr")  #get all table rows <tr>
+  
+  value <- rows %>%
+    keep(~ html_text2(html_element(.x, "th")) == field_name) %>% #keep row where <th> table header text = field_name
+    html_element("td") %>%                                       #take its <td> table data
+    html_text2()                                                 #extract clean text
+  
+  if (length(value) == 0) NA_character_ else value        #return NA if no match, otherwise the value
+}
+```
+
+```{r}
+mpsz <- mpsz %>%
+  mutate(
+     #for each description string, call the function, It returns a length-1 character per row (or NA)
+    REGION_N = map_chr(Description, extract_kml_field, "REGION_N"),
+    PLN_AREA_N = map_chr(Description, extract_kml_field, "PLN_AREA_N"),
+    SUBZONE_N = map_chr(Description, extract_kml_field, "SUBZONE_N"),
+    SUBZONE_C = map_chr(Description, extract_kml_field, "SUBZONE_C")
+  ) %>%
+  select(-Name, -Description) %>% #drop the raw KML attributes
+  relocate(geometry, .after = last_col()) #move the geometry column to the end
+```
+
+
+```{r}
+class(mpsz)
+mpsz <- st_transform(mpsz, 3414)
+st_crs(mpsz)
+```
+
+```{r}
+write_rds(mpsz, "data/rds/mpsz.rds")
+
+```
+
+### Importing the Geospatial Point Data: Bus Stop Locations
+
+The code chunk below imports *Bus Stop Location* shapefile downloaded from LTA DataMall into R environment.
+
+```{r}
+BusStop <- st_read(dsn = "data/LTADataMall",
+                   layer = "BusStop") %>%
+  st_transform(crs = 3414)
+```
+
+### Importing the Attribute Data: Bus Trips
+
+The code chunk below imports *Passenger Volume by Origin Destination Bus Stops* downloaded from LTA DataMall into R environment.
+
+```{r}
+odbus <- read_csv("data/LTADataMall/origin_destination_bus_202508.csv")
+summary(odbus)
+```
+
+### Visualisation of the Bus Stop Distribution in Singapore
+
+Here we plot the bus stops in Singapore to see the distribution of their locations.
+
+```{r}
+plot(st_geometry(mpsz))
+plot(st_geometry(BusStop), add = TRUE, cex = 0.5, col ="blue")
+```
+
+```{r}
+tmap_mode("view")
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(BusStop) +
+  tm_dots()
+```
+```{r}
+tmap_mode("plot")
+```
+
+
+Since there are a few points located outside the Singapore boundary, these need to be excluded. If we encounter an error message such as st_crs(x) != st_crs(y), it indicates that the coordinate reference systems (CRS) of the two objects are not the same. In such cases, we should assign the correct and consistent CRS (i.e., EPSG:3414). Both st_transform() and st_set_crs() can be used to apply the appropriate CRS.
+
+### Extracting Bus Stops Located within Singapore
+
+The code chunk below uses [`st_join()`](https://r-spatial.github.io/sf/reference/st_join.html) to select all bus stops within Singapore.
+
+```{r}
+BusStop_in_SG <- st_join(
+  BusStop, mpsz,
+  join = st_within,
+  left = FALSE)
+```
+
+Next, we double-check that the points have been correctly filtered to include only those within Singapore.
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(BusStop_in_SG) +
+  tm_dots()
+```
+
+**Question**:
+
+Do you know how many bus stops are located outside of Singapore main island? Describe how the answer was derives.
+
+```{r}
+BusStop_SG <- st_join(
+  BusStop, mpsz,
+  join = st_within,
+  left = TRUE)
+```
+
+```{r}
+length(BusStop_SG$BUS_STOP_N) - length(BusStop_in_SG$BUS_STOP_N)
+```
+
+There are **5** bus stops outside of Singapore.
+
+
+### Creating the analytical hexagons (Singapore with Honeycomb Grid)
+
+-   cellsize: A numeric value (length 1 or 2) specifying the target cell size. For square/rectangular cells, this defines width and height. For hexagonal cells, it defines the distance between opposite edges. So for the actual analysis, we should use `cellsize = 750`.
+
+```{r}
+hexagon <- st_make_grid(mpsz,
+                        cellsize = 750,  ## attention 375m required for take-home ex.
+                        what = "polygon",
+                        square = FALSE) %>%
+  st_sf()                                ## this st_* function doesn't return sf data.frame, we need to specifically coerce the file to sf object.
+
+```
+
+
+### Checking the hexagon layer visually
+
+The code chunk below creates the hexagon grid with bus stop in Singapore.
+
+```{r}
+#| echo: false
+tm_shape(hexagon) +
+  tm_fill(col = "white", title = "Hexagons") +
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "Analytical hexagon layer overplot on Singapore",
+            main.title.position = "center",
+            main.title.size = 1.0,
+            legend.height = 0.35, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scale_bar(bg.color = "white", bg.alpha = 0.5) +
+  tm_shape(mpsz) +
+  tm_fill("green", title = "Singapore Boundary", alpha = 0.5) +
+  tm_shape(BusStop_in_SG) +
+  tm_dots(col = "red", size = 0.005, title = "Bus Stops")
+
+```
+
+We identified two tasks from the hexagon:
+
+1.  In mpsz, the unique IDs SUBZONE_N or SUBZONE_C should be attached to the hexagon geometries.
+
+2.  Keep only hexagons that contain at least one bus stop.
+
+
+## Selecting hexagons with bus stops
+
+### Filtering hexagons with bus stops
+
+To implement this, we first filter the hexagons using a spatial intersection with the bus-stop points.
+
+Recall: st_intersection() returns the geometric overlap (catchment), while st_intersects() returns a logical relation (TRUE/FALSE). After filtering, the hexagon count is reduced from 4,524 to 924.
+
+```{r}
+hexagon$busstop_count = 
+  lengths(st_intersects(hexagon, BusStop_in_SG))
+```
+
+```{r}
+hexagon <- filter(hexagon, busstop_count >0)
+```
+
+
+### Checking the hexagon layer visually
+
+The plot confirms only the hexagon with bus stops retained. 
+
+```{r}
+#| fig-width: 10
+#| fig-height: 5
+tm_shape(mpsz) +
+  tm_fill("green", title = "Singapore Boundary", alpha = 0.5) +
+  tm_shape(hexagon) +
+  tm_fill(col = "white", title = "Hexagons", alpha = 1) +
+  tm_borders(alpha = 0.2) +
+  tm_layout(main.title = "Analytical hexagon layer overplot on Singapore",
+            main.title.position = "center",
+            main.title.size = 1.0,
+            legend.height = 0.35, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scale_bar(bg.color = "white", bg.alpha = 0.5) +
+  tm_shape(BusStop_in_SG) +
+  tm_dots(col = "red", size = 0.001, title = "Bus Stops") +
+  tm_grid(alpha = 0.2)
+```
+
+
+Plot the hexagons.
+
+```{r}
+tm_shape(mpsz) + tm_polygons("green",fill_alpha =0.9) +
+tm_shape(hexagon) + tm_polygons("grey90") + tm_borders("gray60") +
+tm_shape(BusStop_in_SG) + tm_dots("black",  size = 0.1,shape = 19) + 
+tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+            position = c("right", "bottom")) +
+tm_title("Honeycomb Grid with Bus Stops in Singapore", size = 1)
+```
+
+
+### Assigning ids to each hexagon
+
+Here we have a quick look the hexagon dataset.
+
+```{r}
+kable(head(hexagon)) %>%
+  kable_styling(font_size = 24)
+```
+
+
+
+The code chunk below removes the unwanted column and generates a set of 4-digit HEX_ID strings along with leading zero, then converts them from character to factor (ID) type using as.factor().
+
+```{r}
+hexagon <- hexagon %>%
+  select(, -busstop_count)  #- to drop the column
+
+hexagon$HEX_ID <- sprintf(
+  "H%04d", seq_len(nrow(hexagon))) %>%  #4d is to accommodate the hexagon number
+  as.factor()  #ordinal scale
+
+kable(head(hexagon))
+```
+
+## Preparing Trip Generation Data
+
+### Cleaning the data
+
+Year_Month and destination_pt_code can be excluded from this analysis.
+
+```{r}
+# select the variables
+trips <- odbus %>%
+  select (c(ORIGIN_PT_CODE, DAY_TYPE, TIME_PER_HOUR, TOTAL_TRIPS)) %>%
+  rename(BUS_STOP_N = ORIGIN_PT_CODE) %>%  # easier when performing join later
+  rename(HOUR_OF_DAY= TIME_PER_HOUR) %>%
+  rename(TRIPS = TOTAL_TRIPS) #easy interpration
+```
+
+The BUS_STOP_N (post code of bus stop origination) is converted to factor since they are unique identifier and easier grouping group_by later.
+
+```{r}
+trips$BUS_STOP_N <- as.factor(trips$BUS_STOP_N)
+kable(head(trips))
+```
+
+### Populating Hexagon IDs into BusStop data frame
+
+Next, we combine the hexagon, bus stop, and trip datasets.
+
+This code creates a lookup table linking each bus stop BUS_STOP_N to the hexagon it belongs to HEX_ID
+
+```{r}
+bs_hex <- st_intersection(
+  BusStop, hexagon) %>%
+  st_drop_geometry() %>%
+  select(c(BUS_STOP_N, HEX_ID))
+
+kable(head(bs_hex))
+```
+
+### Adding HEX_ID into bus trips data
+
+We merge the HEX_ID and Bus Stop into trip data.
+
+```{r}
+trips<- inner_join(trips, bs_hex)
+kable(head(trips))
+```
+
+### Aggregating TRIPS based on HEX_ID
+
+The code chunk below groups trip volume by **HEX_ID, DATE_TYPE, and HOUR_OF_DAY**.
+
+```{r}
+trips <- trips %>%
+  group_by(
+    HEX_ID,
+    DAY_TYPE,
+    HOUR_OF_DAY) %>%
+  summarise(TRIPS = sum(TRIPS))
+
+kable(head(trips))
+```
+### The interactive trips data frame
+
+```{r}
+htmltools::div(              # creates a html wrapper to style the table
+                             # sets font-size, 80% of page width, auto margin to center the table
+  style = "font-size: 18px; width: 80%; margin: auto;",
+                             # makes an interactive table ((search, sort, paginate))
+  DT::datatable(             
+    trips,
+    options = list(          # JavaScript options
+      pageLength = 10,       # shows 10 rows per page
+      scrollY = 500,         # gives the table a 500px-tall scrollable view port
+      scrollX = TRUE         # enables horizontal scrolling
+    ),
+    class = "stripe hover compact"  #tightens spacing
+  )
+)
+```
+
+
+
+Two more steps are required before we begin the analysis:
+
+Convert the data into a space–time cube to run EHSA on that cube.

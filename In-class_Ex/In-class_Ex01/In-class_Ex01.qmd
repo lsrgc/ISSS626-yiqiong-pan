@@ -37,18 +37,15 @@ In this exercise, we try the basic geospatial data science with R.
 
 There are **4** packages used in this exercise.
 
-
-
 | Package | Description |
-|---------------------|------------------------------------------------|
+|----------------------|-------------------------------------------------|
 | [sf](https://r-spatial.github.io/sf/) | Handles importing, managing, and processing vector-based geospatial data |
 | [tidyverse](https://www.tidyverse.org/) | A collection of R packages for data wrangling and visualisation, including **readr**, **dplyr**, and **ggplot2**. |
 | [tmap](https://r-tmap.github.io/tmap/) | Creates cartographic quality static and interactive thematic (choropleth) maps. |
 | [ggstatsplot](https://indrajeetpatil.github.io/ggstatsplot/) | An extension of **ggplot2**.Provides graphical displays of statistical tests. |
 | [rvest](https://rvest.tidyverse.org/) | Scrapes or harvests data from web pages. |
+
 : {tbl-colwidths="\[15,85\]"}
-
-
 
 The code chunk below loads the required package into R.
 
