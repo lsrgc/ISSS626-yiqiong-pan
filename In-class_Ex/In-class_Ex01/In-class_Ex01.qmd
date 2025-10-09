@@ -38,7 +38,7 @@ In this exercise, we try the basic geospatial data science with R.
 There are **4** packages used in this exercise.
 
 | Package | Description |
-|----------------------|-------------------------------------------------|
+|------------------------------------|------------------------------------|
 | [sf](https://r-spatial.github.io/sf/) | Handles importing, managing, and processing vector-based geospatial data |
 | [tidyverse](https://www.tidyverse.org/) | A collection of R packages for data wrangling and visualisation, including **readr**, **dplyr**, and **ggplot2**. |
 | [tmap](https://r-tmap.github.io/tmap/) | Creates cartographic quality static and interactive thematic (choropleth) maps. |
@@ -381,7 +381,7 @@ The percentile map is a special type of quantile map with six specific categorie
 
 ### Step 1: Data Preparation
 
-The code chunk below excludes records with NA by using the code chunk below, since we notices there are a few subzones that
+The code chunk below excludes records with NA by using the code chunk below, since we notices there are a few sub zones that do not have dependency rating.
 
 ```{r}
 mpsz_pop2025 <- mpsz_pop2025 %>%

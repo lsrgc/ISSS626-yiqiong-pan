@@ -28,7 +28,7 @@ In the exercise, we learn how to
 
 -   download dynamic data by using LTA DataMall API and [postman](https://www.postman.com/);
 
--    import and tidy geospatial data using sf and tidyverse;
+-   import and tidy geospatial data using sf and tidyverse;
 
 -   import and tidy aspatial data using tidyverse;
 
@@ -39,7 +39,7 @@ In the exercise, we learn how to
 There are **six** packages used in this exercise.
 
 | Package | Description |
-|----------------------|--------------------------------------------------|
+|----|----|
 | [sf](https://r-spatial.github.io/sf/) | Handles importing, managing, and processing vector-based geospatial data |
 | [tidyverse](https://www.tidyverse.org/) | A collection of R packages for data wrangling and visualisation, including **readr**, **dplyr**, and **ggplot2**. |
 | [tmap](https://r-tmap.github.io/tmap/) | Creates cartographic quality static and interactive thematic (choropleth) maps. |
@@ -102,7 +102,6 @@ mpsz <- mpsz %>%
   relocate(geometry, .after = last_col()) #move the geometry column to the end
 ```
 
-
 ```{r}
 class(mpsz)
 mpsz <- st_transform(mpsz, 3414)
@@ -149,10 +148,10 @@ tm_shape(mpsz) +
 tm_shape(BusStop) +
   tm_dots()
 ```
+
 ```{r}
 tmap_mode("plot")
 ```
-
 
 Since there are a few points located outside the Singapore boundary, these need to be excluded. If we encounter an error message such as st_crs(x) != st_crs(y), it indicates that the coordinate reference systems (CRS) of the two objects are not the same. In such cases, we should assign the correct and consistent CRS (i.e., EPSG:3414). Both st_transform() and st_set_crs() can be used to apply the appropriate CRS.
 
@@ -193,7 +192,6 @@ length(BusStop_SG$BUS_STOP_N) - length(BusStop_in_SG$BUS_STOP_N)
 
 There are **5** bus stops outside of Singapore.
 
-
 ### Creating the analytical hexagons (Singapore with Honeycomb Grid)
 
 -   cellsize: A numeric value (length 1 or 2) specifying the target cell size. For square/rectangular cells, this defines width and height. For hexagonal cells, it defines the distance between opposite edges. So for the actual analysis, we should use `cellsize = 750`.
@@ -206,7 +204,6 @@ hexagon <- st_make_grid(mpsz,
   st_sf()                                ## this st_* function doesn't return sf data.frame, we need to specifically coerce the file to sf object.
 
 ```
-
 
 ### Checking the hexagon layer visually
 
@@ -238,7 +235,6 @@ We identified two tasks from the hexagon:
 
 2.  Keep only hexagons that contain at least one bus stop.
 
-
 ## Selecting hexagons with bus stops
 
 ### Filtering hexagons with bus stops
@@ -256,10 +252,9 @@ hexagon$busstop_count =
 hexagon <- filter(hexagon, busstop_count >0)
 ```
 
-
 ### Checking the hexagon layer visually
 
-The plot confirms only the hexagon with bus stops retained. 
+The plot confirms only the hexagon with bus stops retained.
 
 ```{r}
 #| fig-width: 10
@@ -282,7 +277,6 @@ tm_shape(mpsz) +
   tm_grid(alpha = 0.2)
 ```
 
-
 Plot the hexagons.
 
 ```{r}
@@ -297,7 +291,6 @@ tm_compass(type = "8star", size = 2) +
 tm_title("Honeycomb Grid with Bus Stops in Singapore", size = 1)
 ```
 
-
 ### Assigning ids to each hexagon
 
 Here we have a quick look the hexagon dataset.
@@ -306,8 +299,6 @@ Here we have a quick look the hexagon dataset.
 kable(head(hexagon)) %>%
   kable_styling(font_size = 24)
 ```
-
-
 
 The code chunk below removes the unwanted column and generates a set of 4-digit HEX_ID strings along with leading zero, then converts them from character to factor (ID) type using as.factor().
 
@@ -382,6 +373,7 @@ trips <- trips %>%
 
 kable(head(trips))
 ```
+
 ### The interactive trips data frame
 
 ```{r}
@@ -400,8 +392,6 @@ htmltools::div(              # creates a html wrapper to style the table
   )
 )
 ```
-
-
 
 Two more steps are required before we begin the analysis:
 

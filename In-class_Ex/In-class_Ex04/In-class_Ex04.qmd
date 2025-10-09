@@ -96,10 +96,9 @@ tmap_arrange(basemap, gdppc, asp = 1, ncol =2)
 
 ```
 
-
 ### Converting to SpatialPolygonDataFrame
 
-**GWmodel** requires spatial dataframe i.e. `SpatialPointsDataFrame` or` SpatialPolygonsDataFrame` as defined in polder ackage `sp`. Here we transfer the `sf` data frame to `sp` data frame by using `as_Spatial()`.
+**GWmodel** requires spatial dataframe i.e. `SpatialPointsDataFrame` or`SpatialPolygonsDataFrame` as defined in polder ackage `sp`. Here we transfer the `sf` data frame to `sp` data frame by using `as_Spatial()`.
 
 ```{r}
 hunan_sp <- hunan_sf %>%
@@ -107,15 +106,11 @@ hunan_sp <- hunan_sf %>%
 
 ```
 
-
 ## Geographically Weighted Summary Statistics (GSWW) with adaptive bandwidth
 
 ### Determine adaptive bandwidth
 
-The code chunk below uses `bw.gwr()` for bandwith selection to calibrate a basic **GWR** model. 
-- `kernel` could be given by `gaussian`, `bisquare`, `exponential`, `tricube`, and `boxcar`. 
-- `approach` is specified by `CV` for cross-validation approach or by `AIC` corrected (AICc) approach.
-- `adaptive` is `FALSE` by default. Here we enforce it to compute an adaptive kernel.
+The code chunk below uses `bw.gwr()` for bandwith selection to calibrate a basic **GWR** model. - `kernel` could be given by `gaussian`, `bisquare`, `exponential`, `tricube`, and `boxcar`. - `approach` is specified by `CV` for cross-validation approach or by `AIC` corrected (AICc) approach. - `adaptive` is `FALSE` by default. Here we enforce it to compute an adaptive kernel.
 
 ```{r}
 bw_CV <- bw.gwr(GDPPC ~ 1,
@@ -126,6 +121,7 @@ bw_CV <- bw.gwr(GDPPC ~ 1,
                 longlat = T) #if TRUE, great circle distances will be calculated
 bw_CV
 ```
+
 ```{r}
                 
 bw_AIC <- bw.gwr(GDPPC ~ 1, #~ 1 says: model GDPPC as the dependent variable, without predictors.
@@ -136,10 +132,10 @@ bw_AIC <- bw.gwr(GDPPC ~ 1, #~ 1 says: model GDPPC as the dependent variable, wi
                 longlat = T)
 bw_AIC
 ```
+
 ### Computing geographically wieghted summary statistics (GWSS)
 
-The code chunk below calculate basic and robust GWSS including geographically weighted means,
-standard deviations and skew. 
+The code chunk below calculate basic and robust GWSS including geographically weighted means, standard deviations and skew.
 
 ```{r}
 gwstat_bisquare <- gwss(data = hunan_sp,
@@ -152,7 +148,6 @@ gwstat_bisquare <- gwss(data = hunan_sp,
 
 gwstat_bisquare
 ```
-
 
 The code chunk below compute the GWSS by other four kernel methods.
 
@@ -167,7 +162,6 @@ gwstat_gaussian <- gwss(data = hunan_sp,
 
 gwstat_gaussian
 ```
-
 
 ```{r}
 gwstat_exponential <- gwss(data = hunan_sp,
@@ -205,14 +199,10 @@ gwstat_boxcar <- gwss(data = hunan_sp,
 gwstat_boxcar
 ```
 
-
-
 ### Preparing the output data
 
-
-:::panel-tabset
-
-#### Plotting with gaussian method 
+::: panel-tabset
+#### Plotting with gaussian method
 
 The code chunk converts the extracted SPF data to data.frame.
 
@@ -246,7 +236,6 @@ ad_g
 
 #### Plotting GWSS with Bisquare Method
 
-
 The code chunk converts the extracted SPF data to data.frame.
 
 ```{r}
@@ -278,7 +267,6 @@ ad_bi
 ```
 
 #### Plotting GWSS with Exponential Method
-
 
 The code chunk converts the extracted SPF data to data.frame.
 
@@ -376,21 +364,19 @@ ad_bc <-tm_shape(hunan_gstat_boxcar) +
 
 ad_bc
 ```
-#### Plotting Summary
 
+#### Plotting Summary
 
 ```{r fig.width= 18, fig.height=16}
 tmap_arrange(gdppc, ad_g, ad_bi, ad_exp, ad_tri, ad_bc, asp = 1, ncol = 2)
 ```
 
 Visually, Gaussian/ exponential shows smooth distribution, while tricube/ bisquare shows relatively less smooth. And Boxcar is not as jumpy as bisquare but also not smooth as gaussian.
-
 :::
 
 ## GWSS with Fixed Bandwidth
 
 ### Determine fixed bandwidth
-
 
 ```{r}
 bw_CV <- bw.gwr(GDPPC ~ 1, 
@@ -431,11 +417,9 @@ gwstat <- gwss(data = hunan_sp,
 gwstat_df <- as.data.frame(gwstat$SDF)
 ```
 
-
 ```{r}
 hunan_gstat <- cbind(hunan_sf, gwstat_df)
 ```
-
 
 ```{r}
 tm_shape(hunan_gstat) +
@@ -474,7 +458,6 @@ ggscatterstats(
   title = "Relationship between GDP PC and Gross Agriculture Output")
 ```
 
-
 ## Geospatial analytics solution
 
 First we determine the adaptive bandwidth using "AICc" approach, calculate *gwCorrelation* using `gwss()`, extract the result from `SDF` field then convert the data into `data.frame`. Finally we append the the new sf data with main `hunan` sf data.
@@ -495,7 +478,6 @@ gwstats <- gwss(hunan_sp,
                 longlat = T)
 ```
 
-
 ```{r}
 gwstat_df <- as.data.frame(gwstats$SDF) %>%
   select(c(12,13)) %>%
@@ -506,7 +488,6 @@ gwstat_df <- as.data.frame(gwstats$SDF) %>%
 ```{r}
 hunan_Corr <- cbind(hunan_sf, gwstat_df)
 ```
-
 
 ### Visualising Local Correlation
 
@@ -526,6 +507,7 @@ tm_shape(hunan_Corr) +
   size = 2.0) +
   tm_layout(frame = TRUE)
 ```
+
 ```{r}
 
 tm_shape(hunan_Corr) +
