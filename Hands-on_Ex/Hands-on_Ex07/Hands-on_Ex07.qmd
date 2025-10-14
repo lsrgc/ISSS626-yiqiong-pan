@@ -54,7 +54,7 @@ There are **10** packages used in this exercise.
 -   Multivariate exploration & Visualisation (corrplot)
 
 | Package | Description |
-|-------------------------|------------------------------------------------|
+|-------------------------|-----------------------------------------------|
 | [olsrr](https://olsrr.rsquaredacademy.com/) | Builds OLS and performs diagnostics tests |
 | [GWmodel](https://cran.r-project.org/web/packages/GWmodel/index.html) | Calibrates geographical weighted family of models |
 | [corrplot](https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html) | Performs multivariate data visualisation and analysis |
@@ -482,7 +482,6 @@ The olsrr package provides following tools for building OLS regression models us
 -   Variable Contribution Assessment
 
 :::panel-tabset
-
 #### Multicollinearity Test
 
 **Multicollinearity** occurs when independent variables are highly correlated. High multicollinearity inflates the variance of coefficient estimates, leading to unstable and unreliable results, and may cause truly important predictors to appear statistically insignificant.
@@ -511,7 +510,6 @@ plot(mlr.vif)
 
 We can safely conclude that there are no sign of multicollinearity among the independent variables, since all VIF values are less than 10.
 
-
 #### Test for Non-Linearity
 
 The code chunk below test linearity assumption by using [`ols_plot_resid_fit()`](https://olsrr.rsquaredacademy.com/reference/ols_plot_resid_fit.html) from **olsrr** package.
@@ -524,7 +522,8 @@ ols_plot_resid_fit(condo.mlr1)
 check_model(condo.mlr1,   #performance pacakge
             check = "linearity")
 ```
-:::callout-note
+
+::: callout-note
 According to the [`check_model()` documentation](https://www.rdocumentation.org/packages/performance/versions/0.12.4/topics/check_model), `check` argument could be one or more of "all", "vif", "qq", "normality", "linearity", "ncv", "homogeneity", "outliers", "reqq", "pp_check", "binned_residuals" or "overdispersion"."reqq" is a QQ-plot for random effects and only available for mixed models. "ncv" is an alias for "linearity", and checks for non-constant variance, i.e. for heteroscedasticity, as well as the linear relationship. By default, all possible checks are performed and plotted.
 :::
 
@@ -532,30 +531,30 @@ Since the majority of data points are scattered around the 0 line, relationships
 
 #### Test for Normality Assumption
 
-If the model’s residuals (the differences between observed and predicted values) are normally distributed, the normality assumption holds. This is crucial for accurate hypothesis testing and confidence intervals. 
+If the model’s residuals (the differences between observed and predicted values) are normally distributed, the normality assumption holds. This is crucial for accurate hypothesis testing and confidence intervals.
 
 The code chunk below uses check_normality() of performance package to perform normality assumption test.
 
 ```{r}
 check_normality(condo.mlr1) # performance package
 ```
+
 ```{r}
 plot(check_normality(condo.mlr1), type ="qq")
 ```
+
 QQ plot above below shows that majority of the data points are felt along the zero line.
 
-
 The code chunk below uses [`check_model()`](https://easystats.github.io/performance/reference/check_model.html) from performance package to test residuals normality.
-
 
 ```{r}
 check_model(condo.mlr1,
             check= "normality")
 ```
+
 The figure reveals that the residual of the multiple linear regression model (i.e. condo.mlr1) is resemble normal distribution.
 
 Alternatively, we could do the same tests using **olsrr** package, using following residual diagnostics: ols_plot_resid_box(), ols_plot_resid_hist(), ols_plot_resid_qq() and ols_test_normality() to check normality of residuals. ols_test_correlation()tests independence (autocorrelation).
-
 
 ```{r}
  ols_test_normality(condo.mlr1) #olsrr package
@@ -564,6 +563,7 @@ Alternatively, we could do the same tests using **olsrr** package, using followi
 ```{r}
 ols_plot_resid_hist(condo.mlr1)
 ```
+
 ```{r}
 ols_plot_resid_qq(condo.mlr1) 
 ```
@@ -575,8 +575,8 @@ The hedonic model uses geographically referenced data, thus it is essential to c
 ```{r}
 ols_test_correlation(condo.mlr1)
 ```
-The OLS autocorrelation value of 0.825 suggests strong positive autocorrelation that the residuals are not independent. 
-This violates the OLS assumption of error independence and should be further tested using Moran’s I for spatial dependence. Significant spatial autocorrelation in the residuals means the model is not capturing the full spatial story, some spatial dependence is left unexplained.
+
+The OLS autocorrelation value of 0.825 suggests strong positive autocorrelation that the residuals are not independent. This violates the OLS assumption of error independence and should be further tested using Moran’s I for spatial dependence. Significant spatial autocorrelation in the residuals means the model is not capturing the full spatial story, some spatial dependence is left unexplained.
 
 We first save the residuals as a data frame.
 
@@ -596,6 +596,7 @@ Next, we plot the distribution of residuals using functions from tmap package on
 ```{r}
 tmap_mode("view")
 ```
+
 ```{r}
 tm_shape(mpsz_svy21) +
   tm_polygons(fill_alpha =0.4) +
@@ -615,21 +616,19 @@ tm_shape(mpsz_svy21) +
   tm_view(set_zoom_limits = c(11,14))
 ```
 
-
 ```{r}
 tmap_mode("plot")
 ```
+
 Each dot represents a condo resale residual (actual - predicted):
 
-- Green dots (positive): model underpredicted (actual > predicted).
+-   Green dots (positive): model underpredicted (actual \> predicted).
 
-- Purple dots (negative): model overpredicted (actual < predicted).
+-   Purple dots (negative): model overpredicted (actual \< predicted).
 
 If residuals were spatially random, green and purple dots would be evenly scattered across Singapore.But it is not the case here. Further, the coexistence of overestimates and underestimates within the same region indicates that the OLS model cannot fully capture local variations in housing market dynamics.
 
-
 Next we can confirm with Moran’s I test on residuals.
-
 
 First, we compute distance-based weight matrix using [`st_dist_band()`](https://sfdep.josiahparry.com/reference/st_dist_band) function of **sfdep.**
 
@@ -640,7 +639,7 @@ condo_resale.sf <- condo_resale.sf %>%
          .before = 1)
 ```
 
-Then, we use [`global_moran_perm()`](https://sfdep.josiahparry.com/reference/global_moran_perm) of **sfdep** package  conduct Moran's I test for residual spatial autocorrelation with Monte Carlo Simulations (500 times).
+Then, we use [`global_moran_perm()`](https://sfdep.josiahparry.com/reference/global_moran_perm) of **sfdep** package conduct Moran's I test for residual spatial autocorrelation with Monte Carlo Simulations (500 times).
 
 ```{r}
 set.seed(1234)
@@ -650,16 +649,13 @@ global_moran_perm(condo_resale.sf$MLR_RES,
                   alternative = "two.sided",
                   nsim = 499)
 ```
-The Global Moran’s I value of 0.1439 (p < 0.05) indicates a statistically significant positive spatial autocorrelation, suggesting a mild clustering pattern across the study area.
 
-:::
+The Global Moran’s I value of 0.1439 (p \< 0.05) indicates a statistically significant positive spatial autocorrelation, suggesting a mild clustering pattern across the study area.
+::::
 
-
-
-##  Building Hedonic Pricing Models Using GWmodel Package
+## Building Hedonic Pricing Models Using GWmodel Package
 
 In this section, we build hedonic pricing models using both the fixed and adaptive bandwidth schemes.
-
 
 ### Computing Fixed Bandwidth
 
@@ -679,10 +675,10 @@ bw.fixed <- bw.gwr(
   adaptive = FALSE,
   longlat = FALSE)
 ```
+
 Recommended bandwidth is 971.3405 metres, since we are using projected crs measured in metres.
 
 ### GWModel method - fixed bandwith
-
 
 The code chunk below calibrates the GWR model using fixed bandwidth and Gaussian kernel.`gwr.basic()` is a function from the **GWModel** package that performs basic Geographically Weighted Regression (GWR).
 
@@ -700,13 +696,11 @@ gwr.fixed <- gwr.basic(
   longlat = FALSE)
 ```
 
-The class of GWR model is "gwrm". The report belew shows 
-
+The class of GWR model is "gwrm". The report belew shows
 
 ```{r}
 gwr.fixed
 ```
-
 
 The GWR model achieved an AICc value of 42,263.61, which is significantly lower than that of the global multiple linear regression model (42,967.10), which means a better fit and simplicity. The model also produced an R2 of 0.891 and an adjusted R2 of 0.843. The GWR explains over 80% of the spatial variation in condominium resale prices.
 
@@ -732,9 +726,10 @@ bw.adaptive <- bw.gwr(
   adaptive = TRUE,
   longlat = FALSE)
 ```
+
 The output values are **not in metres** as the bandwidth is the number of nearest neighbours, not a physical distance. The optimal adaptive bandwidth of 30 means each local regression is calibrated using the **30 nearest neighbouring observations**.
 
-### 13.9.2.2 Constructing the Adaptive Bandwidth GWR Model
+### Constructing the Adaptive Bandwidth GWR Model
 
 Similarly, we build the GWR model using adpative bandwidth and Gaussian Kernel.
 
@@ -762,23 +757,21 @@ The report indicates adaptive bandwidth GWR model is even better, as the AICc is
 str(gwr.adaptive)
 ```
 
-
 ### Visualising GWR Output
-
 
 The GWR output includes diagnostic and model evaluation fields stored in the **sf** DataFrame under the **SDF** output list. These contain the observed and predicted y values, residuals, condition numbers, local R2, explanatory variable coefficients, standard errors, and corresponding t-values.
 
-- Condition Number: 
+-   Condition Number:
 
 Assesses local multicollinearity. Values above 30 indicate unstable or unreliable local estimates.
 
-- Local R2: Indicates how well the local model fits observed data (0–1 range). Mapping these values highlights areas where the model performs well or poorly, revealing potential missing variables or spatial non-stationarity.
+-   Local R2: Indicates how well the local model fits observed data (0–1 range). Mapping these values highlights areas where the model performs well or poorly, revealing potential missing variables or spatial non-stationarity.
 
-- Predicted Values: The fitted y values estimated by the GWR.
+-   Predicted Values: The fitted y values estimated by the GWR.
 
-- Residuals: Differences between observed and predicted y; standardised residuals (mean = 0, SD = 1) can be mapped with a cold–hot colour scheme to visualise model performance.
+-   Residuals: Differences between observed and predicted y; standardised residuals (mean = 0, SD = 1) can be mapped with a cold–hot colour scheme to visualise model performance.
 
-- Coefficient Standard Errors: Measure the reliability of coefficient estimates. Small standard errors relative to coefficient magnitudes indicate stable estimates, while large errors suggest local collinearity issues.
+-   Coefficient Standard Errors: Measure the reliability of coefficient estimates. Small standard errors relative to coefficient magnitudes indicate stable estimates, while large errors suggest local collinearity issues.
 
 By jointly examining the Local R2 and residuals maps, we can identify areas where the model performs well (high Local R2, small residuals) and areas where it performs poorly (low Local R2, large residuals).
 
@@ -796,9 +789,11 @@ Then we have a quick look on its columns.
 ```{r}
 glimpse(condo_resale.sf.adaptive)
 ```
+
 ```{r}
 summary(gwr.adaptive$SDF$yhat)
 ```
+
 ### Visualising Local R2
 
 The code chunks below is used to create an interactive point symbol map.
@@ -819,7 +814,6 @@ tmap_mode("plot")
 ### Visualising Coefficient Estimates
 
 The code chunks below is used to create an interactive point symbol map for **AREA_SQM**.
-
 
 ```{r}
 tmap_mode("view")
@@ -845,8 +839,8 @@ tmap_arrange(AREA_SQM_SE, AREA_SQM_TV,
 
 tmap_mode("plot")
 ```
-The spatial distribution of **AREA_SQM** coefficients indicates that floor area is a reliable and significant predictor of condominium prices in the central and south-eastern regions, where standard errors are lower and t-values are moderate to high. In contrast, the northern and western regions exhibit higher standard errors and lower t-values. The floor area has a less stable and weaker influence on price variation in these areas.
 
+The spatial distribution of **AREA_SQM** coefficients indicates that floor area is a reliable and significant predictor of condominium prices in the central and south-eastern regions, where standard errors are lower and t-values are moderate to high. In contrast, the northern and western regions exhibit higher standard errors and lower t-values. The floor area has a less stable and weaker influence on price variation in these areas.
 
 The code chunks below is used to create an interactive point symbol map for **MRT**.
 
@@ -875,15 +869,14 @@ tmap_arrange(PROX_MRT_SE, PROX_MRT_TV,
 
 The **PROX_MRT** variable exhibits low standard errors overall, that means stable coefficient estimates across the study area. It shows a strong and statistically significant negative relationship with condominium resale prices in the central and southern subzones. That properties closer to MRT stations tend to have higher prices.
 
-However, a few light-coloured subzones, such as Bukit Batok, Bukit Panjang, Bukit Timah, and several areas along the East Coast exhibit non-significant relationships. 
+However, a few light-coloured subzones, such as Bukit Batok, Bukit Panjang, Bukit Timah, and several areas along the East Coast exhibit non-significant relationships.
 
-|t| < 1.96 means statistically insignificant.
-
-
+\|t\| \< 1.96 means statistically insignificant.
 
 ## Reference
+
 Gollini I, Lu B, Charlton M, Brunsdon C, Harris P (2015) “GWmodel: an R Package for exploring Spatial Heterogeneity using Geographically Weighted Models”. Journal of Statistical Software, 63(17):1-50, http://www.jstatsoft.org/v63/i17/
 
 Lu B, Harris P, Charlton M, Brunsdon C (2014) “The GWmodel R Package: further topics for exploring Spatial Heterogeneity using GeographicallyWeighted Models”. Geo-spatial Information Science 17(2): 85-101, http://www.tandfonline.com/doi/abs/10.1080/1009502.2014.917453
 
-Kam, T. S. 13  Calibrating Hedonic Pricing Model for Private Highrise Property with GWR Method. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap13
+Kam, T. S. 13 Calibrating Hedonic Pricing Model for Private Highrise Property with GWR Method. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap13
