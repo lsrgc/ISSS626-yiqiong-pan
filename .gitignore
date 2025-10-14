@@ -8,3 +8,4 @@
 data/
 **/*.quarto_ipynb
 exercise_template.qmd
+MRT/
