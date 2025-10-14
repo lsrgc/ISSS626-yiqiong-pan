@@ -32,7 +32,7 @@ install.packages("maptools", repos = "https://packagemanager.posit.co/cran/2023-
 ```
 
 ```{r}
-pacman::p_load(sf, raster, spatstat, tmap, tidyverse, maptools)
+pacman::p_load(sf, raster, spatstat, tmap, tidyverse)
 ```
 
 ## Issue 2: Creating Coastal Outline
@@ -110,7 +110,7 @@ summary(childcare_ppp)
 
 ## Creating ***owin*** object from sf data.frame
 
-The code chunk below uses `as.owin()` of **spatstat.geom** to create an **owin** object class from polygon sf tibble data.frame.
+The code chunk below uses `as.owin()` of **spatstat.geom** to create an **owin** object class from polygon sf tibble data.frame. *summary()* function displays the summary information of the owin object class.
 
 ```{r}
 sg_owin <- as.owin(sg_sf)
@@ -124,11 +124,8 @@ plot(sg_owin1, main = "as.owin(mpsz_sf)")
 summary(sg_owin1)
 ```
 
-*summary()* function displays the summary information of the owin object class.
 
-```{r}
-summary(sg_owin)
-```
+
 
 ## Combining Point Events Object and owin Object
 
@@ -311,3 +308,7 @@ rdacc_sf %>%
   tm_view(set.view = c(100.5, 13.75, 9))
 tmap_mode("plot")
 ```
+Reference
+
+Dr. Kam Tin Seong. In-class Exercise 2: Spatial Point Patterns Analysis: spatstat methods. ISSS626 Course Website. 21 July 2025.
+https://isss626-ay2025-26aug.netlify.app/in-class_ex/in-class_ex02/in-class_ex02-sppa#/title-slide
