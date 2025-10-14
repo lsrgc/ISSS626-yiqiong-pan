@@ -31,7 +31,6 @@ We first download the archived package **maptools** from [Posit Public Package M
 install.packages("maptools", repos = "https://packagemanager.posit.co/cran/2023-10-13")
 ```
 
-
 ```{r}
 pacman::p_load(sf, raster, spatstat, tmap, tidyverse, maptools)
 ```
@@ -80,7 +79,7 @@ The figure illustrates that the **sg_sf** object contains only the boundary outl
 ### spatstat sub-packages
 
 | Package | Description |
-|------------------------------------|------------------------------------|
+|-----------------|------------------------------------|
 | [**spatstat**](https://cran.r-project.org/web/packages/spatstat/index.html) | Provides documentation, vignettes, demos, and introductory materials for the spatstat family |
 | [**spatstat.data**](https://cran.r-project.org/web/packages/spatstat.data/index.html) | Contains all datasets used in spatstat. |
 | [**spatstat.utils**](https://cran.r-project.org/web/packages/spatstat.utils/index.html) | \[Includes core utility functions. |
@@ -92,8 +91,7 @@ The figure illustrates that the **sg_sf** object contains only the boundary outl
 | [**spatstat.model**](https://cran.r-project.org/web/packages/spatstat.model/index.html) | Contains functions for model fitting, diagnostics, and inference. |
 | [**spatstat.linnet**](https://cran.r-project.org/web/packages/spatstat.linnet/index.html) | Supports analysis and geometry of spatial data on linear networks. |
 
-
-: {tbl-colwidths="\[15,85\]"}
+: {tbl-colwidths="[15,85]"}
 
 ## Creating ppp Objects from sf Data.frame
 
@@ -103,6 +101,7 @@ Instead of using the two steps approaches discussed in Hands-on Exercise 3 to cr
 childcare_ppp <- as.ppp(childcare_sf)
 plot(childcare_ppp, use.marks = FALSE, pch = 16, cex = 0.6)
 ```
+
 The code chunk below uses `summary()` to reveal the properties of the newly created ppp object.
 
 ```{r}
@@ -118,26 +117,28 @@ sg_owin <- as.owin(sg_sf)
 plot(sg_owin, main = "as.owin(sg_sf)")
 summary(sg_owin)
 ```
+
 ```{r}
 sg_owin1 <- as.owin(mpsz_sf)
 plot(sg_owin1, main = "as.owin(mpsz_sf)")
 summary(sg_owin1)
 ```
 
-
 *summary()* function displays the summary information of the owin object class.
+
 ```{r}
 summary(sg_owin)
 ```
 
-
 ## Combining Point Events Object and owin Object
 
-The code chunk below combines childcare_ppp with sg_owin. 
+The code chunk below combines childcare_ppp with sg_owin.
+
 ```{r}
 childcareSG_ppp = childcare_ppp[sg_owin]
 summary(childcareSG_ppp)
 ```
+
 ### The output
 
 The output can be visualised as the figure below.
@@ -160,12 +161,12 @@ kde_childcareSG_adaptive <- adaptive.density(   #KDE output (density surface)
   method="kernel")
 plot(kde_childcareSG_adaptive)
 ```
+
 ## Kernel Density Estimation
 
 The code chunk converts KDE output into grid object in two different ways.
 
-:::panel-tabset
-
+::: panel-tabset
 ### maptools method
 
 ```{r}
@@ -177,6 +178,7 @@ gridded_kde_childcareSG_ad <- maptools::as.SpatialGridDataFrame.im(
   kde_childcareSG_adaptive)
 spplot(gridded_kde_childcareSG_ad)
 ```
+
 ### spatstat.geom method
 
 The object gridded_kde_childcareSG_ad is a SpatialGridDataFrame from the sp package.
@@ -189,12 +191,11 @@ spplot(gridded_kde_childcareSG_ad)   #plot KDE intensity as a heatmap
 ```
 :::
 
-
 ## Kernel Density Estimation
 
 ### Visualising KDE Using tmap
 
-The raster() function from the raster package converts the SpatialGridDataFrame into a RasterLayer object. The projection() function assigns Singapore’s SVY21 projected CRS to the raster layer. 
+The raster() function from the raster package converts the SpatialGridDataFrame into a RasterLayer object. The projection() function assigns Singapore’s SVY21 projected CRS to the raster layer.
 
 ```{r}
 kde_childcareSG_ad_raster <- raster(gridded_kde_childcareSG_ad)
@@ -211,6 +212,7 @@ tm_shape(kde_childcareSG_ad_raster) +
             frame = FALSE,
             bg.color = "#E4D5C9")
 ```
+
 ## Extracting Study Area Using sf Objects
 
 The code chunk below extracts and creates an ppp object showing child care services and within Punggol Planning Area.
@@ -225,7 +227,6 @@ childcare_pg = childcare_ppp[pg_owin]
 plot(unmark(childcare_pg))
 ```
 
-
 ## Monte Carlo Simulation
 
 The code chunk below set the seed to ensure reproducibility.
@@ -234,25 +235,23 @@ The code chunk below set the seed to ensure reproducibility.
 set.seed(1234)
 ```
 
-
 ## Edge correction methods of spatstat
 
 In **spatstat**, **edge correction methods** adjust for boundary-related biases in spatial point pattern analysis, ensuring more accurate estimation of summary functions like the K, L, and pair correlation functions.
 
 **Common Edge Correction Methods in spatstat**
 
-- "none": No edge correction is applied. This approach assumes there is no boundary bias, which can result in underestimation of statistics for points near the edges of the study region.
+-   "none": No edge correction is applied. This approach assumes there is no boundary bias, which can result in underestimation of statistics for points near the edges of the study region.
 
--"isotropic": Assumes the point pattern is isotropic (uniform in all directions). It compensates for missing neighbours outside the observation window by adjusting distances based on the proportion of the circle lying within the boundary.
+\-"isotropic": Assumes the point pattern is isotropic (uniform in all directions). It compensates for missing neighbours outside the observation window by adjusting distances based on the proportion of the circle lying within the boundary.
 
-- "translate" (Translation Correction): Applies a translation correction, in which the observation window is translated so that each point is fully contained within it. The statistic is then averaged over all possible translations to correct for edge bias.
+-   "translate" (Translation Correction): Applies a translation correction, in which the observation window is translated so that each point is fully contained within it. The statistic is then averaged over all possible translations to correct for edge bias.
 
-- "Ripley" (Ripley’s Correction): A correction designed specifically for Ripley’s K-function and related summary functions. It adjusts the expected number of neighbours for edge points according to the shape and area of the observation window.
+-   "Ripley" (Ripley’s Correction): A correction designed specifically for Ripley’s K-function and related summary functions. It adjusts the expected number of neighbours for edge points according to the shape and area of the observation window.
 
-- "border": Also known as the reduced-sample correction, this method considers only those points whose neighbourhoods are entirely contained within the observation window. It is conservative but effectively minimises edge bias.
+-   "border": Also known as the reduced-sample correction, this method considers only those points whose neighbourhoods are entirely contained within the observation window. It is conservative but effectively minimises edge bias.
 
-Since the L-function is  commonly used in spatial point pattern analysis and is derived from Ripley’s K-function, the "Ripley" edge correction is generally appropriate choice among Edge Correction Methods. 
-
+Since the L-function is commonly used in spatial point pattern analysis and is derived from Ripley’s K-function, the "Ripley" edge correction is generally appropriate choice among Edge Correction Methods.
 
 ## Geospatial Analytics for Social Good: Thailand Road Accident Case Study
 
@@ -265,7 +264,13 @@ We aim to analyse road traffic injuries and deaths in Bangkok, Thailand.
 
 ## The Study Area
 
-The study area is [Bangkok Metropolitan Region](https://en.wikipedia.org/wiki/Bangkok_Metropolitan_Region). The projected coordinate system of Thailand is WGS 84 / UTM zone 47N and the EPSG code is 32647.
+The study area is [Bangkok Metropolitan Region](https://en.wikipedia.org/wiki/Bangkok_Metropolitan_Region).
+
+![](bkk.png){width="581"}
+
+::: callout-note
+The projected coordinate system of Thailand is **WGS 84/ UTM zone 47N** and the EPSG code is **32647**.
+:::
 
 ## The Data
 
@@ -276,7 +281,6 @@ For the purpose of this exercise, three basic data sets are needed, they are:
 -   [Thailand Roads (OpenStreetMap Export)](https://data.humdata.org/dataset/hotosm_tha_roads) on HDX.
 
 -   [Thailand - Subnational Administrative Boundaries](https://data.humdata.org/dataset/cod-ab-tha) on HDX.
-
 
 ### Importing Traffic Accident Data
 
@@ -290,6 +294,7 @@ rdacc_sf <- read_csv("data/thai_road_accident_2019_2022.csv") %>%
            crs = 4326) %>%
   st_transform(crs = 32647)
 ```
+
 ## Visualising The Accident Data
 
 Next we import the ACLED data into R environment as an sf tibble data.frame.
@@ -299,11 +304,10 @@ tmap_mode("view")
 
 rdacc_sf %>%
   mutate(year = year(incident_datetime), .before = 1) %>%     # add 'year' as 1st column
-  filter(province_en == "Bangkok", year == 2022 ) %>%     # OR condition
+  filter(province_en == "Bangkok", year == 2022 ) %>%     # and condition
   tm_shape() +
   tm_dots(col = "number_of_injuries", style = "jenks", n = 5, palette = "Reds",size = 0.6) +
   tm_layout(main.title = "Road injuries in BKK (2022)") +
   tm_view(set.view = c(100.5, 13.75, 9))
 tmap_mode("plot")
 ```
-

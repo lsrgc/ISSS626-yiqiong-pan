@@ -809,7 +809,7 @@
     "href": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#the-study-area",
     "title": "In-class Exercise 2: Spatial Point Patterns Analysis: spatstat methods",
     "section": "\n15 The Study Area",
-    "text": "15 The Study Area\nThe study area is Bangkok Metropolitan Region. The projected coordinate system of Thailand is WGS 84 / UTM zone 47N and the EPSG code is 32647."
+    "text": "15 The Study Area\nThe study area is Bangkok Metropolitan Region.\n\n\n\n\n\n\n\nNote\n\n\n\nThe projected coordinate system of Thailand is WGS 84/ UTM zone 47N and the EPSG code is 32647."
   },
   {
     "objectID": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#the-data",
@@ -823,6 +823,6 @@
     "href": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#visualising-the-accident-data",
     "title": "In-class Exercise 2: Spatial Point Patterns Analysis: spatstat methods",
     "section": "\n17 Visualising The Accident Data",
-    "text": "17 Visualising The Accident Data\nNext we import the ACLED data into R environment as an sf tibble data.frame.\n\ntmap_mode(\"view\")\n\nrdacc_sf %&gt;%\n  mutate(year = year(incident_datetime), .before = 1) %&gt;%     # add 'year' as 1st column\n  filter(province_en == \"Bangkok\", year == 2022 ) %&gt;%     # OR condition\n  tm_shape() +\n  tm_dots(col = \"number_of_injuries\", style = \"jenks\", n = 5, palette = \"Reds\",size = 0.6) +\n  tm_layout(main.title = \"Road injuries in BKK (2022)\") +\n  tm_view(set.view = c(100.5, 13.75, 9))\n\n\n\n\n\ntmap_mode(\"plot\")"
+    "text": "17 Visualising The Accident Data\nNext we import the ACLED data into R environment as an sf tibble data.frame.\n\ntmap_mode(\"view\")\n\nrdacc_sf %&gt;%\n  mutate(year = year(incident_datetime), .before = 1) %&gt;%     # add 'year' as 1st column\n  filter(province_en == \"Bangkok\", year == 2022 ) %&gt;%     # and condition\n  tm_shape() +\n  tm_dots(col = \"number_of_injuries\", style = \"jenks\", n = 5, palette = \"Reds\",size = 0.6) +\n  tm_layout(main.title = \"Road injuries in BKK (2022)\") +\n  tm_view(set.view = c(100.5, 13.75, 9))\n\n\n\n\n\ntmap_mode(\"plot\")"
   }
 ]

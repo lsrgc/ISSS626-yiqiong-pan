@@ -1258,7 +1258,21 @@ values     : -1.124964e-14, 46.59506  (min, max)</code></pre>
 <li><a href="https://cdn.who.int/media/docs/default-source/thailand/roadsafety/overview-en-final-25-7-19.pdf?sfvrsn=f9d7a862_2">Road traffic deaths and injuries in Thailand</a></li>
 </ul></section></section><section id="the-study-area" class="level2" data-number="15"><h2 data-number="15" class="anchored" data-anchor-id="the-study-area">
 <span class="header-section-number">15</span> The Study Area</h2>
-<p>The study area is <a href="https://en.wikipedia.org/wiki/Bangkok_Metropolitan_Region">Bangkok Metropolitan Region</a>. The projected coordinate system of Thailand is WGS 84 / UTM zone 47N and the EPSG code is 32647.</p>
+<p>The study area is <a href="https://en.wikipedia.org/wiki/Bangkok_Metropolitan_Region">Bangkok Metropolitan Region</a>.</p>
+<p><img src="bkk.png" class="img-fluid" width="581"></p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The projected coordinate system of Thailand is <strong>WGS 84/ UTM zone 47N</strong> and the EPSG code is <strong>32647</strong>.</p>
+</div>
+</div>
 </section><section id="the-data" class="level2" data-number="16"><h2 data-number="16" class="anchored" data-anchor-id="the-data">
 <span class="header-section-number">16</span> The Data</h2>
 <p>For the purpose of this exercise, three basic data sets are needed, they are:</p>
@@ -1286,7 +1300,7 @@ values     : -1.124964e-14, 46.59506  (min, max)</code></pre>
 <span></span>
 <span><span class="va">rdacc_sf</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">mutate</span><span class="op">(</span>year <span class="op">=</span> <span class="fu">year</span><span class="op">(</span><span class="va">incident_datetime</span><span class="op">)</span>, .before <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span>     <span class="co"># add 'year' as 1st column</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">province_en</span> <span class="op">==</span> <span class="st">"Bangkok"</span>, <span class="va">year</span> <span class="op">==</span> <span class="fl">2022</span> <span class="op">)</span> <span class="op">%&gt;%</span>     <span class="co"># OR condition</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">province_en</span> <span class="op">==</span> <span class="st">"Bangkok"</span>, <span class="va">year</span> <span class="op">==</span> <span class="fl">2022</span> <span class="op">)</span> <span class="op">%&gt;%</span>     <span class="co"># and condition</span></span>
 <span>  <span class="fu">tm_shape</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">tm_dots</span><span class="op">(</span>col <span class="op">=</span> <span class="st">"number_of_injuries"</span>, style <span class="op">=</span> <span class="st">"jenks"</span>, n <span class="op">=</span> <span class="fl">5</span>, palette <span class="op">=</span> <span class="st">"Reds"</span>,size <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">tm_layout</span><span class="op">(</span>main.title <span class="op">=</span> <span class="st">"Road injuries in BKK (2022)"</span><span class="op">)</span> <span class="op">+</span></span>
