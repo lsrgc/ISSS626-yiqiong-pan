@@ -65,9 +65,9 @@ website:
           - text: "01: Geospatial Analytics for Public Good: Agglomeration in Play"
             href: "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html"
           - text: "02: Geospatial Analytics for Public Good: Urban mobility"
-            href: "Take-home_Ex/Take-home_Ex02/Take-home_Ex02.qmd" 
+            href: "Take-home_Ex/Take-home_Ex02/Take-home_Ex02.html" 
           - text: "03:"
-            href: "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.qmd" 
+            href: "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html" 
     right: 
       - href: index.qmd
         text: Home
