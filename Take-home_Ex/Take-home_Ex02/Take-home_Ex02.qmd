@@ -178,6 +178,28 @@ BusStop_in_SG <- st_join(
   left = FALSE)
 ```
 
+
+There are **5** bus stops outside of Singapore.
+
+```{r}
+BusStop_SG <- st_join(
+  BusStop, mpsz,
+  join = st_within,
+  left = TRUE)
+```
+
+```{r}
+length(BusStop_SG$BUS_STOP_N) - length(BusStop_in_SG$BUS_STOP_N)
+```
+
+
+
+### Removing duplicates in Bus Stops
+
+We notice here are 18 bus stops that appear twice in the bus stop locations dataset, which are duplicates after careful examination. 
+
+The code chunk below removes the duplicates in bus stop locations.
+
 ```{r}
 sum(duplicated(BusStop_in_SG$BUS_STOP_N))
 ```
@@ -195,18 +217,11 @@ dp_busstops <-BusStop_in_SG %>%
 kable(dp_busstops)
 ```
 
-There are **5** bus stops outside of Singapore.
-
 ```{r}
-BusStop_SG <- st_join(
-  BusStop, mpsz,
-  join = st_within,
-  left = TRUE)
+BusStop_in_SG <- BusStop_in_SG %>%
+  distinct(BUS_STOP_N, .keep_all = TRUE)
 ```
 
-```{r}
-length(BusStop_SG$BUS_STOP_N) - length(BusStop_in_SG$BUS_STOP_N)
-```
 
 Next, we double-check that the points have been correctly filtered to include only those within Singapore.
 
@@ -383,25 +398,19 @@ kable(head(bs_hex))
 ```
 
 
+ 
+```{r}
+write_rds(bs_hex, "data/rds/bs_hex.rds")
+```
+
 ### Adding HEX_ID into bus trips data
 
-As mentioned earlier there are 18 bus stops that appear twice in the bus stop locations dataset, which are duplicates after careful examination. 
-
-The code chunk below removes the duplicates and merges the HEX_ID and Bus Stop into trip .
-
-```{r}
-bs_hex_unq <- bs_hex %>%
-  distinct(BUS_STOP_N, .keep_all = TRUE)
-```
-
-```{r}
-write_rds(bs_hex_unq, "data/rds/bs_hex_unq.rds")
-```
+The code chunk below merges the HEX_ID and Bus Stop into trip.
 
 
 ```{r}
-trips_unq<- inner_join(trips, bs_hex_unq)
-kable(head(trips_unq))
+trips<- inner_join(trips, bs_hex)
+kable(head(trips))
 ```
 
 
@@ -411,22 +420,22 @@ kable(head(trips_unq))
 The code chunk below groups trip volume by **HEX_ID, DATE_TYPE, and HOUR_OF_DAY**.
 
 ```{r}
-trips_wide <- trips_unq %>%
+trips_wide <- trips%>%
   group_by(
     HEX_ID,
     DAY_TYPE,
     HOUR_OF_DAY) %>%
   summarise(TRIPS = sum(TRIPS)) %>%
-  ungroup() #%>%
-  #pivot_wider(names_from = HOUR_OF_DAY,
-              #values_from = TRIPS)
+  ungroup() %>%
+  pivot_wider(names_from = HOUR_OF_DAY,
+              values_from = TRIPS)
   
-#colnames(trips_wide)
+colnames(trips_wide)
 ```
 
 ### Filter Peak Periods
 
-The code chunk below adds up the trip volume per Hexagon for **three** peak periods and create three new columns:
+The code chunk below adds up the trip volume per Hexagon for **three** peak periods and creates three new columns:
 
 -   weekday morning (6 am – 9 am) as "WEEKDAY_AM"
 
@@ -449,16 +458,17 @@ peak_trips <- trips_wide %>%
       NA_real_
     ),
     WEEKEND = if_else(
-      DAY_TYPE %in% c("WEEKEND/HOLIDAY", "WEEKENDS/HOLIDAY"),
+      DAY_TYPE == "WEEKENDS/HOLIDAY",
       rowSums(.[8:16], na.rm = TRUE),
       NA_real_)) %>%
-  select(HEX_ID, WEEKDAY_AM, WEEKDAY_PM, WEEKEND) #%>%
-  #group_by(HEX_ID) #%>%
-  #summarise(
-    ##WEEKDAY_AM = sum(WEEKDAY_AM, na.rm = TRUE),
-    #WEEKDAY_PM = sum(WEEKDAY_PM, na.rm = TRUE),
-    #WEEKEND = sum(WEEKEND, na.rm = TRUE))
-
+  select(HEX_ID, WEEKDAY_AM, WEEKDAY_PM, WEEKEND) %>%
+  group_by(HEX_ID) %>%
+  summarise(
+    WEEKDAY_AM = sum(WEEKDAY_AM, na.rm = TRUE),
+    WEEKDAY_PM = sum(WEEKDAY_PM, na.rm = TRUE),
+    WEEKEND = sum(WEEKEND, na.rm = TRUE)
+  )
+ 
 ```
 
 We have a quick overview on the newly creately `peak_trips` data.
@@ -508,6 +518,7 @@ htmltools::div(              # creates a html wrapper to style the table
 
 
 
+
 ### Combining the Trip Volume with Hexagon Grid
 
 The code chunk below joins the two data sets by HEX_ID, converts the tibble data.frame to sf data.frame and saves the file for further spatial analysis. 
@@ -526,9 +537,6 @@ write_rds(peak_hex, "data/rds/peak_hex.rds")
 
 
 
-
-
-
 The code chunk below loads the two sf objects:  Master Plan Subzone Boundary **mpsz** and attribute table for bus trips **peak_hex** for next stage. 
 
 ```{r}
@@ -540,11 +548,44 @@ mpsz <- read_rds("data/rds/mpsz.rds")
 ```
 
 ```{r}
-bs_hex_unq <- read_rds("data/rds/bs_hex_unq.rds")
+bs_hex <- read_rds("data/rds/bs_hex.rds")
 ```
 
 
+### Creating Space-time Cube
 
+```{r}
+st_cube <- peak_hex %>%
+  pivot_longer(
+    cols = c(WEEKDAY_AM, WEEKDAY_PM, WEEKEND),
+    names_to = "PERIOD",
+    values_to = "TRIPS"
+  ) %>%
+  mutate(TIME_INDEX = case_when(
+    PERIOD == "WEEKDAY_AM" ~ 1,
+    PERIOD == "WEEKDAY_PM" ~ 2, 
+    PERIOD == "WEEKEND" ~ 3
+  ))
+```
+
+
+```{r}
+locations <- st_cube %>%
+    distinct(HEX_ID, geometry)
+
+st_peak <- spacetime(st_cube, locations,
+                    .loc_col = "HEX_ID", 
+                    .time_col = "TIME_INDEX")
+
+```
+
+```{r}
+write_rds(st_peak, "data/rds/st_peak.rds")
+```
+
+```{r}
+st_peak <- read_rds("data/rds/st_peak.rds")
+```
 
 ## EDA
 
@@ -596,7 +637,7 @@ percentmap <- function(vnam, df, legtitle = NA, mtitle = "Percentile Map") {
               value.na = NA,            
               labels = c("<1%", "1–10%", "10–50%", "50–90%", "90–99%", ">99%")),
             fill.legend = tm_legend(
-              title = legtitle,        
+              title = legtitle,
               na.show = FALSE)) +
     tm_borders() +
     tm_layout(main.title = mtitle)+
@@ -611,23 +652,20 @@ percentmap <- function(vnam, df, legtitle = NA, mtitle = "Percentile Map") {
 
 The code chunk below plots percentile map for the three peak periods.
 
-```{r}
-#tmap_mode("view")
+```{r, fig.height=8, fig.width=12}
+tmap_mode("plot")
 percentmap("WEEKDAY_AM", peak_hex,mtitle = "Percentiles Map(Weekday Morning Peak)")
 percentmap("WEEKDAY_PM", peak_hex,mtitle = "Percentiles Map(Weekday Evening Peak)")
 percentmap("WEEKEND", peak_hex,mtitle = "Percentiles Map(Weekend/holiday Peak)")
 
 ```
-```{r}
-tmap_mode("plot")
-```
+
 
 Interpreation:
 
 Weekday Morning Peak:
 
 During the weekday morning 6-9am, we observe the bus trips 
-
 
 
 ```{r}
@@ -650,30 +688,28 @@ Global Measures of Spatial Association
 
 ### Computing Contiguity Spatial Weights: sfdep method
 
-The contiguity based spatial weights are used here since we have created 375m equal-sided analytical hexagons (TAZ grid) and queen method and row standardisation are used. 
+The contiguity based spatial weights are generated with row standardisation. 
 
 ### Weekday Morning Peak
 
+Despite 3 isolated hexagons (0.36% of observations), this approach will be used for consistency. The amount of isolated units does not substantially affect inference, and most areas exhibit the expected 6 neighbors as under analytical hexagon structure.
 
 ```{r}
 wm_q_wam <- weekday_am %>%
-  mutate(nb = st_contiguity(geometry, queen = TRUE),
+  mutate(nb = st_contiguity(geometry, queen = TRUE), #queen is default method in st_contiguity
          wt = st_weights(
-           nb, style = "W", allow_zero = TRUE),
+           nb, style = "W", allow_zero = TRUE), # allow_zero is enabled to capture the zero
          .before = 1)
 summary(wm_q_wam$nb)
 ```
 
-
 ```{r}
-wm_q_wam <- weekday_am %>%
-  mutate(
-    nb = st_knn(geometry, k = 6),  # 5 nearest neighbors
-    wt = st_weights(nb, style = "W"),
-    .before = 1
-  )
-
-summary(wm_q_wam$nb)
+wm_k_wam <- weekday_am %>%
+  mutate(nb = st_knn(geometry, k = 6), #queen is default method in st_contiguity
+         wt = st_weights(
+           nb, style = "W"), # allow_zero is enabled to capture the zero
+         .before = 1)
+summary(wm_k_wam$nb)
 ```
 
 
@@ -683,10 +719,17 @@ summary(wm_q_wam$nb)
 In the code chunk below, [`global_moran()`](https://sfdep.josiahparry.com/reference/global_moran) function is used to compute the Moran’s I value. Different from spdep package, the output is a tibble data.frame.
 
 ```{r}
-moranI_wam <- global_moran(wm_q_wam$WEEKDAY_AM,
+moranI_wam_q <- global_moran(wm_q_wam$WEEKDAY_AM,
                        wm_q_wam$nb,
                        wm_q_wam$wt, zero.policy = TRUE)
-glimpse(moranI_wam)
+glimpse(moranI_wam_q)
+```
+
+```{r}
+moranI_wam_k <- global_moran(wm_k_wam$WEEKDAY_AM,
+                       wm_k_wam$nb,
+                       wm_k_wam$wt)
+glimpse(moranI_wam_k)
 ```
 
 ### Performing Global Moran’s I test
@@ -700,22 +743,73 @@ global_moran_test(wm_q_wam$WEEKDAY_AM,
 ```
 The default for `alternative` argument is *“two.sided”*. Other supported arguments are “greater” or “less”. By default the `randomization` argument is *TRUE*. If FALSE, under the assumption of normality.
 
+
+```{r}
+global_moran_test(wm_k_wam$WEEKDAY_AM,
+                       wm_k_wam$nb,
+                       wm_k_wam$wt)
+```
+
 Performing Global Moran’I permutation test
 
-[`global_moran_perm()`](https://sfdep.josiahparry.com/reference/global_moran_perm.html) is used to perform Monte Carlo simulation.
+[`global_moran_perm()`](https://sfdep.josiahparry.com/reference/global_moran_perm.html) is used to perform 100 Monte Carlo simulations.
 ```{r}
 set.seed(1234)
 ```
 
 ```{r}
-global_moran_perm(wm_q_wam$WEEKDAY_AM,
+wamiperm <- global_moran_perm(wm_q_wam$WEEKDAY_AM,
                   wm_q_wam$nb,
                   wm_q_wam$wt,
                   nsim = 99, zero.policy = TRUE) #100 simulations since the it starts with 0.
 
+wamiperm
+summary(wamiperm[["res"]])
+```
+The code chunk below uses hist() and abline() of R Graphic to visualise the simulated Moran’s I test in detail.
+
+```{r}
+hist(wamiperm$res,freq = TRUE, breaks = 20,
+     xlab = "Simulated Moran's I")
+abline(v = 0, col = "red") # v is to set x value for vertical line
 ```
 
+
+
 **At the 95% confidence level, p-value is less than 0.05, we reject the null hypothesis. Moran's I value is 0.3 which is a sign of moderate clustering.**
+
+```{r}
+wamkiperm <-global_moran_perm(wm_k_wam$WEEKDAY_AM,
+                  wm_k_wam$nb,
+                  wm_k_wam$wt,
+                  nsim = 99) #100 simulations since the it starts with 0.
+wamkiperm
+```
+
+```{r}
+hist(wamkiperm$res,freq = TRUE, breaks = 20,
+     xlab = "Simulated Moran's I")
+abline(v = 0, col = "red") # v is to set x value for vertical line
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
