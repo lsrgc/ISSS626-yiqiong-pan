@@ -28,7 +28,7 @@ editor: visual
 
 Urban mobility refers to the movement of people and goods across all transport modes within and between cities. With population growth and climate pressures, Cities are developing smart and sustainable transport systems to enhance accessibility and reduce carbon emissions.
 
-During the progress, vast amounts of data are generated from technologies that track people using public transport such as buses, MRT, and roads from smart cards, GPS, and RFID systems. For instance, tap-on and tap-off data from smart cards capture trip flows from origins to destinations, and discounts are often offered for off-peak travel at the tap-off point.
+During the progress, massive amounts of data are generated from technologies that track people using public transport such as buses, MRT, and roads from smart cards, GPS, and RFID systems. For instance, tap-on and tap-off data from smart cards capture trip flows from origins to destinations, and discounts are often offered for off-peak travel at the tap-off point.
 
 Yet, such data are often used only for simple GIS mapping, rather than for deeper spatial analyses that could reveal richer insights into mobility patterns.
 
@@ -49,7 +49,7 @@ Through the progress, our goals are to identify specific locations where values 
 There are **six** packages used in this exercise. `add more package, sfdep`
 
 | Package | Description |
-|-------------------------|------------------------------------------------|
+|-------------------------|----------------------------------------------|
 | [sf](https://r-spatial.github.io/sf/) | Handles importing, managing, and processing vector-based geospatial data |
 | [tidyverse](https://www.tidyverse.org/) | A collection of R packages for data wrangling and visualisation, including **readr**, **dplyr**, and **ggplot2**. |
 | [tmap](https://r-tmap.github.io/tmap/) | Creates cartographic quality static and interactive thematic (choropleth) maps. |
@@ -65,7 +65,7 @@ There are **six** packages used in this exercise. `add more package, sfdep`
 The code chunk below loads the required package into R.
 
 ```{r}
-pacman::p_load(tidyverse, sf, sfdep, tmap, knitr, kableExtra, DT, rvest, sfdep)
+pacman::p_load(tidyverse, sf, sfdep, tmap, knitr, kableExtra, DT, rvest, sfdep, GGally, corrplot)
 ```
 
 ## Getting the Data into R environment
@@ -125,6 +125,10 @@ write_rds(mpsz, "data/rds/mpsz.rds")
 
 ```
 
+```{r}
+mpsz_pop25<-read_rds("data/rds/mpsz_pop2025.rds")
+```
+
 ### Importing the Geospatial Point Data: Bus Stop Locations
 
 The code chunk below imports *Bus Stop Location* shapefile downloaded from LTA DataMall into R environment.
@@ -178,7 +182,6 @@ BusStop_in_SG <- st_join(
   left = FALSE)
 ```
 
-
 There are **5** bus stops outside of Singapore.
 
 ```{r}
@@ -192,11 +195,9 @@ BusStop_SG <- st_join(
 length(BusStop_SG$BUS_STOP_N) - length(BusStop_in_SG$BUS_STOP_N)
 ```
 
-
-
 ### Removing duplicates in Bus Stops
 
-We notice here are 18 bus stops that appear twice in the bus stop locations dataset, which are duplicates after careful examination. 
+We notice here are 18 bus stops that appear twice in the bus stop locations dataset, which are duplicates after careful examination.
 
 The code chunk below removes the duplicates in bus stop locations.
 
@@ -221,7 +222,6 @@ kable(dp_busstops)
 BusStop_in_SG <- BusStop_in_SG %>%
   distinct(BUS_STOP_N, .keep_all = TRUE)
 ```
-
 
 Next, we double-check that the points have been correctly filtered to include only those within Singapore.
 
@@ -397,8 +397,6 @@ bs_hex <- st_intersection(
 kable(head(bs_hex))
 ```
 
-
- 
 ```{r}
 write_rds(bs_hex, "data/rds/bs_hex.rds")
 ```
@@ -407,15 +405,12 @@ write_rds(bs_hex, "data/rds/bs_hex.rds")
 
 The code chunk below merges the HEX_ID and Bus Stop into trip.
 
-
 ```{r}
 trips<- inner_join(trips, bs_hex)
 kable(head(trips))
 ```
 
-
 ### Aggregating TRIPS based on HEX_ID
-
 
 The code chunk below groups trip volume by **HEX_ID, DATE_TYPE, and HOUR_OF_DAY**.
 
@@ -429,6 +424,8 @@ trips_wide <- trips%>%
   ungroup() %>%
   pivot_wider(names_from = HOUR_OF_DAY,
               values_from = TRIPS)
+
+trips_wide[is.na(trips_wide)] <- 0
   
 colnames(trips_wide)
 ```
@@ -442,7 +439,6 @@ The code chunk below adds up the trip volume per Hexagon for **three** peak peri
 -   weekday afternoon (5 pm – 8 pm) as "WEEKDAY_PM"
 
 -   weekend/holiday (11 am – 8 pm) as "WEEKEND"
-
 
 ```{r}
 peak_trips <- trips_wide %>%
@@ -479,12 +475,12 @@ kable(head(peak_trips, 10))
 
 In total, the number of hex cells was reduced from 924 to 824.
 
-for example, since bus stops 0000 (Changi Airport) and 00000 (Changi Bay) from the Bus Stop Locations dataset have no passenger tap-on data,  the corresponding hex cell HEX_ID 834 was excluded after the join. 
+for example, since bus stops 0000 (Changi Airport) and 00000 (Changi Bay) from the Bus Stop Locations dataset have no passenger tap-on data, the corresponding hex cell HEX_ID 834 was excluded after the join.
 
-Similarly, bus stop 31029 (Western Water Catchment, no man's land) and its corresponding hex cell HEX_ID 082 were excluded. 
+Similarly, bus stop 31029 (Western Water Catchment, no man's land) and its corresponding hex cell HEX_ID 082 were excluded.
 
+The code chunk below saves `peak_trips` and load it back to system.
 
-The code chunk below saves `peak_trips` and load it back to system. 
 ```{r}
 write_rds(peak_trips, "data/rds/peak_trips.rds")
 ```
@@ -493,11 +489,75 @@ write_rds(peak_trips, "data/rds/peak_trips.rds")
 peak_trips <- read_rds("data/rds/peak_trips.rds")
 ```
 
+### Create Space-time Cube for EHSA
 
+EHSA requires multiple time steps to detect trends. Here we prepare the data for each peak period.
+
+```{r}
+trips_long <- trips_wide%>%
+  pivot_longer(
+    cols = c(3:26),
+    names_to = "HOUR_OF_DAY",
+    values_to = "TRIPS")
+```
+
+```{r}
+peak_hours <- trips_long%>%
+  filter(DAY_TYPE == "WEEKDAY" & HOUR_OF_DAY %in% c(6,7,8,17,18,19) | 
+         DAY_TYPE == "WEEKENDS/HOLIDAY"& HOUR_OF_DAY %in% c(11,12,13,14,15,16,17,18,19)) %>%
+  mutate(HOUR_OF_DAY = as.numeric(HOUR_OF_DAY), HEX_ID = as.character(HEX_ID))
+```
+
+We have a quick overview on the newly creately `peak_hours` data.
+
+```{r}
+kable(head(peak_hours, 10))
+```
+
+```{r}
+peak_hours_hex <-left_join(peak_hours, hexagon) %>%
+  st_as_sf()
+```
+
+There are two ways to create spacetime objects using `as_spacetime()` or `spacetime()`. The first method transforms `sf` object that contains location IDs, time and geometry into a spacetime object.The second way create a space object from two separate objects one for geometry and another one for attribute data.
+
+The code chunk below uses the former approach with [`as_spacetime()`](https://sfdep.josiahparry.com/reference/as_spacetime) of **sfdep** to create an [**spatio-temporal cube**](https://sfdep.josiahparry.com/articles/spacetime-s3.html) and verifies the class using `is_spacetime_cube()`.
+
+```{r}
+# 1. Weekday Morning Peak (6-9am)
+peak_am <- peak_hours_hex %>%
+  filter(DAY_TYPE == "WEEKDAY", HOUR_OF_DAY %in% c(6,7,8)) %>%
+  select(1,4,5,3) %>%
+  arrange(HOUR_OF_DAY)
+am_st <- as_spacetime(peak_am,.loc_col = "HEX_ID", .time_col ="HOUR_OF_DAY")
+is_spacetime_cube(am_st)
+
+```
+
+```{r}
+# 2. Weekday Afternoon Peak (5-8pm)  
+peak_pm <- peak_hours_hex %>%
+  filter(DAY_TYPE == "WEEKDAY", HOUR_OF_DAY %in% c(17,18,19))%>%
+  select(1,4,5,3)%>%
+  arrange(HOUR_OF_DAY)
+
+pm_st <- as_spacetime(peak_pm,.loc_col = "HEX_ID", .time_col ="HOUR_OF_DAY")
+is_spacetime_cube(pm_st)
+```
+
+```{r}
+# 3. Weekend/Holiday Peak (11am-8pm)
+peak_weekend <- peak_hours_hex %>%
+  filter(DAY_TYPE == "WEEKENDS/HOLIDAY", HOUR_OF_DAY %in% c(11,12,13,14,15,16,17,18,19))%>%
+  select(1,4,5,3)%>%
+  arrange(HOUR_OF_DAY)
+weekend_st <- as_spacetime(peak_weekend,.loc_col = "HEX_ID", .time_col ="HOUR_OF_DAY")
+is_spacetime_cube(weekend_st)
+```
 
 ### The interactive trips data frame
 
-The code chunk below generates an interactive data table for `peak_trip` that we can search for the trip volume by HEX_ID.
+The code chunk below generates an interactive data table for `peak_hours` that we can search for the trip volume by HEX_ID.
 
 ```{r}
 htmltools::div(              # creates a html wrapper to style the table
@@ -505,7 +565,7 @@ htmltools::div(              # creates a html wrapper to style the table
   style = "font-size: 18px; width: 80%; margin: auto;",
                              # makes an interactive table ((search, sort, paginate))
   DT::datatable(             
-    peak_trips,
+    peak_hours,
     options = list(          # JavaScript options
       pageLength = 10,       # shows 10 rows per page
       scrollY = 300,         # gives the table a 500px-tall scrollable view port
@@ -516,28 +576,56 @@ htmltools::div(              # creates a html wrapper to style the table
 )
 ```
 
-
-
-
 ### Combining the Trip Volume with Hexagon Grid
 
-The code chunk below joins the two data sets by HEX_ID, converts the tibble data.frame to sf data.frame and saves the file for further spatial analysis. 
+The code chunk below joins the two data sets by HEX_ID, converts the tibble data.frame to sf data.frame and saves the file for further spatial analysis.
 
 ```{r}
-peak_hex <- left_join(peak_trips,hexagon)
-```
-
-```{r}
-peak_hex <- st_as_sf(peak_hex)
+peak_hex <- left_join(peak_trips,hexagon) %>%
+  st_as_sf()
 ```
 
 ```{r}
 write_rds(peak_hex, "data/rds/peak_hex.rds")
 ```
 
+```{r}
+mpsz_pop25 <- mpsz_pop25 %>%
+  mutate(`ECONOMY ACTIVE` = ifelse(is.na(`ECONOMY ACTIVE`), 0, `ECONOMY ACTIVE`))%>%
+  mutate(`EAR` = ifelse(is.na(`TOTAL`), 0, `ECONOMY ACTIVE`/ `TOTAL` ))%>%
+  mutate(DEPENDENCY = ifelse(is.na(DEPENDENCY), 0, DEPENDENCY)) %>%
+  mutate(EAR = ifelse(is.na(EAR), 0, EAR))
+```
 
+```{r}
+hex_pop <- st_intersection(hexagon, mpsz_pop25) %>%
+  mutate(overlap_area = st_area(.)) %>%
+  group_by(HEX_ID) %>%
+  summarise(DEPENDENCY = weighted.mean(DEPENDENCY, as.numeric(overlap_area), na.rm = TRUE),
+           EAR = weighted.mean(EAR, as.numeric(overlap_area), na.rm = TRUE),
+            .groups = 'drop')
+```
 
-The code chunk below loads the two sf objects:  Master Plan Subzone Boundary **mpsz** and attribute table for bus trips **peak_hex** for next stage. 
+```{r}
+peak_hex_pop <-left_join(peak_trips, hex_pop)
+```
+
+```{r}
+peak_hex_with_subzone <- peak_hex %>%
+  st_intersection(mpsz %>% select(SUBZONE_N)) %>%
+  mutate(overlap_area = st_area(.)) %>%
+  group_by(HEX_ID) %>%
+  arrange(desc(overlap_area)) %>%
+  slice(1) %>%  # Keep the subzone with largest overlap
+  ungroup() %>%
+  select(-overlap_area)
+```
+
+```{r}
+write_rds(peak_hex_with_subzone, "data/rds/peak_hex_with_subzone.rds")
+```
+
+The code chunk below loads the two sf objects: Master Plan Subzone Boundary **mpsz** and attribute table for bus trips **peak_hex** for next stage.
 
 ```{r}
 peak_hex <-read_rds("data/rds/peak_hex.rds")
@@ -550,7 +638,6 @@ mpsz <- read_rds("data/rds/mpsz.rds")
 ```{r}
 bs_hex <- read_rds("data/rds/bs_hex.rds")
 ```
-
 
 ### Creating Space-time Cube
 
@@ -567,7 +654,6 @@ st_cube <- peak_hex %>%
     PERIOD == "WEEKEND" ~ 3
   ))
 ```
-
 
 ```{r}
 locations <- st_cube %>%
@@ -600,12 +686,12 @@ peak_hex <- peak_hex %>%
   drop_na()
 ```
 
-
 ```{r}
 sum(is.na(peak_hex[["WEEKDAY_AM"]]))
 sum(is.na(peak_hex[["WEEKDAY_PM"]]))
 sum(is.na(peak_hex[["WEEKEND"]]))
 ```
+
 The code chunk below creates functions to plot a percentile map for selected variable in the data frame.
 
 ```{r}
@@ -618,15 +704,13 @@ get.var <- function(vname, df) {
   return(v)
 }
 
-percentmap <- function(vnam, df, legtitle = NA, mtitle = "Percentile Map") {
-  percent <- c(0, .01, .1, .5, .9, .99, 1) # defines the breaks
-  var <- get.var(vnam, df) # retrieve the variable 
-  
-  # Ensure var is a vector, not a data frame
+percentmap <- function(vnam, df, legtitle = NA, mtitle = "Percentile Map", filename = "animated.gif") {
+  percent <- c(0, .01, .1, .5, .9, .99, 1)
+  var <- get.var(vnam, df)
   var <- as.vector(unlist(var))
-  
-  bperc <- quantile(var, percent, na.rm = TRUE) # calculates the percentile values
-  
+  bperc <- quantile(var, percent, na.rm = TRUE)
+
+  # Create the animated map
   tm_shape(mpsz) +
     tm_fill("gray",fill_alpha =0.5) +
     tm_shape(df) +
@@ -646,7 +730,6 @@ percentmap <- function(vnam, df, legtitle = NA, mtitle = "Percentile Map") {
     tm_grid(alpha =0.2) +
     tm_credits("Source: data.gov.sg & LTADataMall",
             position = c("right", "bottom"))
-
 }
 ```
 
@@ -660,170 +743,14 @@ percentmap("WEEKEND", peak_hex,mtitle = "Percentiles Map(Weekend/holiday Peak)")
 
 ```
 
-
-Interpreation:
-
-Weekday Morning Peak:
-
-During the weekday morning 6-9am, we observe the bus trips 
-
-
-```{r}
-weekday_am <- peak_hex %>%
-  select(1:2,5)
-
-weekday_pm <- peak_hex %>%
-  select(1,3,5)
-
-weekend <- peak_hex %>%
-  select(1,4:5)
+```{r, fig.height=8, fig.width=12}
+#|eval: false
+tmap_mode("plot")
+percentmap("TRIPS", peak_am,mtitle = "Percentiles Map(Weekday Morning Peak Hourly Data)")
+percentmap("TRIPS", peak_pm,mtitle = "Percentiles Map(Weekday Morning Peak Hourly Data)")
+percentmap("TRIPS", peak_weekend,mtitle = "Percentiles Map(Weekends Peak Hourly Data)")
 
 ```
-
-
-## GMSA 
-
-Global Measures of Spatial Association
-
-
-### Computing Contiguity Spatial Weights: sfdep method
-
-The contiguity based spatial weights are generated with row standardisation. 
-
-### Weekday Morning Peak
-
-Despite 3 isolated hexagons (0.36% of observations), this approach will be used for consistency. The amount of isolated units does not substantially affect inference, and most areas exhibit the expected 6 neighbors as under analytical hexagon structure.
-
-```{r}
-wm_q_wam <- weekday_am %>%
-  mutate(nb = st_contiguity(geometry, queen = TRUE), #queen is default method in st_contiguity
-         wt = st_weights(
-           nb, style = "W", allow_zero = TRUE), # allow_zero is enabled to capture the zero
-         .before = 1)
-summary(wm_q_wam$nb)
-```
-
-```{r}
-wm_k_wam <- weekday_am %>%
-  mutate(nb = st_knn(geometry, k = 6), #queen is default method in st_contiguity
-         wt = st_weights(
-           nb, style = "W"), # allow_zero is enabled to capture the zero
-         .before = 1)
-summary(wm_k_wam$nb)
-```
-
-
-### Computing Global Moran's I
-
-
-In the code chunk below, [`global_moran()`](https://sfdep.josiahparry.com/reference/global_moran) function is used to compute the Moran’s I value. Different from spdep package, the output is a tibble data.frame.
-
-```{r}
-moranI_wam_q <- global_moran(wm_q_wam$WEEKDAY_AM,
-                       wm_q_wam$nb,
-                       wm_q_wam$wt, zero.policy = TRUE)
-glimpse(moranI_wam_q)
-```
-
-```{r}
-moranI_wam_k <- global_moran(wm_k_wam$WEEKDAY_AM,
-                       wm_k_wam$nb,
-                       wm_k_wam$wt)
-glimpse(moranI_wam_k)
-```
-
-### Performing Global Moran’s I test
-
- Moran’s I test can be performed by using [`global_moran_test()`](https://sfdep.josiahparry.com/reference/global_moran_test.html) as shown in the code chunk below.
-
-```{r}
-global_moran_test(wm_q_wam$WEEKDAY_AM,
-                       wm_q_wam$nb,
-                       wm_q_wam$wt, zero.policy = TRUE)
-```
-The default for `alternative` argument is *“two.sided”*. Other supported arguments are “greater” or “less”. By default the `randomization` argument is *TRUE*. If FALSE, under the assumption of normality.
-
-
-```{r}
-global_moran_test(wm_k_wam$WEEKDAY_AM,
-                       wm_k_wam$nb,
-                       wm_k_wam$wt)
-```
-
-Performing Global Moran’I permutation test
-
-[`global_moran_perm()`](https://sfdep.josiahparry.com/reference/global_moran_perm.html) is used to perform 100 Monte Carlo simulations.
-```{r}
-set.seed(1234)
-```
-
-```{r}
-wamiperm <- global_moran_perm(wm_q_wam$WEEKDAY_AM,
-                  wm_q_wam$nb,
-                  wm_q_wam$wt,
-                  nsim = 99, zero.policy = TRUE) #100 simulations since the it starts with 0.
-
-wamiperm
-summary(wamiperm[["res"]])
-```
-The code chunk below uses hist() and abline() of R Graphic to visualise the simulated Moran’s I test in detail.
-
-```{r}
-hist(wamiperm$res,freq = TRUE, breaks = 20,
-     xlab = "Simulated Moran's I")
-abline(v = 0, col = "red") # v is to set x value for vertical line
-```
-
-
-
-**At the 95% confidence level, p-value is less than 0.05, we reject the null hypothesis. Moran's I value is 0.3 which is a sign of moderate clustering.**
-
-```{r}
-wamkiperm <-global_moran_perm(wm_k_wam$WEEKDAY_AM,
-                  wm_k_wam$nb,
-                  wm_k_wam$wt,
-                  nsim = 99) #100 simulations since the it starts with 0.
-wamkiperm
-```
-
-```{r}
-hist(wamkiperm$res,freq = TRUE, breaks = 20,
-     xlab = "Simulated Moran's I")
-abline(v = 0, col = "red") # v is to set x value for vertical line
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Box Map for LISA
 
 ```{r}
 #| code-fold: true
@@ -901,9 +828,1772 @@ boxmap("WEEKDAY_PM", peak_hex,mtitle = "Box Map(Weekday Evening Peak)")
 boxmap("WEEKEND", peak_hex,mtitle = "Box Map(Weekend/holiday Peak)")
 ```
 
+```{r}
+sum(is.na(peak_am[["TRIPS"]]))
+sum(is.na(peak_pm[["TRIPS"]]))
+sum(is.na(peak_weekend[["TRIPS"]]))
+```
 
+```{r}
+#| code-fold: true
+#| code-summary: "View code"
+get.var <- function(vname, df) {
+  v <- df[vname] %>% 
+    st_set_geometry(NULL)
+  v <- unname(v[,1])
+  return(v)
+}
+
+percentmap_animated <- function(vnam, df, legtitle = NA, mtitle = "Percentile Map", filename = "animated.gif") {
+  # Calculate percentile breaks using the parameters
+  percent <- c(0, .01, .1, .5, .9, .99, 1)
+  var <- get.var(vnam, df)  # Use vnam parameter
+  var <- as.vector(unlist(var))
+  bperc <- quantile(var, percent, na.rm = TRUE)
+
+  animated_map <- tm_shape(mpsz) +
+    tm_fill("gray", fill_alpha = 0.5) +
+    tm_shape(df) +  
+    tm_fill(vnam,   
+            fill.scale = tm_scale(
+              breaks = bperc,
+              values = "-RdBu",         
+              value.na = NA,
+              labels = c("<1%", "1–10%", "10–50%", "50–90%", "90–99%", ">99%")),
+            fill.legend = tm_legend(
+              title = legtitle,
+              na.show = FALSE)) +
+    tm_borders() +
+    tm_compass(type = "8star", size = 2) +
+    tm_scalebar() +
+    tm_grid(alpha = 0.2) +
+    tm_credits("Source: data.gov.sg & LTADataMall",
+              position = c("right", "bottom")) +
+    tm_animate(frames = "HOUR_OF_DAY", fps = 1, play = "loop") +
+    tm_layout(main.title = mtitle)  
+  
+  full_path <- file.path("img", filename)  
+  # Create the animation
+  tmap_animation(animated_map,
+                 filename = full_path,
+                 width = 1000, 
+                 height = 600)
+}
+```
+
+```{r}
+percentmap_animated("TRIPS", peak_am, 
+           legtitle = "Morning Trip Percentiles",
+           mtitle = "Percentiles Map (Weekday Morning Peak Hourly Data)",
+           filename = "weekday_morning_peak.gif")
+
+percentmap_animated("TRIPS", peak_pm,
+           legtitle = "Evening Trip Percentiles", 
+           mtitle = "Percentiles Map (Weekday Evening Peak Hourly Data)",
+           filename = "weekday_evening_peak.gif")
+
+percentmap_animated("TRIPS", peak_weekend,
+           legtitle = "Weekend Trip Percentiles",
+           mtitle = "Percentiles Map (Weekend/Holiday Peak Hourly Data)", 
+           filename = "weekend_peak.gif")
+```
+
+```{r}
+knitr::include_graphics("img/weekday_morning_peak.gif")
+knitr::include_graphics("img/weekday_evening_peak.gif")
+knitr::include_graphics("img/weekend_peak.gif")
+```
+
+```{r}
+peak_am %>%
+  group_by(HOUR_OF_DAY) %>%
+  summarise(
+    avg_trips = mean(TRIPS),
+    total_trips = sum(TRIPS)
+  ) %>%
+  ggplot(aes(x = HOUR_OF_DAY, y = total_trips)) +
+  geom_col() +
+  labs(title = "Trip Distribution Across Morning Peak Hours")
+```
+
+```{r}
+peak_pm %>%
+  group_by(HOUR_OF_DAY) %>%
+  summarise(
+    avg_trips = mean(TRIPS),
+    total_trips = sum(TRIPS)
+  ) %>%
+  ggplot(aes(x = HOUR_OF_DAY, y = total_trips)) +
+  geom_col() +
+  labs(title = "Trip Distribution Across Afternoon Peak Hours")
+```
+
+```{r}
+peak_weekend %>%
+  group_by(HOUR_OF_DAY) %>%
+  summarise(
+    avg_trips = mean(TRIPS),
+    total_trips = sum(TRIPS)
+  ) %>%
+  ggplot(aes(x = HOUR_OF_DAY, y = total_trips)) +
+  geom_col() +
+  labs(title = "Trip Distribution Across Weekend/holiday Peak Hours")
+```
+
+```{r}
+# Combine all hourly data
+all_hourly_data <- bind_rows(
+  peak_am %>% mutate(Period = "Weekday AM"),
+  peak_pm %>% mutate(Period = "Weekday PM"), 
+  peak_weekend %>% mutate(Period = "Weekend")
+)
+
+# Line chart by hour and period
+ggplot(all_hourly_data, aes(x = HOUR_OF_DAY, y = TRIPS, color = Period, group = Period)) +
+  stat_summary(fun = sum, geom = "line") +
+  stat_summary(fun = sum, geom = "point") +
+  labs(title = "Total Trips by Hour Across Peak Periods",
+       x = "Hour of Day", 
+       y = "Total Trips",
+       color = "Period") +
+  theme_minimal() +
+  scale_x_continuous(breaks = unique(all_hourly_data$HOUR_OF_DAY))
+```
+
+```{r}
+peak_hex_pop %>%
+  st_drop_geometry() %>%
+  select(WEEKDAY_AM, WEEKDAY_PM, WEEKEND, DEPENDENCY, EAR) %>%
+  ggpairs()
+```
+
+```{r}
+peak_hex %>%
+  st_drop_geometry() %>%
+  select(WEEKDAY_AM, WEEKDAY_PM, WEEKEND, busstop_count) %>%
+  ggpairs()
+```
+
+Interpreation:
+
+Weekday Morning Peak:
+
+During the weekday morning 6-9am, we observe the bus trips.
+
+```{r}
+weekday_am <- peak_hex %>%
+  select(1:2,5)
+
+weekday_pm <- peak_hex %>%
+  select(1,3,5)
+
+weekend <- peak_hex %>%
+  select(1,4:5)
+
+```
+
+## GMSA
+
+Global Measures of Spatial Association
+
+Intro
+
+The contiguity based spatial weights are generated with row standardisation, where each neighbor contributes equally and the weights for each polygon sum to 1. Despite 3 isolated hexagons (0.36% of observations), this approach will be used for consistency. The amount of isolated units does not substantially affect inference, and most areas exhibit the expected 6 neighbours as under analytical hexagon structure.
+
+### Weekday Morning Peak
+
+#### Computing Contiguity Spatial Weights: sfdep method
+
+```{r}
+wm_q_wam <- weekday_am %>%
+  mutate(nb = st_contiguity(geometry, queen = TRUE), #queen is default method in st_contiguity
+         wt = st_weights(
+           nb, style = "W", allow_zero = TRUE), # allow_zero is enabled to capture the zero
+         .before = 1)
+summary(wm_q_wam$nb)
+```
+
+```{r}
+wm_k_wam <- weekday_am %>%
+  mutate(nb = st_knn(geometry, k = 6), #queen is default method in st_contiguity
+         wt = st_weights(
+           nb, style = "W"), # allow_zero is enabled to capture the zero
+         .before = 1)
+summary(wm_k_wam$nb)
+```
+
+#### Computing Global Moran's I
+
+In the code chunk below, [`global_moran()`](https://sfdep.josiahparry.com/reference/global_moran) function is used to compute the Moran’s I value. Different from spdep package, the output is a tibble data.frame.
+
+```{r}
+moranI_wam_q <- global_moran(wm_q_wam$WEEKDAY_AM,
+                       wm_q_wam$nb,
+                       wm_q_wam$wt, zero.policy = TRUE)
+glimpse(moranI_wam_q)
+```
+
+```{r}
+moranI_wam_k <- global_moran(wm_k_wam$WEEKDAY_AM,
+                       wm_k_wam$nb,
+                       wm_k_wam$wt)
+glimpse(moranI_wam_k)
+```
+
+#### Performing Global Moran’s I test
+
+Moran’s I test can be performed by using [`global_moran_test()`](https://sfdep.josiahparry.com/reference/global_moran_test.html) as shown in the code chunk below.
+
+```{r}
+global_moran_test(wm_q_wam$WEEKDAY_AM,
+                       wm_q_wam$nb,
+                       wm_q_wam$wt, zero.policy = TRUE)
+```
+
+The default for `alternative` argument is *“two.sided”*. Other supported arguments are “greater” or “less”. By default the `randomization` argument is *TRUE*. If FALSE, under the assumption of normality.
+
+```{r}
+global_moran_test(wm_k_wam$WEEKDAY_AM,
+                       wm_k_wam$nb,
+                       wm_k_wam$wt)
+```
+
+#### Performing Global Moran’I permutation test
+
+[`global_moran_perm()`](https://sfdep.josiahparry.com/reference/global_moran_perm.html) is used to perform 100 Monte Carlo simulations.
+
+```{r}
+set.seed(1234)
+```
+
+```{r}
+wamiperm <- global_moran_perm(wm_q_wam$WEEKDAY_AM,
+                  wm_q_wam$nb,
+                  wm_q_wam$wt,
+                  nsim = 99, zero.policy = TRUE) #100 simulations since the it starts with 0.
+
+wamiperm
+summary(wamiperm[["res"]])
+```
+
+The code chunk below uses hist() and abline() of R Graphic to visualise the simulated Moran’s I test in detail.
+
+```{r}
+hist(wamiperm$res,freq = TRUE, breaks = 20,
+     xlab = "Simulated Moran's I")
+abline(v = 0, col = "red") # v is to set x value for vertical line
+```
+
+**At the 95% confidence level, p-value is less than 0.05, we reject the null hypothesis. Moran's I value is 0.3 which is a sign of moderate clustering.**
+
+```{r}
+wamkiperm <-global_moran_perm(wm_k_wam$WEEKDAY_AM,
+                  wm_k_wam$nb,
+                  wm_k_wam$wt,
+                  nsim = 99) #100 simulations since the it starts with 0.
+wamkiperm
+```
+
+```{r}
+hist(wamkiperm$res,freq = TRUE, breaks = 20,
+     xlab = "Simulated Moran's I")
+abline(v = 0, col = "red") # v is to set x value for vertical line
+```
+
+### Weekday Afternoon Peak
+
+#### Computing Contiguity Spatial Weights: sfdep method
+
+```{r}
+wm_q_wpm <- weekday_pm %>%
+  mutate(nb = st_contiguity(geometry, queen = TRUE), #queen is default method in st_contiguity
+         wt = st_weights(
+           nb, style = "W", allow_zero = TRUE), # allow_zero is enabled to capture the zero
+         .before = 1)
+summary(wm_q_wpm$nb)
+```
+
+```{r}
+wm_k_wpm <- weekday_pm %>%
+  mutate(nb = st_knn(geometry, k = 6), #queen is default method in st_contiguity
+         wt = st_weights(
+           nb, style = "W"), # allow_zero is enabled to capture the zero
+         .before = 1)
+summary(wm_k_wpm$nb)
+```
+
+#### Computing Global Moran's I
+
+In the code chunk below, [`global_moran()`](https://sfdep.josiahparry.com/reference/global_moran) function is used to compute the Moran’s I value. Different from spdep package, the output is a tibble data.frame.
+
+```{r}
+moranI_wpm_q <- global_moran(wm_q_wpm$WEEKDAY_PM,
+                       wm_q_wpm$nb,
+                       wm_q_wpm$wt, zero.policy = TRUE)
+glimpse(moranI_wpm_q)
+```
+
+```{r}
+moranI_wpm_k <- global_moran(wm_k_wpm$WEEKDAY_PM,
+                       wm_k_wpm$nb,
+                       wm_k_wpm$wt)
+glimpse(moranI_wpm_k)
+```
+
+#### Performing Global Moran’s I test
+
+Moran’s I test can be performed by using [`global_moran_test()`](https://sfdep.josiahparry.com/reference/global_moran_test.html) as shown in the code chunk below.
+
+```{r}
+global_moran_test(wm_q_wpm$WEEKDAY_PM,
+                       wm_q_wpm$nb,
+                       wm_q_wpm$wt, zero.policy = TRUE)
+```
+
+The default for `alternative` argument is *“two.sided”*. Other supported arguments are “greater” or “less”. By default the `randomization` argument is *TRUE*. If FALSE, under the assumption of normality.
+
+```{r}
+global_moran_test(wm_k_wpm$WEEKDAY_PM,
+                       wm_k_wpm$nb,
+                       wm_k_wpm$wt)
+```
+
+#### Performing Global Moran’I permutation test
+
+[`global_moran_perm()`](https://sfdep.josiahparry.com/reference/global_moran_perm.html) is used to perform 100 Monte Carlo simulations.
+
+```{r}
+set.seed(1234)
+```
+
+```{r}
+wpmiperm <- global_moran_perm(wm_q_wpm$WEEKDAY_PM,
+                  wm_q_wpm$nb,
+                  wm_q_wpm$wt,
+                  nsim = 99, zero.policy = TRUE) #100 simulations since the it starts with 0.
+
+wpmiperm
+summary(wpmiperm[["res"]])
+```
+
+The code chunk below uses hist() and abline() of R Graphic to visualise the simulated Moran’s I test in detail.
+
+```{r}
+hist(wpmiperm$res,freq = TRUE, breaks = 20,
+     xlab = "Simulated Moran's I")
+abline(v = 0, col = "red") # v is to set x value for vertical line
+```
+
+**At the 95% confidence level, p-value is less than 0.05, we reject the null hypothesis. Moran's I value is 0.12 which is a sign of weak clustering.**
+
+```{r}
+wpmkiperm <-global_moran_perm(wm_k_wpm$WEEKDAY_PM,
+                  wm_k_wpm$nb,
+                  wm_k_wpm$wt,
+                  nsim = 99) #100 simulations since the it starts with 0.
+wpmkiperm
+```
+
+```{r}
+hist(wpmkiperm$res,freq = TRUE, breaks = 20,
+     xlab = "Simulated Moran's I")
+abline(v = 0, col = "red") # v is to set x value for vertical line
+```
+
+### Weekends/Holiday Peak
+
+#### Computing Contiguity Spatial Weights: sfdep method
+
+```{r}
+wm_q_wkd <- weekend %>%
+  mutate(nb = st_contiguity(geometry, queen = TRUE), #queen is default method in st_contiguity
+         wt = st_weights(
+           nb, style = "W", allow_zero = TRUE), # allow_zero is enabled to capture the zero
+         .before = 1)
+summary(wm_q_wkd$nb)
+```
+
+```{r}
+wm_k_wkd <- weekend %>%
+  mutate(nb = st_knn(geometry, k = 6), #queen is default method in st_contiguity
+         wt = st_weights(
+           nb, style = "W"), # allow_zero is enabled to capture the zero
+         .before = 1)
+summary(wm_k_wkd$nb)
+```
+
+#### Computing Global Moran's I
+
+In the code chunk below, [`global_moran()`](https://sfdep.josiahparry.com/reference/global_moran) function is used to compute the Moran’s I value. Different from spdep package, the output is a tibble data.frame.
+
+```{r}
+moranI_wkd_q <- global_moran(wm_q_wkd$WEEKEND,
+                       wm_q_wkd$nb,
+                       wm_q_wkd$wt, zero.policy = TRUE)
+glimpse(moranI_wkd_q)
+```
+
+```{r}
+moranI_wkd_k <- global_moran(wm_k_wkd$WEEKEND,
+                       wm_k_wkd$nb,
+                       wm_k_wkd$wt)
+glimpse(moranI_wkd_k)
+```
+
+#### Performing Global Moran’s I test
+
+Moran’s I test can be performed by using [`global_moran_test()`](https://sfdep.josiahparry.com/reference/global_moran_test.html) as shown in the code chunk below.
+
+```{r}
+global_moran_test(wm_q_wkd$WEEKEND,
+                       wm_q_wkd$nb,
+                       wm_q_wkd$wt, zero.policy = TRUE)
+```
+
+The default for `alternative` argument is *“two.sided”*. Other supported arguments are “greater” or “less”. By default the `randomization` argument is *TRUE*. If FALSE, under the assumption of normality.
+
+```{r}
+global_moran_test(wm_k_wkd$WEEKEND,
+                       wm_k_wkd$nb,
+                       wm_k_wkd$wt)
+```
+
+#### Performing Global Moran’I permutation test
+
+[`global_moran_perm()`](https://sfdep.josiahparry.com/reference/global_moran_perm.html) is used to perform 100 Monte Carlo simulations.
+
+```{r}
+set.seed(1234)
+```
+
+```{r}
+wkdiperm <- global_moran_perm(wm_q_wkd$WEEKEND,
+                  wm_q_wpm$nb,
+                  wm_q_wpm$wt,
+                  nsim = 99, zero.policy = TRUE) #100 simulations since the it starts with 0.
+
+wkdiperm
+summary(wkdiperm[["res"]])
+```
+
+The code chunk below uses hist() and abline() of R Graphic to visualise the simulated Moran’s I test in detail.
+
+```{r}
+hist(wkdiperm$res,freq = TRUE, breaks = 20,
+     xlab = "Simulated Moran's I")
+abline(v = 0, col = "red") # v is to set x value for vertical line
+```
+
+**At the 95% confidence level, p-value is less than 0.05, we reject the null hypothesis. Moran's I value is 0.22 which is a sign of weak clustering.**
+
+```{r}
+wkdkiperm <-global_moran_perm(wm_k_wkd$WEEKEND,
+                  wm_k_wpm$nb,
+                  wm_k_wpm$wt,
+                  nsim = 99) #100 simulations since the it starts with 0.
+wkdkiperm
+```
+
+```{r}
+hist(wkdkiperm$res,freq = TRUE, breaks = 20,
+     xlab = "Simulated Moran's I")
+abline(v = 0, col = "red") # v is to set x value for vertical line
+```
+
+## Local Measures of Spatial Autocorrelation (LMSA)
+
+They identify specific locations where values are significantly clustered or dispersed. Unlike global measures that summarise the whole map, LMSA tests each location to detect hotspots (high-value clusters), cold spots (low-value clusters), and spatial outliers.
+
+## LISA Map
+
+LISA map is a categorical map showing outliers and clusters throught combining local Moran’s I of geographical areas and their respective p-values.
+
+In this section, we use [`local_moran()`](https://sfdep.josiahparry.com/reference/local_moran.html) of sfdep package to compute Local Moran’s I of Bus Trips at analytical hexagon level.
+
+There are a few columns that will be gereated by `local_moran()`:
+
+-   ii: the local Moran’s I statistics for each region
+
+-   e.ii: expected value of ii under spatial randomness
+
+-   var.ii: the variance of local moran statistic under null model
+
+-   z.ii:the standard deviate of local moran statistic (z-value)
+
+-   p.ii: the p-value of local moran statistic
+
+-   p_ii_sim: p-value from randomisation (Monte Carlo simulations)
+
+-   p_folded_sim: p-value from k-folded simulations (more conservative, treats extreme values both tails), from pysal (python’s equivalent ESDA).
+
+-   skewness, kurtosis: diagnostics for the distribution of simulated ii values (shape compared to normal)
+
+-   mean, median,pysal: mean, median, quandrant classifications based on comparing the region’s value to the value of neighbours, in the format of self - neighbours, e.g., “High-High”.
+
+ There are two types of outliers i.e. High-Low and Low-High outliers and two types of clusters: High-High and Low-Low. 
+ 
+| Type | Description |
+|----|----|
+| High–High | A hex with high trip values surrounded by other high-value hexes. |
+| Low–Low | A hex with low trip values surrounded by other low-value hexes. |
+| High–Low | A hex with high trip value but surrounded by low-value neighbours. |
+| Low–High | A hex with low trip value but surrounded by high-value neighbours. |
+
+### Weekday Morning Peak
+
+#### Computing local Moran’s I
+
+The code chunk below calculates Local Moran’s I of Bus Trips at analytical hexagon level by using [`local_moran()`](https://sfdep.josiahparry.com/reference/local_moran.html) of sfdep package.
+
+```{r}
+lisa_wam_q <- wm_q_wam %>% 
+  mutate(local_moran = local_moran(
+    WEEKDAY_AM, nb, wt, nsim = 99, zero.policy = TRUE),
+         .before = 1) %>%
+  unnest(local_moran)
+```
+
+```{r}
+kable(head(lisa_wam_q))
+```
+
+The `local_moran()` function returns a matrix of values. We use `unnest()` to expand it into separate columns so they can be accessed directly in the `lisa_x` sf object.
+
+
+```{r}
+#KNN method
+lisa_wam_k <- wm_k_wam %>% 
+  mutate(local_moran = local_moran(
+    WEEKDAY_AM, nb, wt, nsim = 99, zero.policy = TRUE),
+         .before = 1) %>%
+  unnest(local_moran)
+```
+
+```{r}
+kable(head(lisa_wam_k))
+```
+
+#### Visualising Local Moran’s I and p-value of Local Moran's I
+
+In this code chunk below, tmap functions are used prepare two choropleth maps by using value in the ii field and p_ii_sim field side by side.
+
+```{r, fig.width=14, fig.height=8}
+tmap_mode("plot")
+
+ii.map_wam_q <-tm_shape(mpsz) +
+  tm_fill("gray", fill_alpha = 0.5) +
+tm_shape(lisa_wam_q) +
+  tm_fill("ii",
+    fill.scale = tm_scale_intervals(
+      style = "pretty",
+      n = 5,
+      values = "-brewer.RdBu",
+      midpoint = NA),
+    fill.legend = tm_legend(
+      title = "Local Moran's I",
+      position = tm_pos_in("left", "bottom"))) +
+  tm_borders(fill_alpha = 0.5) + 
+  tm_title("Local Moran's I of Bus Trips \nWeekday Morning Peak (Queen's method)") +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+             position = c("right", "bottom"))
+ 
+p_ii_sim.map_wam_q <- tm_shape(mpsz) +
+  tm_fill("gray", fill_alpha = 0.5) +
+tm_shape(lisa_wam_q) +
+  tm_fill("p_ii_sim",
+      fill.scale = tm_scale_intervals(
+      breaks = c(0, 0.001, 0.01, 0.05, 1),
+      labels = c("<0.001","0.001-0.01", "0.01-0.05", "Insignificant >0.05"),
+      values = "-turbo"),
+      fill.legend = tm_legend(
+      title = "p-value",
+      position = tm_pos_in("left", "bottom"))) +
+  tm_borders(fill_alpha = 0.5) + 
+  tm_title("p-values of Loal Moran's I of Bus Trips \nWeekday Morning Peak (Queen's method)")+
+  tm_options(legend.na.show = FALSE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+             position = c("right", "bottom"))
+
+
+tmap_arrange(ii.map_wam_q, p_ii_sim.map_wam_q, asp=1, ncol=2)
+
+```
+
+KNN method
+
+```{r, fig.width=14, fig.height=8}
+tmap_mode("plot")
+
+ii.map_wam_k <-tm_shape(mpsz) +
+  tm_fill("gray", fill_alpha = 0.5) +
+tm_shape(lisa_wam_k) +
+  tm_fill("ii",
+    fill.scale = tm_scale_intervals(
+      style = "pretty",
+      n = 5,
+      values = "-brewer.RdBu",
+      midpoint = NA),
+    fill.legend = tm_legend(
+      title = "Local Moran's I",
+      position = tm_pos_in("left", "bottom"))) +
+  tm_borders(fill_alpha = 0.5) + 
+  tm_title("Local Moran's I of Bus Trips \nWeekday Morning Peak (KNN method)") +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+             position = c("right", "bottom"))
+ 
+p_ii_sim.map_wam_k <- tm_shape(mpsz) +
+  tm_fill("gray", fill_alpha = 0.5) +
+tm_shape(lisa_wam_k) +
+  tm_fill("p_ii_sim",
+      fill.scale = tm_scale_intervals(
+      breaks = c(0, 0.001, 0.01, 0.05, 1),
+      labels = c("<0.001","0.001-0.01", "0.01-0.05", "Insignificant >0.05"),
+      values = "-turbo"),
+      fill.legend = tm_legend(
+      title = "p-value",
+      position = tm_pos_in("left", "bottom"))) +
+  tm_borders(fill_alpha = 0.5) + 
+  tm_title("p-values of Loal Moran's I of Bus Trips \nWeekday Morning Peak (KNN method)")+
+  tm_options(legend.na.show = FALSE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+             position = c("right", "bottom"))
+
+
+tmap_arrange(ii.map_wam_k, p_ii_sim.map_wam_k, asp=1, ncol=2)
+
+```
+
+::: callout-warning
+For p-values, the appropriate classification should be 0.001, 0.01, 0.05 and not significant instead of using default classification scheme.
+:::
+
+#### Plotting LISA map
+
+LISA visualisation highlights spatial patterns such as hot spots, cold spots, and outliers using tools like **choropleth maps, Moran scatterplots, and hot spot maps**.
+
+##### Plotting Moran Scatterplot
+
+A Moran Scatterplot visualises spatial autocorrelation by plotting a variable against its spatial lag, with the slope representing Moran’s I and points indicating clusters or outliers.
+
+The code chunk below uses [`st_lag()`](https://sfdep.josiahparry.com/reference/st_lag) of **sfdep** package to calculate the spatial lag variable for `lisa$WEEKDAY_AM`.
+
+```{r}
+lisa_wam_q <- lisa_wam_q %>%
+  mutate(lag_WEEKDAY_AM = st_lag(
+    WEEKDAY_AM, nb, wt, allow_zero = TRUE),
+    .before = 1)%>%
+  unnest(lag_WEEKDAY_AM)
+```
+
+KNN method
+
+```{r}
+
+lisa_wam_k <- lisa_wam_k %>%
+  mutate(lag_WEEKDAY_AM = st_lag(
+    WEEKDAY_AM, nb, wt, allow_zero = TRUE),
+    .before = 1)%>%
+  unnest(lag_WEEKDAY_AM)
+```
+
+Then code chunk plots the Moran Scatterplot of Trips by using ggplot.
+
+```{r}
+ggplot(data = lisa_wam_q,
+       aes(x = WEEKDAY_AM, y = lag_WEEKDAY_AM)) +
+  geom_point() +
+  geom_smooth( method = "lm", se = FALSE, color = "red") +   #linear model
+  labs (x = "WEEKDAY_AM", Y = "Spatial Lag of WEEKDAY_AM",
+        title = "Morgan Scatterpolot (Queen's method)") +
+  theme_minimal()
+```
+
+```{r}
+ggplot(data = lisa_wam_k,
+       aes(x = WEEKDAY_AM, y = lag_WEEKDAY_AM)) +
+  geom_point() +
+  geom_smooth( method = "lm", se = FALSE, color = "red") +   #linear model
+  labs (x = "WEEKDAY_AM", Y = "Spatial Lag of WEEKDAY_AM",
+        title = "Morgan Scatterpolot (KNN method)") +
+  theme_minimal()
+```
+
+The code below updates the scatterplot with colour coding, where top right quadrant, red points represent regions with high values and high neighbourhood averages (**High–High clusters**).
+
+```{r}
+ggplot(data = lisa_wam_q, 
+       aes(x = WEEKDAY_AM, 
+           y = lag_WEEKDAY_AM, 
+           color = mean)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", #linear model
+              se = FALSE, # hide confidence intervals 
+              color = "black") +
+  geom_hline(yintercept=mean(lisa_wam_q$lag_WEEKDAY_AM), lty=2) + 
+    geom_vline(xintercept=mean(lisa_wam_q$WEEKDAY_AM), lty=2) +
+  scale_color_manual(
+    values = c("High-High" = "red", 
+               "Low-Low" = "blue",
+               "Low-High" = "lightblue", 
+               "High-Low" = "pink")) +
+  labs(x = "WEEKDAY_AM",
+       y = "Spatial Lag of WEEKDAY_AM",
+       title = "Moran Scatterplot with LISA Quadrants (QUEEN)") +
+  theme_minimal()
+```
+
+```{r}
+ggplot(data = lisa_wam_k, 
+       aes(x = WEEKDAY_AM, 
+           y = lag_WEEKDAY_AM, 
+           color = mean)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", #linear model
+              se = FALSE, # hide confidence intervals 
+              color = "black") +
+  geom_hline(yintercept=mean(lisa_wam_k$lag_WEEKDAY_AM), lty=2) + 
+    geom_vline(xintercept=mean(lisa_wam_k$WEEKDAY_AM), lty=2) +
+  scale_color_manual(
+    values = c("High-High" = "red", 
+               "Low-Low" = "blue",
+               "Low-High" = "lightblue", 
+               "High-Low" = "pink")) +
+  labs(x = "WEEKDAY_AM",
+       y = "Spatial Lag of WEEKDAY_AM",
+       title = "Moran Scatterplot with LISA Quadrants (KNN)") +
+  theme_minimal()
+```
+
+##### Plotting Moran Scatterplot with Standardised Variable
+
+The code chunk below uses [`scale()`](https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/scale) to center and scale the GDPPC, centering subtracts the mean (ignoring NAs) from the variables, and scaling divides the result by its standard deviation, converting the values to z-scores.
+
+```{r}
+lisa_wam_q <- lisa_wam_q %>%
+  mutate(
+    z_WEEKDAY_AM = as.vector(scale(WEEKDAY_AM)),
+    z_lag_WEEKDAY_AM = as.vector(scale(lag_WEEKDAY_AM)),
+    .before = 1)
+```
+
+knn
+
+```{r}
+lisa_wam_k <- lisa_wam_k %>%
+  mutate(
+    z_WEEKDAY_AM = as.vector(scale(WEEKDAY_AM)),
+    z_lag_WEEKDAY_AM = as.vector(scale(lag_WEEKDAY_AM)),
+    .before = 1)
+```
+
+The function [`as.vector()`](https://www.rdocumentation.org/packages/pbdDMAT/versions/0.5-1/topics/as.vector) goes around the `scale()` function, to ensure the output is converted to numeric vector from matrix.
+
+The code chunk below plot the Morgan Scatterplot.
+
+```{r}
+ggplot(data = lisa_wam_q, 
+       aes(x = z_WEEKDAY_AM, 
+           y = z_lag_WEEKDAY_AM, 
+           color = mean)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", 
+              se = FALSE, 
+              color = "black") +
+  geom_hline(yintercept=mean(lisa_wam_q$z_lag_WEEKDAY_AM), lty=2) + 
+    geom_vline(xintercept=mean(lisa_wam_q$z_WEEKDAY_AM), lty=2) +
+  scale_color_manual(
+    values = c("High-High" = "red", 
+               "Low-Low" = "blue",
+               "Low-High" = "lightblue", 
+               "High-Low" = "pink")) +
+  labs(x = "Standardised WEEKDAY_AM",
+       y = "Standardised Spatial Lag of WEEKDAY_AM",
+       title = "Standardised Moran Scatterplot with LISA Quadrants (QUEEN)") +
+  theme_minimal()
+```
+
+```{r}
+ggplot(data = lisa_wam_k, 
+       aes(x = z_WEEKDAY_AM, 
+           y = z_lag_WEEKDAY_AM, 
+           color = mean)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", 
+              se = FALSE, 
+              color = "black") +
+  geom_hline(yintercept=mean(lisa_wam_k$z_lag_WEEKDAY_AM), lty=2) + 
+    geom_vline(xintercept=mean(lisa_wam_k$z_WEEKDAY_AM), lty=2) +
+  scale_color_manual(
+    values = c("High-High" = "red", 
+               "Low-Low" = "blue",
+               "Low-High" = "lightblue", 
+               "High-Low" = "pink")) +
+  labs(x = "Standardised WEEKDAY_AM",
+       y = "Standardised Spatial Lag of WEEKDAY_AM",
+       title = "Standardised Moran Scatterplot with LISA Quadrants (KNN)") +
+  theme_minimal()
+```
+
+##### Preparing LISA Map Classes
+
+The code chunk below sets a statistical significance level for the local Moran.
+
+```{r}
+signif <- 0.05
+```
+
+##### Plotting and visualising LISA map
+
+The code chunk below prepares LISA map by deriving a new field called **LISA-cluster** from one of the three LISA classes (**`mean,median, pysal`**). Only significant regions (p \< 0.05) keep their cluster label, others are assigned as "insignificant". Then clusters are ordered by levels.
+
+```{r}
+lisa_wam_q <- lisa_wam_q %>%
+  mutate(
+    LISA_cluster = ifelse( p_ii_sim < 0.05, as.character(mean), "Insignificant"),
+    LISA_cluster = factor( LISA_cluster,
+      levels = c("Insignificant", "Low-Low", "Low-High", "High-Low", "High-High")))
+```
+
+```{r}
+lisa_wam_k <- lisa_wam_k %>%
+  mutate(
+    LISA_cluster = ifelse( p_ii_sim < 0.05, as.character(mean), "Insignificant"),
+    LISA_cluster = factor( LISA_cluster,
+      levels = c("Insignificant", "Low-Low", "Low-High", "High-Low", "High-High")))
+```
+
+The code chunk below visualises the clusters in the LISA map.
+
+```{r, fig.width=14, fig.height=8}
+
+tmap_mode("plot")
+
+lisa_map_wam_q <- tm_shape(mpsz) +
+  tm_fill("gray", fill_alpha = 0.5) +
+  tm_shape(lisa_wam_q) + 
+  tm_fill("LISA_cluster",
+    fill.scale = tm_scale_categorical(
+      values = c(
+        "grey80",      # Insignificant
+        "blue",        # Low-Low
+        "lightblue",   # Low-High
+        "pink",        # High-Low
+        "red"          # High-High
+      )
+    ),
+    fill.legend = tm_legend(
+      title = "LISA Cluster",
+      position = tm_pos_in("left","bottom"))
+  ) +
+  tm_borders(fill_alpha = 0.5) + 
+  tm_title("Local Moran's I Clusters (p < 0.05) \nWeekday Morning Peak (Queen's method)") +
+  tm_options(legend.na.show = FALSE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+             position = c("right", "bottom"))
+
+lisa_map_wam_q
+#tmap_arrange(p_ii_sim.map_wam_q,lisa_map_wam_q,  asp=1, ncol=2)
+```
+
+```{f}
+tmap_mode("plot")
+```
+
+```{r, fig.width=14, fig.height=8}
+lisa_map_wam_k <- tm_shape(mpsz) +
+  tm_fill("gray", fill_alpha = 0.5) +
+  tm_shape(lisa_wam_k) + 
+  tm_fill("LISA_cluster",
+    fill.scale = tm_scale_categorical(
+      values = c(
+        "grey80",      # Insignificant
+        "blue",        # Low-Low
+        "lightblue",   # Low-High
+        "pink",        # High-Low
+        "red"          # High-High
+      )
+    ),
+    fill.legend = tm_legend(
+      title = "LISA Cluster",
+      position = tm_pos_in("left", "bottom"))
+  ) +
+  tm_borders(fill_alpha = 0.5) + 
+  tm_title("Local Moran's I Clusters (p < 0.05) \nWeekday Morning Peak (KNN method)") +
+  tm_options(legend.na.show = FALSE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+             position = c("right", "bottom"))
+
+lisa_map_wam_k
+# tmap_arrange(p_ii_sim.map_wam_k,lisa_map_wam_k,  asp=1, ncol=2)
+```
+
+```{r, fig.width=14, fig.height=8}
+tmap_arrange(lisa_map_wam_q,lisa_map_wam_k,  asp=1, ncol=2)
+```
+
+
+
+High-Low (Pink) Examples: Transit hubs, universities, hospitals in suburban areas Low-High (Light Blue) Examples: Parks, industrial areas, or neighborhoods with poor access
+
+::: callout-note
+**What statistical conclusion can you drawfrom the LISA map above?**
+
+At the 95% confidence level, the LISA map shows the eastern–central regions around **xxx** form clustered wealthy areas, while the western–southern counties are identified as least wealthy areas.
+:::
+
+
+
+### Weekday Afternoon Peak
+
+#### Computing local Moran’s I
+
+The code chunk below calculates Local Moran’s I of Bus Trips at analytical hexagon level by using [`local_moran()`](https://sfdep.josiahparry.com/reference/local_moran.html) of sfdep package.
+
+```{r}
+lisa_wpm_q <- wm_q_wpm %>% 
+  mutate(local_moran = local_moran(
+    WEEKDAY_PM, nb, wt, nsim = 99, zero.policy = TRUE),
+         .before = 1) %>%
+  unnest(local_moran)
+```
+
+```{r}
+kable(head(lisa_wpm_q))
+```
+
+The `local_moran()` function returns a matrix of values. We use `unnest()` to expand it into separate columns so they can be accessed directly in the `lisa_x` sf object.
+
+
+```{r}
+#KNN method
+lisa_wpm_k <- wm_k_wpm %>% 
+  mutate(local_moran = local_moran(
+    WEEKDAY_PM, nb, wt, nsim = 99, zero.policy = TRUE),
+         .before = 1) %>%
+  unnest(local_moran)
+```
+
+```{r}
+kable(head(lisa_wpm_k))
+```
+
+#### Visualising Local Moran’s I and p-value of Local Moran's I
+
+In this code chunk below, tmap functions are used prepare two choropleth maps by using value in the ii field and p_ii_sim field side by side.
+
+```{r, fig.width=14, fig.height=8}
+ii.map_wpm_q <-tm_shape(mpsz) +
+  tm_fill("gray", fill_alpha = 0.5) +
+tm_shape(lisa_wpm_q) +
+  tm_fill("ii",
+    fill.scale = tm_scale_intervals(
+      style = "pretty",
+      n = 5,
+      values = "-brewer.RdBu",
+      midpoint = NA),
+    fill.legend = tm_legend(
+      title = "Local Moran's I",
+      position = tm_pos_in("left", "bottom"))) +
+  tm_borders(fill_alpha = 0.5) + 
+  tm_title("Local Moran's I of Bus Trips \nWeekday Afternoon Peak (Queen's method)") +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+             position = c("right", "bottom"))
+ 
+p_ii_sim.map_wpm_q <- tm_shape(mpsz) +
+  tm_fill("gray", fill_alpha = 0.5) +
+tm_shape(lisa_wpm_q) +
+  tm_fill("p_ii_sim",
+      fill.scale = tm_scale_intervals(
+      breaks = c(0, 0.001, 0.01, 0.05, 1),
+      labels = c("<0.001","0.001-0.01", "0.01-0.05", "Insignificant >0.05"),
+      values = "-turbo"),
+      fill.legend = tm_legend(
+      title = "p-value",
+      position = tm_pos_in("left", "bottom"))) +
+  tm_borders(fill_alpha = 0.5) + 
+  tm_title("p-values of Loal Moran's I of Bus Trips \nWeekday Afternoon Peak (Queen's method)")+
+  tm_options(legend.na.show = FALSE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+             position = c("right", "bottom"))
+
+
+tmap_arrange(ii.map_wpm_q, p_ii_sim.map_wpm_q, asp=1, ncol=2)
+
+```
+
+KNN method
+
+```{r, fig.width=14, fig.height=8}
+tmap_mode("plot")
+
+ii.map_wpm_k <-tm_shape(mpsz) +
+  tm_fill("gray", fill_alpha = 0.5) +
+tm_shape(lisa_wpm_k) +
+  tm_fill("ii",
+    fill.scale = tm_scale_intervals(
+      style = "pretty",
+      n = 5,
+      values = "-brewer.RdBu",
+      midpoint = NA),
+    fill.legend = tm_legend(
+      title = "Local Moran's I",
+      position = tm_pos_in("left", "bottom"))) +
+  tm_borders(fill_alpha = 0.5) + 
+  tm_title("Local Moran's I of Bus Trips \nWeekday Afvo Peak (KNN method)") +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+             position = c("right", "bottom"))
+ 
+p_ii_sim.map_wpm_k <- tm_shape(mpsz) +
+  tm_fill("gray", fill_alpha = 0.5) +
+tm_shape(lisa_wpm_k) +
+  tm_fill("p_ii_sim",
+      fill.scale = tm_scale_intervals(
+      breaks = c(0, 0.001, 0.01, 0.05, 1),
+      labels = c("<0.001","0.001-0.01", "0.01-0.05", "Insignificant >0.05"),
+      values = "-turbo"),
+      fill.legend = tm_legend(
+      title = "p-value",
+      position = tm_pos_in("left", "bottom"))) +
+  tm_borders(fill_alpha = 0.5) + 
+  tm_title("p-values of Loal Moran's I of Bus Trips \nWeekday Afvo Peak (KNN method)")+
+  tm_options(legend.na.show = FALSE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+             position = c("right", "bottom"))
+
+
+tmap_arrange(ii.map_wpm_k, p_ii_sim.map_wpm_k, asp=1, ncol=2)
+
+```
+
+::: callout-warning
+For p-values, the appropriate classification should be 0.001, 0.01, 0.05 and not significant instead of using default classification scheme.
+:::
+
+#### Plotting LISA map
+
+
+LISA visualisation highlights spatial patterns such as hot spots, cold spots, and outliers using tools like **choropleth maps, Moran scatterplots, and hot spot maps**.
+
+##### Plotting Moran Scatterplot
+
+A Moran Scatterplot visualises spatial autocorrelation by plotting a variable against its spatial lag, with the slope representing Moran’s I and points indicating clusters or outliers.
+
+The code chunk below uses [`st_lag()`](https://sfdep.josiahparry.com/reference/st_lag) of **sfdep** package to calculate the spatial lag variable for `lisa$WEEKDAY_PM`.
+
+```{r}
+lisa_wpm_q <- lisa_wpm_q %>%
+  mutate(lag_WEEKDAY_PM = st_lag(
+    WEEKDAY_PM, nb, wt, allow_zero = TRUE),
+    .before = 1)%>%
+  unnest(lag_WEEKDAY_PM)
+```
+
+KNN method
+
+```{r}
+
+lisa_wpm_k <- lisa_wpm_k %>%
+  mutate(lag_WEEKDAY_PM = st_lag(
+    WEEKDAY_PM, nb, wt, allow_zero = TRUE),
+    .before = 1)%>%
+  unnest(lag_WEEKDAY_PM)
+```
+
+Then code chunk plots the Moran Scatterplot of Trips by using ggplot.
+
+```{r}
+ggplot(data = lisa_wpm_q,
+       aes(x = WEEKDAY_PM, y = lag_WEEKDAY_PM)) +
+  geom_point() +
+  geom_smooth( method = "lm", se = FALSE, color = "red") +   #linear model
+  labs (x = "WEEKDAY_PM", Y = "Spatial Lag of WEEKDAY_PM",
+        title = "Morgan Scatterpolot (Queen's method)") +
+  theme_minimal()
+```
+
+```{r}
+ggplot(data = lisa_wpm_k,
+       aes(x = WEEKDAY_PM, y = lag_WEEKDAY_PM)) +
+  geom_point() +
+  geom_smooth( method = "lm", se = FALSE, color = "red") +   #linear model
+  labs (x = "WEEKDAY_PM", Y = "Spatial Lag of WEEKDAY_PM",
+        title = "Morgan Scatterpolot (KNN method)") +
+  theme_minimal()
+```
+
+The code below updates the scatterplot with colour coding, where top right quadrant, red points represent regions with high values and high neighbourhood averages (**High–High clusters**).
+
+```{r}
+ggplot(data = lisa_wpm_q, 
+       aes(x = WEEKDAY_PM, 
+           y = lag_WEEKDAY_PM, 
+           color = mean)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", #linear model
+              se = FALSE, # hide confidence intervals 
+              color = "black") +
+  geom_hline(yintercept=mean(lisa_wpm_q$lag_WEEKDAY_PM), lty=2) + 
+    geom_vline(xintercept=mean(lisa_wpm_q$WEEKDAY_PM), lty=2) +
+  scale_color_manual(
+    values = c("High-High" = "red", 
+               "Low-Low" = "blue",
+               "Low-High" = "lightblue", 
+               "High-Low" = "pink")) +
+  labs(x = "WEEKDAY_PM",
+       y = "Spatial Lag of WEEKDAY_PM",
+       title = "Moran Scatterplot with LISA Quadrants (QUEEN)") +
+  theme_minimal()
+```
+
+```{r}
+ggplot(data = lisa_wpm_k, 
+       aes(x = WEEKDAY_PM, 
+           y = lag_WEEKDAY_PM, 
+           color = mean)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", #linear model
+              se = FALSE, # hide confidence intervals 
+              color = "black") +
+  geom_hline(yintercept=mean(lisa_wpm_k$lag_WEEKDAY_PM), lty=2) + 
+    geom_vline(xintercept=mean(lisa_wpm_k$WEEKDAY_PM), lty=2) +
+  scale_color_manual(
+    values = c("High-High" = "red", 
+               "Low-Low" = "blue",
+               "Low-High" = "lightblue", 
+               "High-Low" = "pink")) +
+  labs(x = "WEEKDAY_PM",
+       y = "Spatial Lag of WEEKDAY_PM",
+       title = "Moran Scatterplot with LISA Quadrants (KNN)") +
+  theme_minimal()
+```
+
+##### Plotting Moran Scatterplot with Standardised Variable
+
+The code chunk below uses [`scale()`](https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/scale) to center and scale the GDPPC, centering subtracts the mean (ignoring NAs) from the variables, and scaling divides the result by its standard deviation, converting the values to z-scores.
+
+```{r}
+lisa_wpm_q <- lisa_wpm_q %>%
+  mutate(
+    z_WEEKDAY_PM = as.vector(scale(WEEKDAY_PM)),
+    z_lag_WEEKDAY_PM = as.vector(scale(lag_WEEKDAY_PM)),
+    .before = 1)
+```
+
+knn
+
+```{r}
+lisa_wpm_k <- lisa_wpm_k %>%
+  mutate(
+    z_WEEKDAY_PM = as.vector(scale(WEEKDAY_PM)),
+    z_lag_WEEKDAY_PM = as.vector(scale(lag_WEEKDAY_PM)),
+    .before = 1)
+```
+
+The function [`as.vector()`](https://www.rdocumentation.org/packages/pbdDMAT/versions/0.5-1/topics/as.vector) goes around the `scale()` function, to ensure the output is converted to numeric vector from matrix.
+
+The code chunk below plot the Morgan Scatterplot.
+
+```{r}
+ggplot(data = lisa_wpm_q, 
+       aes(x = z_WEEKDAY_PM, 
+           y = z_lag_WEEKDAY_PM, 
+           color = mean)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", 
+              se = FALSE, 
+              color = "black") +
+  geom_hline(yintercept=mean(lisa_wpm_q$z_lag_WEEKDAY_PM), lty=2) + 
+    geom_vline(xintercept=mean(lisa_wpm_q$z_WEEKDAY_PM), lty=2) +
+  scale_color_manual(
+    values = c("High-High" = "red", 
+               "Low-Low" = "blue",
+               "Low-High" = "lightblue", 
+               "High-Low" = "pink")) +
+  labs(x = "Standardised WEEKDAY_PM",
+       y = "Standardised Spatial Lag of WEEKDAY_PM",
+       title = "Standardised Moran Scatterplot with LISA Quadrants (QUEEN)") +
+  theme_minimal()
+```
+
+```{r}
+ggplot(data = lisa_wpm_k, 
+       aes(x = z_WEEKDAY_PM, 
+           y = z_lag_WEEKDAY_PM, 
+           color = mean)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", 
+              se = FALSE, 
+              color = "black") +
+  geom_hline(yintercept=mean(lisa_wam_k$z_lag_WEEKDAY_PM), lty=2) + 
+    geom_vline(xintercept=mean(lisa_wam_k$z_WEEKDAY_PM), lty=2) +
+  scale_color_manual(
+    values = c("High-High" = "red", 
+               "Low-Low" = "blue",
+               "Low-High" = "lightblue", 
+               "High-Low" = "pink")) +
+  labs(x = "Standardised WEEKDAY_PM",
+       y = "Standardised Spatial Lag of WEEKDAY_PM",
+       title = "Standardised Moran Scatterplot with LISA Quadrants (KNN)") +
+  theme_minimal()
+```
+
+##### Preparing LISA Map Classes
+
+The code chunk below sets a statistical significance level for the local Moran.
+
+```{r}
+signif <- 0.05
+```
+
+##### Plotting and visualising LISA map
+
+The code chunk below prepares LISA map by deriving a new field called **LISA-cluster** from one of the three LISA classes (**`mean,median, pysal`**). Only significant regions (p \< 0.05) keep their cluster label, others are assigned as "insignificant". Then clusters are ordered by levels.
+
+```{r}
+lisa_wpm_q <- lisa_wpm_q %>%
+  mutate(
+    LISA_cluster = ifelse( p_ii_sim < 0.05, as.character(mean), "Insignificant"),
+    LISA_cluster = factor( LISA_cluster,
+      levels = c("Insignificant", "Low-Low", "Low-High", "High-Low", "High-High")))
+```
+
+```{r}
+lisa_wpm_k <- lisa_wpm_k %>%
+  mutate(
+    LISA_cluster = ifelse( p_ii_sim < 0.05, as.character(mean), "Insignificant"),
+    LISA_cluster = factor( LISA_cluster,
+      levels = c("Insignificant", "Low-Low", "Low-High", "High-Low", "High-High")))
+```
+
+The code chunk below visualises the clusters in the LISA map.
+
+```{r, fig.width=14, fig.height=8}
+
+lisa_map_wpm_q <- tm_shape(mpsz) +
+  tm_fill("gray", fill_alpha = 0.5) +
+  tm_shape(lisa_wpm_q) + 
+  tm_fill("LISA_cluster",
+    fill.scale = tm_scale_categorical(
+      values = c(
+        "grey80",      # Insignificant
+        "blue",        # Low-Low
+        "lightblue",   # Low-High
+        "pink",        # High-Low
+        "red"          # High-High
+      )
+    ),
+    fill.legend = tm_legend(
+      title = "LISA Cluster",
+      position = tm_pos_in("left", "bottom"))) +
+  tm_borders(fill_alpha = 0.5) + 
+  tm_title("Local Moran's I Clusters (p < 0.05) \nWeekday Afternoon Peak (Queen's method)") +
+  tm_options(legend.na.show = FALSE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+             position = c("right", "bottom"))
+lisa_map_wpm_q
+#tmap_arrange(p_ii_sim.map_wpm_q,lisa_map_wpm_q,  asp=1, ncol=2)
+```
+
+```{r, fig.width=14, fig.height=8}
+lisa_map_wpm_k <- tm_shape(mpsz) +
+  tm_fill("gray", fill_alpha = 0.5) +
+  tm_shape(lisa_wpm_k) + 
+  tm_fill("LISA_cluster",
+    fill.scale = tm_scale_categorical(
+      values = c(
+        "grey80",      # Insignificant
+        "blue",        # Low-Low
+        "lightblue",   # Low-High
+        "pink",        # High-Low
+        "red"          # High-High
+      )
+    ),
+    fill.legend = tm_legend(
+      title = "LISA Cluster",
+      position = tm_pos_in("left", "bottom"))) +
+  tm_borders(fill_alpha = 0.5) + 
+  tm_title("Local Moran's I Clusters (p < 0.05) \nWeekday Afternoon Peak (KNN method)") +
+  tm_options(legend.na.show = FALSE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+             position = c("right", "bottom"))
+
+lisa_map_wpm_k
+#tmap_arrange(p_ii_sim.map_wpm_k,lisa_map_wpm_k,  asp=1, ncol=2)
+```
+
+
+
+High-Low (Pink) Examples: Transit hubs, universities, hospitals in suburban areas Low-High (Light Blue) Examples: Parks, industrial areas, or neighborhoods with poor access
+```{r, fig.width=14, fig.height=8}
+tmap_arrange(lisa_map_wpm_q,lisa_map_wpm_k,  asp=1, ncol=2)
+```
+
+::: callout-note
+**What statistical conclusion can you drawfrom the LISA map above?**
+
+At the 95% confidence level, the LISA map shows the eastern–central regions around **xxx** form clustered wealthy areas, while the western–southern counties are identified as least wealthy areas.
+:::
+
+
+
+### Weekends/Holiday Peak
+
+#### Computing local Moran’s I
+
+The code chunk below calculates Local Moran’s I of Bus Trips at analytical hexagon level by using [`local_moran()`](https://sfdep.josiahparry.com/reference/local_moran.html) of sfdep package.
+
+```{r}
+lisa_wkd_q <- wm_q_wkd %>% 
+  mutate(local_moran = local_moran(
+    WEEKEND, nb, wt, nsim = 99, zero.policy = TRUE),
+         .before = 1) %>%
+  unnest(local_moran)
+```
+
+```{r}
+kable(head(lisa_wkd_q))
+```
+
+The `local_moran()` function returns a matrix of values. We use `unnest()` to expand it into separate columns so they can be accessed directly in the `lisa_x` sf object.
+
+
+```{r}
+#KNN method
+lisa_wkd_k <- wm_k_wkd %>% 
+  mutate(local_moran = local_moran(
+    WEEKEND, nb, wt, nsim = 99, zero.policy = TRUE),
+         .before = 1) %>%
+  unnest(local_moran)
+```
+
+```{r}
+kable(head(lisa_wkd_k))
+```
+
+#### Visualising Local Moran’s I and p-value of Local Moran's I
+
+In this code chunk below, tmap functions are used prepare two choropleth maps by using value in the ii field and p_ii_sim field side by side.
+
+```{r, fig.width=14, fig.height=8}
+ii.map_wkd_q <-tm_shape(mpsz) +
+  tm_fill("gray", fill_alpha = 0.5) +
+tm_shape(lisa_wkd_q) +
+  tm_fill("ii",
+    fill.scale = tm_scale_intervals(
+      style = "pretty",
+      n = 5,
+      values = "-brewer.RdBu",
+      midpoint = NA),
+    fill.legend = tm_legend(
+      title = "Local Moran's I",
+      position = tm_pos_in("left", "bottom"))) +
+  tm_borders(fill_alpha = 0.5) + 
+  tm_title("Local Moran's I of Bus Trips \nWeekends/Holiday Peak (Queen's method)") +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+             position = c("right", "bottom"))
+ 
+p_ii_sim.map_wkd_q <- tm_shape(mpsz) +
+  tm_fill("gray", fill_alpha = 0.5) +
+tm_shape(lisa_wkd_q) +
+  tm_fill("p_ii_sim",
+      fill.scale = tm_scale_intervals(
+      breaks = c(0, 0.001, 0.01, 0.05, 1),
+      labels = c("<0.001","0.001-0.01", "0.01-0.05", "Insignificant >0.05"),
+      values = "-turbo"),
+      fill.legend = tm_legend(
+      title = "p-value",
+      position = tm_pos_in("left", "bottom"))) +
+  tm_borders(fill_alpha = 0.5) + 
+  tm_title("p-values of Loal Moran's I of Bus Trips \nWeekends/Holiday Peak (Queen's method)")+
+  tm_options(legend.na.show = FALSE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+             position = c("right", "bottom"))
+
+
+tmap_arrange(ii.map_wkd_q, p_ii_sim.map_wkd_q, asp=1, ncol=2)
+
+```
+
+KNN method
+
+```{r, fig.width=14, fig.height=8}
+tmap_mode("plot")
+
+ii.map_wkd_k <-tm_shape(mpsz) +
+  tm_fill("gray", fill_alpha = 0.5) +
+tm_shape(lisa_wkd_k) +
+  tm_fill("ii",
+    fill.scale = tm_scale_intervals(
+      style = "pretty",
+      n = 5,
+      values = "-brewer.RdBu",
+      midpoint = NA),
+    fill.legend = tm_legend(
+      title = "Local Moran's I",
+      position = tm_pos_in("left", "bottom"))) +
+  tm_borders(fill_alpha = 0.5) + 
+  tm_title("Local Moran's I of Bus Trips \nWeekends/Holiday Peak (KNN method)") +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+             position = c("right", "bottom"))
+ 
+p_ii_sim.map_wkd_k <- tm_shape(mpsz) +
+  tm_fill("gray", fill_alpha = 0.5) +
+tm_shape(lisa_wkd_k) +
+  tm_fill("p_ii_sim",
+      fill.scale = tm_scale_intervals(
+      breaks = c(0, 0.001, 0.01, 0.05, 1),
+      labels = c("<0.001","0.001-0.01", "0.01-0.05", "Insignificant >0.05"),
+      values = "-turbo"),
+      fill.legend = tm_legend(
+      title = "p-value",
+      position = tm_pos_in("left", "bottom"))) +
+  tm_borders(fill_alpha = 0.5) + 
+  tm_title("p-values of Loal Moran's I of Bus Trips \nWeekends/Holiday Peak (KNN method)")+
+  tm_options(legend.na.show = FALSE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+             position = c("right", "bottom"))
+
+
+tmap_arrange(ii.map_wkd_k, p_ii_sim.map_wkd_k, asp=1, ncol=2)
+
+```
+
+::: callout-warning
+For p-values, the appropriate classification should be 0.001, 0.01, 0.05 and not significant instead of using default classification scheme.
+:::
+
+#### Plotting LISA map
+
+
+LISA visualisation highlights spatial patterns such as hot spots, cold spots, and outliers using tools like **choropleth maps, Moran scatterplots, and hot spot maps**.
+
+##### Plotting Moran Scatterplot
+
+A Moran Scatterplot visualises spatial autocorrelation by plotting a variable against its spatial lag, with the slope representing Moran’s I and points indicating clusters or outliers.
+
+The code chunk below uses [`st_lag()`](https://sfdep.josiahparry.com/reference/st_lag) of **sfdep** package to calculate the spatial lag variable for `lisa$WEEKEND`.
+
+```{r}
+lisa_wkd_q <- lisa_wkd_q %>%
+  mutate(lag_WEEKEND = st_lag(
+    WEEKEND, nb, wt, allow_zero = TRUE),
+    .before = 1)%>%
+  unnest(lag_WEEKEND)
+```
+
+KNN method
+
+```{r}
+
+lisa_wkd_k <- lisa_wkd_k %>%
+  mutate(lag_WEEKEND = st_lag(
+    WEEKEND, nb, wt, allow_zero = TRUE),
+    .before = 1)%>%
+  unnest(lag_WEEKEND)
+```
+
+Then code chunk plots the Moran Scatterplot of Trips by using ggplot.
+
+```{r}
+ggplot(data = lisa_wkd_q,
+       aes(x = WEEKEND, y = lag_WEEKEND)) +
+  geom_point() +
+  geom_smooth( method = "lm", se = FALSE, color = "red") +   #linear model
+  labs (x = "WEEKEND", Y = "Spatial Lag of WEEKEND",
+        title = "Morgan Scatterpolot (Queen's method)") +
+  theme_minimal()
+```
+
+KNN
+```{r}
+ggplot(data = lisa_wkd_k,
+       aes(x = WEEKEND, y = lag_WEEKEND)) +
+  geom_point() +
+  geom_smooth( method = "lm", se = FALSE, color = "red") +   #linear model
+  labs (x = "WEEKEND", Y = "Spatial Lag of WEEKEND",
+        title = "Morgan Scatterpolot (KNN method)") +
+  theme_minimal()
+```
+
+The code below updates the scatterplot with colour coding, where top right quadrant, red points represent regions with high values and high neighbourhood averages (**High–High clusters**).
+
+```{r}
+ggplot(data = lisa_wkd_q, 
+       aes(x = WEEKEND, 
+           y = lag_WEEKEND, 
+           color = mean)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", #linear model
+              se = FALSE, # hide confidence intervals 
+              color = "black") +
+  geom_hline(yintercept=mean(lisa_wkd_q$lag_WEEKEND), lty=2) + 
+    geom_vline(xintercept=mean(lisa_wkd_q$WEEKEND), lty=2) +
+  scale_color_manual(
+    values = c("High-High" = "red", 
+               "Low-Low" = "blue",
+               "Low-High" = "lightblue", 
+               "High-Low" = "pink")) +
+  labs(x = "WEEKEND",
+       y = "Spatial Lag of WEEKEND",
+       title = "Moran Scatterplot with LISA Quadrants (QUEEN)") +
+  theme_minimal()
+```
+
+```{r}
+ggplot(data = lisa_wkd_k, 
+       aes(x = WEEKEND, 
+           y = lag_WEEKEND, 
+           color = mean)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", #linear model
+              se = FALSE, # hide confidence intervals 
+              color = "black") +
+  geom_hline(yintercept=mean(lisa_wkd_k$lag_WEEKEND), lty=2) + 
+    geom_vline(xintercept=mean(lisa_wkd_k$WEEKEND), lty=2) +
+  scale_color_manual(
+    values = c("High-High" = "red", 
+               "Low-Low" = "blue",
+               "Low-High" = "lightblue", 
+               "High-Low" = "pink")) +
+  labs(x = "WEEKEND",
+       y = "Spatial Lag of WEEKEND",
+       title = "Moran Scatterplot with LISA Quadrants (KNN)") +
+  theme_minimal()
+```
+
+##### Plotting Moran Scatterplot with Standardised Variable
+
+The code chunk below uses [`scale()`](https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/scale) to center and scale the GDPPC, centering subtracts the mean (ignoring NAs) from the variables, and scaling divides the result by its standard deviation, converting the values to z-scores.
+
+```{r}
+lisa_wkd_q <- lisa_wkd_q %>%
+  mutate(
+    z_WEEKEND= as.vector(scale(WEEKEND)),
+    z_lag_WEEKEND = as.vector(scale(lag_WEEKEND)),
+    .before = 1)
+```
+
+knn
+
+```{r}
+lisa_wkd_k <- lisa_wkd_k %>%
+  mutate(
+    z_WEEKEND = as.vector(scale(WEEKEND)),
+    z_lag_WEEKEND = as.vector(scale(lag_WEEKEND)),
+    .before = 1)
+```
+
+The function [`as.vector()`](https://www.rdocumentation.org/packages/pbdDMAT/versions/0.5-1/topics/as.vector) goes around the `scale()` function, to ensure the output is converted to numeric vector from matrix.
+
+The code chunk below plot the Morgan Scatterplot.
+
+```{r}
+ggplot(data = lisa_wkd_q, 
+       aes(x = z_WEEKEND, 
+           y = z_lag_WEEKEND, 
+           color = mean)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", 
+              se = FALSE, 
+              color = "black") +
+  geom_hline(yintercept=mean(lisa_wkd_q$z_lag_WEEKEND), lty=2) + 
+    geom_vline(xintercept=mean(lisa_wkd_q$z_WEEKEND), lty=2) +
+  scale_color_manual(
+    values = c("High-High" = "red", 
+               "Low-Low" = "blue",
+               "Low-High" = "lightblue", 
+               "High-Low" = "pink")) +
+  labs(x = "Standardised WEEKEND",
+       y = "Standardised Spatial Lag of WEEKEND",
+       title = "Standardised Moran Scatterplot with LISA Quadrants (QUEEN)") +
+  theme_minimal()
+```
+KNN
+```{r}
+ggplot(data = lisa_wkd_k, 
+       aes(x = z_WEEKEND, 
+           y = z_lag_WEEKEND, 
+           color = mean)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", 
+              se = FALSE, 
+              color = "black") +
+  geom_hline(yintercept=mean(lisa_wkd_k$z_lag_WEEKEND), lty=2) + 
+    geom_vline(xintercept=mean(lisa_wkd_k$z_WEEKEND), lty=2) +
+  scale_color_manual(
+    values = c("High-High" = "red", 
+               "Low-Low" = "blue",
+               "Low-High" = "lightblue", 
+               "High-Low" = "pink")) +
+  labs(x = "Standardised WEEKEND",
+       y = "Standardised Spatial Lag of WEEKEND",
+       title = "Standardised Moran Scatterplot with LISA Quadrants (KNN)") +
+  theme_minimal()
+```
+
+##### Preparing LISA Map Classes
+
+The code chunk below sets a statistical significance level for the local Moran.
+
+```{r}
+signif <- 0.05
+```
+
+##### Plotting and visualising LISA map
+
+The code chunk below prepares LISA map by deriving a new field called **LISA-cluster** from one of the three LISA classes (**`mean,median, pysal`**). Only significant regions (p \< 0.05) keep their cluster label, others are assigned as "insignificant". Then clusters are ordered by levels.
+
+```{r}
+lisa_wkd_q <- lisa_wkd_q %>%
+  mutate(
+    LISA_cluster = ifelse( p_ii_sim < 0.05, as.character(mean), "Insignificant"),
+    LISA_cluster = factor( LISA_cluster,
+      levels = c("Insignificant", "Low-Low", "Low-High", "High-Low", "High-High")))
+```
+
+KNN
+
+```{r}
+lisa_wkd_k <- lisa_wkd_k %>%
+  mutate(
+    LISA_cluster = ifelse( p_ii_sim < 0.05, as.character(mean), "Insignificant"),
+    LISA_cluster = factor( LISA_cluster,
+      levels = c("Insignificant", "Low-Low", "Low-High", "High-Low", "High-High")))
+```
+
+The code chunk below visualises the clusters in the LISA map.
+
+```{r, fig.width=14, fig.height=8}
+
+lisa_map_wkd_q <- tm_shape(mpsz) +
+  tm_fill("gray", fill_alpha = 0.5) +
+  tm_shape(lisa_wkd_q) + 
+  tm_fill("LISA_cluster",
+    fill.scale = tm_scale_categorical(
+      values = c(
+        "grey80",      # Insignificant
+        "blue",        # Low-Low
+        "lightblue",   # Low-High
+        "pink",        # High-Low
+        "red"          # High-High
+      )
+    ),
+    fill.legend = tm_legend(
+      title = "LISA Cluster",
+      position = tm_pos_in("left", "bottom"))) +
+  tm_borders(fill_alpha = 0.5) + 
+  tm_title("Local Moran's I Clusters (p < 0.05) \nWeekends/Holiday Peak (Queen's method)") +
+  tm_options(legend.na.show = FALSE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+             position = c("right", "bottom"))
+lisa_map_wkd_q
+#tmap_arrange(p_ii_sim.map_wpm_q,lisa_map_wpm_q,  asp=1, ncol=2)
+```
+KNN
+
+
+```{r, fig.width=14, fig.height=8}
+lisa_map_wkd_k <- tm_shape(mpsz) +
+  tm_fill("gray", fill_alpha = 0.5) +
+  tm_shape(lisa_wkd_k) + 
+  tm_fill("LISA_cluster",
+    fill.scale = tm_scale_categorical(
+      values = c(
+        "grey80",      # Insignificant
+        "blue",        # Low-Low
+        "lightblue",   # Low-High
+        "pink",        # High-Low
+        "red"          # High-High
+      )
+    ),
+    fill.legend = tm_legend(
+      title = "LISA Cluster",
+      position = tm_pos_in("left", "bottom"))) +
+  tm_borders(fill_alpha = 0.5) + 
+  tm_title("Local Moran's I Clusters (p < 0.05) \nWeekends/Holiday Peak (KNN method)") +
+  tm_options(legend.na.show = FALSE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2) +
+  tm_credits("Source: data.gov.sg & LTADataMall",
+             position = c("right", "bottom"))
+
+lisa_map_wkd_k
+#tmap_arrange(p_ii_sim.map_wpm_k,lisa_map_wpm_k,  asp=1, ncol=2)
+```
+
+
+
+High-Low (Pink) Examples: Transit hubs, universities, hospitals in suburban areas Low-High (Light Blue) Examples: Parks, industrial areas, or neighborhoods with poor access
+```{r, fig.width=14, fig.height=8}
+tmap_arrange(lisa_map_wkd_q,lisa_map_wkd_k,  asp=1, ncol=2)
+```
+
+::: callout-note
+**What statistical conclusion can you drawfrom the LISA map above?**
+
+At the 95% confidence level, the LISA map shows the eastern–central regions around **xxx** form clustered wealthy areas, while the western–southern counties are identified as least wealthy areas.
+:::
+
+
+
+
+
+
+
+## Box Map for LISA
 
 Two more steps are required before we begin the analysis:
 
 Convert the data into a space–time cube to run EHSA on that cube.
-

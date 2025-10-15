@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <meta name="author" content="Yiqiong PAN">
 <meta name="dcterms.date" content="2025-09-27">
-<title>In-class Ex05 – ISSS626-yiqiong-pan</title>
+<title>In-class Exercise 5: Global and Local Measures of Spatial Autocorrelation: sfdep methods – ISSS626-yiqiong-pan</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -339,7 +339,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>  
         <li>
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex07/Hands-on_Ex07.html">
- <span class="dropdown-text">07:</span></a>
+ <span class="dropdown-text">07: Calibrating Hedonic Pricing Model for Private Highrise Property with GWR Method</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex08/Hands-on_Ex08.html">
@@ -366,11 +366,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <ul class="dropdown-menu" aria-labelledby="nav-menu-in-class-exercise">
 <li>
     <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex01/In-class_Ex01.html">
- <span class="dropdown-text">In-class Exercise 1: Geospatial Data Science with R</span></a>
+ <span class="dropdown-text">In-class Exercise 01: Geospatial Data Science with R</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex02/In-class_Ex02.html">
- <span class="dropdown-text">In-class Exercise 2: Spatial Point Patterns Analysis: spatstat methods</span></a>
+ <span class="dropdown-text">In-class Exercise 02: Spatial Point Patterns Analysis: spatstat methods</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex03/In-class_Ex03a.html">
@@ -385,12 +385,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">In-class Exercise 04</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex05/In-class_Ex05a.html">
- <span class="dropdown-text">In-class Exercise 05a</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex05/In-class_Ex05b.html">
- <span class="dropdown-text">In-class Exercise 05b</span></a>
+    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex05/In-class_Ex05.html">
+ <span class="dropdown-text">In-class Exercise 05: GMSA, LMSA &amp; EHSA</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex06/In-class_Ex06.html">
@@ -424,7 +420,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">02: Geospatial Analytics for Public Good: Urban mobility</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex03/Take-home_Ex03.qmd">
+    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html">
  <span class="dropdown-text">03:</span></a>
   </li>  
     </ul>
@@ -463,50 +459,28 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li>
 <a href="#global-measures-of-spatial-association" id="toc-global-measures-of-spatial-association" class="nav-link" data-scroll-target="#global-measures-of-spatial-association"><span class="header-section-number">3</span> Global Measures of Spatial Association</a>
   <ul class="collapse">
-<li><a href="#computing-contiguity-spatial-weights" id="toc-computing-contiguity-spatial-weights" class="nav-link" data-scroll-target="#computing-contiguity-spatial-weights"><span class="header-section-number">3.1</span> Computing Contiguity Spatial Weights</a></li>
+<li><a href="#computing-contiguity-spatial-weights-sfdep-method" id="toc-computing-contiguity-spatial-weights-sfdep-method" class="nav-link" data-scroll-target="#computing-contiguity-spatial-weights-sfdep-method"><span class="header-section-number">3.1</span> Computing Contiguity Spatial Weights: sfdep method</a></li>
   <li><a href="#computing-global-morans-i" id="toc-computing-global-morans-i" class="nav-link" data-scroll-target="#computing-global-morans-i"><span class="header-section-number">3.2</span> Computing Global Moran’s I</a></li>
-  </ul>
-</li>
-  <li><a href="#in-class-ex-part-2-emerging-hot-spot-analysis-ehsa" id="toc-in-class-ex-part-2-emerging-hot-spot-analysis-ehsa" class="nav-link" data-scroll-target="#in-class-ex-part-2-emerging-hot-spot-analysis-ehsa"><span class="header-section-number">4</span> In-class Ex Part-2: Emerging Hot Spot Analysis (EHSA)</a></li>
-  <li>
-<a href="#getting-started" id="toc-getting-started" class="nav-link" data-scroll-target="#getting-started"><span class="header-section-number">5</span> Getting started</a>
-  <ul class="collapse">
-<li><a href="#installing-and-loading-the-r-packages" id="toc-installing-and-loading-the-r-packages" class="nav-link" data-scroll-target="#installing-and-loading-the-r-packages"><span class="header-section-number">5.1</span> Installing and Loading the R Packages</a></li>
-  <li><a href="#importing-data" id="toc-importing-data" class="nav-link" data-scroll-target="#importing-data"><span class="header-section-number">5.2</span> Importing Data</a></li>
-  </ul>
-</li>
-  <li><a href="#step-1-creating-a-time-series-cube" id="toc-step-1-creating-a-time-series-cube" class="nav-link" data-scroll-target="#step-1-creating-a-time-series-cube"><span class="header-section-number">6</span> Step 1: Creating a Time Series Cube</a></li>
-  <li>
-<a href="#step-2-calculate-local-gi" id="toc-step-2-calculate-local-gi" class="nav-link" data-scroll-target="#step-2-calculate-local-gi"><span class="header-section-number">7</span> Step 2: Calculate local Gi*</a>
-  <ul class="collapse">
-<li><a href="#deriving-the-spatial-weights" id="toc-deriving-the-spatial-weights" class="nav-link" data-scroll-target="#deriving-the-spatial-weights"><span class="header-section-number">7.1</span> Deriving the spatial weights</a></li>
-  <li><a href="#computing-gi" id="toc-computing-gi" class="nav-link" data-scroll-target="#computing-gi"><span class="header-section-number">7.2</span> Computing Gi*</a></li>
+  <li><a href="#performing-global-morans-i-test" id="toc-performing-global-morans-i-test" class="nav-link" data-scroll-target="#performing-global-morans-i-test"><span class="header-section-number">3.3</span> Performing Global Moran’s I test</a></li>
+  <li><a href="#computing-local-morans-i" id="toc-computing-local-morans-i" class="nav-link" data-scroll-target="#computing-local-morans-i"><span class="header-section-number">3.4</span> Computing local Moran’s I</a></li>
+  <li><a href="#visualising-local-morans-i" id="toc-visualising-local-morans-i" class="nav-link" data-scroll-target="#visualising-local-morans-i"><span class="header-section-number">3.5</span> Visualising local Moran’s I</a></li>
+  <li><a href="#visualising-p-value-of-local-morans-i" id="toc-visualising-p-value-of-local-morans-i" class="nav-link" data-scroll-target="#visualising-p-value-of-local-morans-i"><span class="header-section-number">3.6</span> Visualising p-value of local Moran’s I</a></li>
+  <li><a href="#visualising-local-morans-i-and-p-value" id="toc-visualising-local-morans-i-and-p-value" class="nav-link" data-scroll-target="#visualising-local-morans-i-and-p-value"><span class="header-section-number">3.7</span> Visualising local Moran’s I and p-value</a></li>
+  <li><a href="#plotting-lisa-map" id="toc-plotting-lisa-map" class="nav-link" data-scroll-target="#plotting-lisa-map"><span class="header-section-number">3.8</span> Plotting LISA map</a></li>
   </ul>
 </li>
   <li>
-<a href="#step-3-mann-kendall-test" id="toc-step-3-mann-kendall-test" class="nav-link" data-scroll-target="#step-3-mann-kendall-test"><span class="header-section-number">8</span> Step 3: Mann-Kendall Test</a>
+<a href="#hot-spot-and-cold-spot-area-analysis-hcsa" id="toc-hot-spot-and-cold-spot-area-analysis-hcsa" class="nav-link" data-scroll-target="#hot-spot-and-cold-spot-area-analysis-hcsa"><span class="header-section-number">4</span> Hot Spot and Cold Spot Area Analysis (HCSA)</a>
   <ul class="collapse">
-<li><a href="#interpreting-kendalls" id="toc-interpreting-kendalls" class="nav-link" data-scroll-target="#interpreting-kendalls"><span class="header-section-number">8.1</span> Interpreting Kendall’s</a></li>
-  <li><a href="#mann-kendall-test-on-gi" id="toc-mann-kendall-test-on-gi" class="nav-link" data-scroll-target="#mann-kendall-test-on-gi"><span class="header-section-number">8.2</span> Mann-Kendall Test on Gi</a></li>
-  <li><a href="#printing-mann-kendall-test-report" id="toc-printing-mann-kendall-test-report" class="nav-link" data-scroll-target="#printing-mann-kendall-test-report"><span class="header-section-number">8.3</span> Printing Mann-Kendall test report</a></li>
-  <li><a href="#mann-kendall-test-data.frame" id="toc-mann-kendall-test-data.frame" class="nav-link" data-scroll-target="#mann-kendall-test-data.frame"><span class="header-section-number">8.4</span> Mann-Kendall test data.frame</a></li>
+<li><a href="#computing-local-gi-statistics" id="toc-computing-local-gi-statistics" class="nav-link" data-scroll-target="#computing-local-gi-statistics"><span class="header-section-number">4.1</span> Computing local Gi* statistics</a></li>
+  <li><a href="#computing-local-gi-statistics-1" id="toc-computing-local-gi-statistics-1" class="nav-link" data-scroll-target="#computing-local-gi-statistics-1"><span class="header-section-number">4.2</span> Computing local Gi* statistics</a></li>
   </ul>
 </li>
-  <li>
-<a href="#step-4-performing-emerging-hotspot-analysis" id="toc-step-4-performing-emerging-hotspot-analysis" class="nav-link" data-scroll-target="#step-4-performing-emerging-hotspot-analysis"><span class="header-section-number">9</span> Step 4: Performing Emerging Hotspot Analysis</a>
-  <ul class="collapse">
-<li><a href="#ehsa" id="toc-ehsa" class="nav-link" data-scroll-target="#ehsa"><span class="header-section-number">9.1</span> EHSA</a></li>
-  <li><a href="#viusalising-the-ehsa-class-distribution" id="toc-viusalising-the-ehsa-class-distribution" class="nav-link" data-scroll-target="#viusalising-the-ehsa-class-distribution"><span class="header-section-number">9.2</span> Viusalising the EHSA Class Distribution</a></li>
-  <li><a href="#visualising-ehsa" id="toc-visualising-ehsa" class="nav-link" data-scroll-target="#visualising-ehsa"><span class="header-section-number">9.3</span> Visualising EHSA</a></li>
-  <li><a href="#plot-diy" id="toc-plot-diy" class="nav-link" data-scroll-target="#plot-diy"><span class="header-section-number">9.4</span> Plot DIY</a></li>
-  </ul>
-</li>
-  <li><a href="#reference" id="toc-reference" class="nav-link" data-scroll-target="#reference"><span class="header-section-number">10</span> Reference</a></li>
   </ul></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
-<h1 class="title">In-class Ex05</h1>
+<h1 class="title">In-class Exercise 5: Global and Local Measures of Spatial Autocorrelation: sfdep methods</h1>
 </div>
 
 
@@ -530,7 +504,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">October 10, 2025</p>
+      <p class="date-modified">October 15, 2025</p>
     </div>
   </div>
     
@@ -540,7 +514,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header><section id="in-class-ex-part-1-sfdep-global-measure-sa" class="level2" data-number="1"><h2 data-number="1" class="anchored" data-anchor-id="in-class-ex-part-1-sfdep-global-measure-sa">
 <span class="header-section-number">1</span> In-class Ex Part 1: sfdep Global Measure SA</h2>
-<p><a href="https://sfdep.josiahparry.com/">sfdep</a> built on <a href="https://cran.r-project.org/web/packages/spdep/index.html">spdep</a> ( tools for computing spatial weights and calculating spatially lagged variables), provides a tidyverse-friendly interface with list-columns and additional functionality, more importantly inlcuding functions to analyse spatial temporal data.</p>
+<p><a href="https://sfdep.josiahparry.com/">sfdep</a> built on <strong>spdep</strong>, provides a tidyverse-friendly interface with list-columns and additional functionality, more importantly including functions to analyse spatial temporal data.</p>
+<p><a href="https://cran.r-project.org/web/packages/spdep/index.html">spdep</a> provides tools for computing spatial weights and calculating spatially lagged variables.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">pacman</span><span class="fu">::</span> <span class="fu"><a href="https://rdrr.io/pkg/pacman/man/p_load.html">p_load</a></span><span class="op">(</span><span class="va">sf</span>, <span class="va">tmap</span>, <span class="va">tidyverse</span>, <span class="va">sfdep</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -549,7 +524,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist">
 <li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="">Importing Geospatial data in Shapefile</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">Importing Aspatial data in csv</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">Importing Attribute Table in csv</a></li>
 <li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" role="tab" aria-controls="tabset-1-3" aria-selected="false" href="">Performing Rational Join</a></li>
 <li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-4" role="tab" aria-controls="tabset-1-4" aria-selected="false" href="">Visualising Regional Development Indicator</a></li>
 </ul>
@@ -652,6 +627,7 @@ PROJCRS["WGS 84 / UTM zone 50N",
 </div>
 </div>
 <div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
+<p>In order to retain the geospatial properties, the left data frame must the sf data.frame (i.e.&nbsp;hunan)</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">hunan_GDPPC</span> <span class="op">&lt;-</span> <span class="fu">left_join</span><span class="op">(</span><span class="va">hunan</span>, <span class="va">hunan2012</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">select</span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>, <span class="fl">7</span>,<span class="fl">15</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -670,7 +646,11 @@ PROJCRS["WGS 84 / UTM zone 50N",
 <span>              <span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">tm_borders</span><span class="op">(</span>fill_alpha<span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu">tm_layout</span><span class="op">(</span>legend.position <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"left"</span>, <span class="st">"bottom"</span><span class="op">)</span>,</span>
-<span>            main.title <span class="op">=</span> <span class="st">"Equal interval classification"</span><span class="op">)</span></span>
+<span>            main.title <span class="op">=</span> <span class="st">"Equal interval classification"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_compass</span><span class="op">(</span>type<span class="op">=</span><span class="st">"8star"</span>, size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_scale_bar</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_grid</span><span class="op">(</span>alpha <span class="op">=</span><span class="fl">0.2</span><span class="op">)</span></span>
+<span></span>
 <span></span>
 <span><span class="va">quantile</span> <span class="op">&lt;-</span> <span class="fu">tm_shape</span><span class="op">(</span><span class="va">hunan_GDPPC</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">tm_polygons</span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"GDPPC"</span>,</span>
@@ -679,12 +659,15 @@ PROJCRS["WGS 84 / UTM zone 50N",
 <span>                n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">tm_borders</span><span class="op">(</span>fill_alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">tm_layout</span><span class="op">(</span>legend.position <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"left"</span>, <span class="st">"bottom"</span><span class="op">)</span>,</span>
-<span>            main.title <span class="op">=</span> <span class="st">"Quantile classfication"</span><span class="op">)</span></span>
+<span>            main.title <span class="op">=</span> <span class="st">"Quantile classification"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_compass</span><span class="op">(</span>type<span class="op">=</span><span class="st">"8star"</span>, size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_scale_bar</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_grid</span><span class="op">(</span>alpha <span class="op">=</span><span class="fl">0.2</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">tmap_arrange</span><span class="op">(</span><span class="va">equal</span>, <span class="va">quantile</span>, asp <span class="op">=</span> <span class="fl">1</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="In-class_Ex05_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="1152"></p>
+<figure class="figure"><p><img src="In-class_Ex05_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="1344"></p>
 </figure>
 </div>
 </div>
@@ -694,8 +677,8 @@ PROJCRS["WGS 84 / UTM zone 50N",
 </div>
 </section><section id="global-measures-of-spatial-association" class="level2" data-number="3"><h2 data-number="3" class="anchored" data-anchor-id="global-measures-of-spatial-association">
 <span class="header-section-number">3</span> Global Measures of Spatial Association</h2>
-<section id="computing-contiguity-spatial-weights" class="level3" data-number="3.1"><h3 data-number="3.1" class="anchored" data-anchor-id="computing-contiguity-spatial-weights">
-<span class="header-section-number">3.1</span> Computing Contiguity Spatial Weights</h3>
+<section id="computing-contiguity-spatial-weights-sfdep-method" class="level3" data-number="3.1"><h3 data-number="3.1" class="anchored" data-anchor-id="computing-contiguity-spatial-weights-sfdep-method">
+<span class="header-section-number">3.1</span> Computing Contiguity Spatial Weights: sfdep method</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">wm_q</span> <span class="op">&lt;-</span> <span class="va">hunan_GDPPC</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">mutate</span><span class="op">(</span>nb <span class="op">=</span> <span class="fu">st_contiguity</span><span class="op">(</span><span class="va">geometry</span><span class="op">)</span>,</span>
@@ -727,11 +710,47 @@ Projected CRS: WGS 84 / UTM zone 50N
 </div>
 </section><section id="computing-global-morans-i" class="level3" data-number="3.2"><h3 data-number="3.2" class="anchored" data-anchor-id="computing-global-morans-i">
 <span class="header-section-number">3.2</span> Computing Global Moran’s I</h3>
+<p>In the code chunk below, <a href="https://sfdep.josiahparry.com/reference/global_moran"><code>global_moran()</code></a> function is used to compute the Moran’s I value. Different from spdep package, the output is a tibble data.frame.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">moranI</span> <span class="op">&lt;-</span> <span class="fu">global_moran</span><span class="op">(</span><span class="va">wm_q</span><span class="op">$</span><span class="va">GDPPC</span>,</span>
+<span>                       <span class="va">wm_q</span><span class="op">$</span><span class="va">nb</span>,</span>
+<span>                       <span class="va">wm_q</span><span class="op">$</span><span class="va">wt</span><span class="op">)</span></span>
+<span><span class="fu">glimpse</span><span class="op">(</span><span class="va">moranI</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>List of 2
+ $ I: num 0.301
+ $ K: num 7.64</code></pre>
+</div>
+</div>
+</section><section id="performing-global-morans-i-test" class="level3" data-number="3.3"><h3 data-number="3.3" class="anchored" data-anchor-id="performing-global-morans-i-test">
+<span class="header-section-number">3.3</span> Performing Global Moran’s I test</h3>
+<p>Moran’s I test can be performed by using <a href="https://sfdep.josiahparry.com/reference/global_moran_test.html"><code>global_moran_test()</code></a> as shown in the code chunk below.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">global_moran_test</span><span class="op">(</span><span class="va">wm_q</span><span class="op">$</span><span class="va">GDPPC</span>,</span>
+<span>                       <span class="va">wm_q</span><span class="op">$</span><span class="va">nb</span>,</span>
+<span>                       <span class="va">wm_q</span><span class="op">$</span><span class="va">wt</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Moran I test under randomisation
+
+data:  x  
+weights: listw    
+
+Moran I statistic standard deviate = 4.7351, p-value = 1.095e-06
+alternative hypothesis: greater
+sample estimates:
+Moran I statistic       Expectation          Variance 
+      0.300749970      -0.011494253       0.004348351 </code></pre>
+</div>
+</div>
+<p>The default for <code>alternative</code> argument is <em>“two.sided”</em>. Other supported arguments are “greater” or “less”. By default the <code>randomization</code> argument is <em>TRUE</em>. If FALSE, under the assumption of normality.</p>
+<p>Performing Global Moran’I permutation test</p>
+<p><a href="https://sfdep.josiahparry.com/reference/global_moran_perm.html"><code>global_moran_perm()</code></a> is used to perform Monte Carlo simulation.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">global_moran_perm</span><span class="op">(</span><span class="va">wm_q</span><span class="op">$</span><span class="va">GDPPC</span>,</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">global_moran_perm</span><span class="op">(</span><span class="va">wm_q</span><span class="op">$</span><span class="va">GDPPC</span>,</span>
 <span>                  <span class="va">wm_q</span><span class="op">$</span><span class="va">nb</span>,</span>
 <span>                  <span class="va">wm_q</span><span class="op">$</span><span class="va">wt</span>,</span>
 <span>                  nsim <span class="op">=</span> <span class="fl">99</span><span class="op">)</span> <span class="co">#100 simulations since the it starts with 0.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -761,8 +780,346 @@ Caution
 <p>When we fail to reject the null hypothesis, we should continue to examine further, since there is still possibility that at local level there are hot spot and cold spot areas.</p>
 </div>
 </div>
-</section></section><section id="in-class-ex-part-2-emerging-hot-spot-analysis-ehsa" class="level2" data-number="4"><h2 data-number="4" class="anchored" data-anchor-id="in-class-ex-part-2-emerging-hot-spot-analysis-ehsa">
-<span class="header-section-number">4</span> In-class Ex Part-2: Emerging Hot Spot Analysis (EHSA)</h2>
+<p>##LISA Map</p>
+<p>LISA map is a categorical map showing outliers and clusters. There are two types of outliers namely: High-Low and Low-High outliers. Likewise, there are two type of clusters namely: High-High and Low-Low cluaters. In fact, LISA map is an interpreted map by combining local Moran’s I of geographical areas and their respective p-values.</p>
+</section><section id="computing-local-morans-i" class="level3" data-number="3.4"><h3 data-number="3.4" class="anchored" data-anchor-id="computing-local-morans-i">
+<span class="header-section-number">3.4</span> Computing local Moran’s I</h3>
+<p>The code chunk below calculates Local Moran’s I of GDPPC at county level by using <a href="https://sfdep.josiahparry.com/reference/local_moran.html"><code>local_moran()</code></a> of sfdep package.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">lisa</span> <span class="op">&lt;-</span> <span class="va">wm_q</span> <span class="op">%&gt;%</span> </span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>local_moran <span class="op">=</span> <span class="fu">local_moran</span><span class="op">(</span></span>
+<span>    <span class="va">GDPPC</span>, <span class="va">nb</span>, <span class="va">wt</span>, nsim <span class="op">=</span> <span class="fl">99</span><span class="op">)</span>,</span>
+<span>         .before <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">unnest</span><span class="op">(</span><span class="va">local_moran</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The output of <code>local_moran()</code> is a sf data.frame containing the columns ii, eii, var_ii, z_ii, p_ii, p_ii_sim, and p_folded_sim.</p>
+<ul>
+<li><p>ii: local moran statistic</p></li>
+<li><p>eii: expectation of local moran statistic; for localmoran_perm the permutation sample means</p></li>
+<li><p>var_ii: variance of local moran statistic; for localmoran_perm the permutation sample standard deviations</p></li>
+<li><p>z_ii: standard deviate of local moran statistic; for localmoran_perm based on permutation sample means and standard deviations</p></li>
+<li><p>p_ii: p-value of local moran statistic using pnorm(); for localmoran_perm using standard deviates based on permutation sample means and standard deviations</p></li>
+<li><p>p_ii_sim: For localmoran_perm(), rank() and punif() of observed statistic rank for [0, 1] p-values using alternative=</p></li>
+</ul>
+<p>-p_folded_sim: the simulation folded [0, 0.5] range ranked p-value (based on https://github.com/pysal/esda/blob/4a63e0b5df1e754b17b5f1205b cadcbecc5e061/esda/crand.py#L211-L213)</p>
+<ul>
+<li><p>skewness: For localmoran_perm, the output of e1071::skewness() for the permutation samples underlying the standard deviates</p></li>
+<li><p>kurtosis: For localmoran_perm, the output of e1071::kurtosis() for the permutation samples underlying the standard deviates.</p></li>
+</ul></section><section id="visualising-local-morans-i" class="level3" data-number="3.5"><h3 data-number="3.5" class="anchored" data-anchor-id="visualising-local-morans-i">
+<span class="header-section-number">3.5</span> Visualising local Moran’s I</h3>
+<p>In this code chunk below, tmap functions are used prepare a choropleth map by using value in the ii field.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">tmap_mode</span><span class="op">(</span><span class="st">"plot"</span><span class="op">)</span></span>
+<span><span class="fu">tm_shape</span><span class="op">(</span><span class="va">lisa</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_fill</span><span class="op">(</span><span class="st">"ii"</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu">tm_borders</span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_view</span><span class="op">(</span>set.zoom.limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">6</span>,<span class="fl">8</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_layout</span><span class="op">(</span></span>
+<span>    main.title <span class="op">=</span> <span class="st">"local Moran's I of GDPPC"</span>,</span>
+<span>    main.title.size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="In-class_Ex05_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section><section id="visualising-p-value-of-local-morans-i" class="level3" data-number="3.6"><h3 data-number="3.6" class="anchored" data-anchor-id="visualising-p-value-of-local-morans-i">
+<span class="header-section-number">3.6</span> Visualising p-value of local Moran’s I</h3>
+<p>Tmap functions are used to prepare a choropleth map below by using value in the p_ii_sim field.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">tmap_mode</span><span class="op">(</span><span class="st">"plot"</span><span class="op">)</span></span>
+<span><span class="fu">tm_shape</span><span class="op">(</span><span class="va">lisa</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_fill</span><span class="op">(</span><span class="st">"p_ii_sim"</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu">tm_borders</span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
+<span>   <span class="fu">tm_layout</span><span class="op">(</span>main.title <span class="op">=</span> <span class="st">"p-value of local Moran's I"</span>,</span>
+<span>            main.title.size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="In-class_Ex05_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Warning
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>For p-values, the appropriate classification should be 0.001, 0.01, 0.05 and not significant instead of using default classification scheme.</p>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">lisa_clean</span> <span class="op">&lt;-</span> <span class="va">lisa</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">p_ii_sim</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">tm_shape</span><span class="op">(</span><span class="va">lisa</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_fill</span><span class="op">(</span></span>
+<span>    <span class="st">"p_ii_sim"</span>,</span>
+<span>    breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.001</span>, <span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>    labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"&lt;0.001"</span>,<span class="st">"0.001-0.01"</span>, <span class="st">"0.01-0.05"</span>, <span class="st">"Insignificant &gt;0.05"</span><span class="op">)</span>,</span>
+<span>    palette <span class="op">=</span> <span class="st">"-turbo"</span>,</span>
+<span>    title <span class="op">=</span> <span class="st">"p-value"</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_borders</span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_layout</span><span class="op">(</span></span>
+<span>    main.title <span class="op">=</span> <span class="st">"P-value of Local Moran's I"</span>,</span>
+<span>    main.title.size <span class="op">=</span> <span class="fl">1.2</span>,</span>
+<span>    legend.outside <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  <span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="In-class_Ex05_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section><section id="visualising-local-morans-i-and-p-value" class="level3" data-number="3.7"><h3 data-number="3.7" class="anchored" data-anchor-id="visualising-local-morans-i-and-p-value">
+<span class="header-section-number">3.7</span> Visualising local Moran’s I and p-value</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">tmap_mode</span><span class="op">(</span><span class="st">"plot"</span><span class="op">)</span></span>
+<span><span class="va">map1</span> <span class="op">&lt;-</span> <span class="fu">tm_shape</span><span class="op">(</span><span class="va">lisa</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_fill</span><span class="op">(</span><span class="st">"ii"</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu">tm_borders</span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_view</span><span class="op">(</span>set.zoom.limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">6</span>,<span class="fl">8</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_layout</span><span class="op">(</span>main.title <span class="op">=</span> <span class="st">"local Moran's I of GDPPC"</span>,</span>
+<span>            main.title.size <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">map2</span> <span class="op">&lt;-</span> <span class="fu">tm_shape</span><span class="op">(</span><span class="va">lisa</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_fill</span><span class="op">(</span><span class="st">"p_ii"</span>,</span>
+<span>          breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.001</span>, <span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>              labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"0.001"</span>, <span class="st">"0.01"</span>, <span class="st">"0.05"</span>, <span class="st">"Not sig"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu">tm_borders</span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_layout</span><span class="op">(</span>main.title <span class="op">=</span> <span class="st">"p-value of local Moran's I"</span>,</span>
+<span>            main.title.size <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">tmap_arrange</span><span class="op">(</span><span class="va">map1</span>, <span class="va">map2</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="In-class_Ex05_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section><section id="plotting-lisa-map" class="level3" data-number="3.8"><h3 data-number="3.8" class="anchored" data-anchor-id="plotting-lisa-map">
+<span class="header-section-number">3.8</span> Plotting LISA map</h3>
+<p>In lisa sf data.frame, we can find three fields contain the LISA categories. They are mean, median and pysal. In general, classification in mean will be used as shown in the code chunk below.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">lisa_sig</span> <span class="op">&lt;-</span> <span class="va">lisa</span><span class="op">%&gt;%</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">p_ii_sim</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="fu">tmap_mode</span><span class="op">(</span><span class="st">"plot"</span><span class="op">)</span></span>
+<span><span class="fu">tm_shape</span><span class="op">(</span><span class="va">lisa</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_polygons</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_borders</span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="fu">tm_shape</span><span class="op">(</span><span class="va">lisa_sig</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_fill</span><span class="op">(</span><span class="st">"mean"</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu">tm_borders</span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="In-class_Ex05_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section></section><section id="hot-spot-and-cold-spot-area-analysis-hcsa" class="level2" data-number="4"><h2 data-number="4" class="anchored" data-anchor-id="hot-spot-and-cold-spot-area-analysis-hcsa">
+<span class="header-section-number">4</span> Hot Spot and Cold Spot Area Analysis (HCSA)</h2>
+<p>HCSA uses spatial weights to find areas where high (hot) or low (cold) values cluster together based on <strong>distance</strong>. It analyses polygon features, such as administrative boundaries or custom grids, to identify statistically significant hotspots and coldspots.</p>
+<section id="computing-local-gi-statistics" class="level3" data-number="4.1"><h3 data-number="4.1" class="anchored" data-anchor-id="computing-local-gi-statistics">
+<span class="header-section-number">4.1</span> Computing local Gi* statistics</h3>
+<p>As usual, we first derive a spatial weights matrix before computing local Gi* statistics. The code below uses <strong>sfdep</strong> with <strong>tidyverse</strong> to build the weights.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">wm_idw</span> <span class="op">&lt;-</span> <span class="va">hunan_GDPPC</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>nb <span class="op">=</span> <span class="fu">include_self</span><span class="op">(</span></span>
+<span>    <span class="fu">st_contiguity</span><span class="op">(</span><span class="va">geometry</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    wts <span class="op">=</span> <span class="fu">st_inverse_distance</span><span class="op">(</span><span class="va">nb</span>, </span>
+<span>                              <span class="va">geometry</span>, </span>
+<span>                              scale <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>                              alpha <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>         .before <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><p>Gi* and local Gi* are distance-based spatial statistics, so distance-based methods (rather than contiguity) should be used to create the spatial weights matrix.</p></li>
+<li><p>Because Gi* measures each feature’s value relative to its neighbours, include_self() is applied to ensure each feature is included in its own neighbourhood during the calculation.</p></li>
+</ul>
+</div>
+</div>
+</section><section id="computing-local-gi-statistics-1" class="level3" data-number="4.2"><h3 data-number="4.2" class="anchored">
+<span class="header-section-number">4.2</span> Computing local Gi* statistics</h3>
+<p>The local Gi* is calculated by using <code>local_gstar_perm()</code> of <strong>sfdep</strong> package.</p>
+<div style="font-size: 1.5em">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">HCSA</span> <span class="op">&lt;-</span> <span class="va">wm_idw</span> <span class="op">%&gt;%</span> </span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>local_Gi <span class="op">=</span> <span class="fu">local_gstar_perm</span><span class="op">(</span></span>
+<span>    <span class="va">GDPPC</span>, <span class="va">nb</span>, <span class="va">wts</span>, nsim <span class="op">=</span> <span class="fl">99</span><span class="op">)</span>,</span>
+<span>         .before <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">unnest</span><span class="op">(</span><span class="va">local_Gi</span><span class="op">)</span></span>
+<span><span class="va">HCSA</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Simple feature collection with 88 features and 18 fields
+Geometry type: POLYGON
+Dimension:     XY
+Bounding box:  xmin: -316283 ymin: 2735534 xmax: 230955.3 ymax: 3349137
+Projected CRS: WGS 84 / UTM zone 50N
+# A tibble: 88 × 19
+    gi_star cluster    e_gi   var_gi std_dev p_value p_sim p_folded_sim skewness
+      &lt;dbl&gt; &lt;fct&gt;     &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt;    &lt;dbl&gt;
+ 1  0.263   Low     1.28e-6 1.10e-13  0.286  7.75e-1  0.66         0.33    0.783
+ 2 -0.277   Low     9.67e-7 4.70e-14 -0.123  9.02e-1  0.98         0.49    0.701
+ 3  0.00336 High    1.54e-6 2.41e-13 -0.0597 9.52e-1  0.78         0.39    0.941
+ 4  0.523   High    1.55e-6 2.86e-13  0.318  7.50e-1  0.58         0.29    0.931
+ 5  0.461   High    1.38e-6 2.73e-13  0.382  7.03e-1  0.58         0.29    1.28 
+ 6 -0.427   High    1.04e-6 7.67e-14 -0.565  5.72e-1  0.74         0.37    0.678
+ 7  2.95    High    6.98e-7 4.04e-14  3.08   2.07e-3  0.04         0.02    0.983
+ 8  2.02    High    1.54e-6 1.62e-13  1.75   8.00e-2  0.14         0.07    1.26 
+ 9  4.41    High    1.30e-6 1.18e-13  4.22   2.41e-5  0.02         0.01    1.20 
+10  1.21    Low     1.75e-6 1.26e-13  1.49   1.35e-1  0.18         0.09    0.405
+# ℹ 78 more rows
+# ℹ 10 more variables: kurtosis &lt;dbl&gt;, nb &lt;nb&gt;, wts &lt;list&gt;, NAME_2 &lt;chr&gt;,
+#   ID_3 &lt;int&gt;, NAME_3 &lt;chr&gt;, ENGTYPE_3 &lt;chr&gt;, County &lt;chr&gt;, GDPPC &lt;dbl&gt;,
+#   geometry &lt;POLYGON [m]&gt;</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">glimpse</span><span class="op">(</span><span class="va">HCSA</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 88
+Columns: 19
+$ gi_star      &lt;dbl&gt; 0.262986865, -0.276763212, 0.003362942, 0.522833952, 0.46…
+$ cluster      &lt;fct&gt; Low, Low, High, High, High, High, High, High, High, Low, …
+$ e_gi         &lt;dbl&gt; 1.278802e-06, 9.671592e-07, 1.537415e-06, 1.547806e-06, 1…
+$ var_gi       &lt;dbl&gt; 1.096630e-13, 4.699956e-14, 2.413774e-13, 2.861214e-13, 2…
+$ std_dev      &lt;dbl&gt; 0.28612898, -0.12311405, -0.05972662, 0.31799883, 0.38153…
+$ p_value      &lt;dbl&gt; 7.747793e-01, 9.020168e-01, 9.523734e-01, 7.504858e-01, 7…
+$ p_sim        &lt;dbl&gt; 0.66, 0.98, 0.78, 0.58, 0.58, 0.74, 0.04, 0.14, 0.02, 0.1…
+$ p_folded_sim &lt;dbl&gt; 0.33, 0.49, 0.39, 0.29, 0.29, 0.37, 0.02, 0.07, 0.01, 0.0…
+$ skewness     &lt;dbl&gt; 0.7834863, 0.7010883, 0.9408244, 0.9312893, 1.2794221, 0.…
+$ kurtosis     &lt;dbl&gt; -0.17420093, -0.13111342, 0.19425163, 0.15135610, 1.76317…
+$ nb           &lt;nb&gt; &lt;1, 2, 3, 4, 57, 85&gt;, &lt;1, 2, 57, 58, 78, 85&gt;, &lt;1, 3, 4, 5,…
+$ wts          &lt;list&gt; &lt;0.000000e+00, 1.535214e-05, 3.582140e-05, 2.166411e-05,…
+$ NAME_2       &lt;chr&gt; "Changde", "Changde", "Changde", "Changde", "Changde", "C…
+$ ID_3         &lt;int&gt; 21098, 21100, 21101, 21102, 21103, 21104, 21109, 21110, 2…
+$ NAME_3       &lt;chr&gt; "Anxiang", "Hanshou", "Jinshi", "Li", "Linli", "Shimen", …
+$ ENGTYPE_3    &lt;chr&gt; "County", "County", "County City", "County", "County", "C…
+$ County       &lt;chr&gt; "Anxiang", "Hanshou", "Jinshi", "Li", "Linli", "Shimen", …
+$ GDPPC        &lt;dbl&gt; 23667, 20981, 34592, 24473, 25554, 27137, 63118, 62202, 7…
+$ geometry     &lt;POLYGON [m]&gt; POLYGON ((22320.48 3301894,..., POLYGON ((35522.9…</code></pre>
+</div>
+</div>
+<section id="visualising-gi" class="level3" data-number="4.3"><h3 data-number="4.3" class="anchored" data-anchor-id="visualising-gi">
+<span class="header-section-number">4.3</span> Visualising Gi*</h3>
+<p>We use tmap functions to plot the local Gi* (i.e.&nbsp;gi_star) for Hunan.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">tmap_mode</span><span class="op">(</span><span class="st">"plot"</span><span class="op">)</span></span>
+<span><span class="fu">tm_shape</span><span class="op">(</span><span class="va">HCSA</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_fill</span><span class="op">(</span><span class="st">"gi_star"</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu">tm_borders</span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_view</span><span class="op">(</span>set.zoom.limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">6</span>,<span class="fl">8</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="In-class_Ex05_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section><section id="visualising-p-value-of-hcsa" class="level3" data-number="4.4"><h3 data-number="4.4" class="anchored" data-anchor-id="visualising-p-value-of-hcsa">
+<span class="header-section-number">4.4</span> Visualising p-value of HCSA</h3>
+<p>Similarly, we use tmap functions to plot p-value of HCSA for Hunan.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb33"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">tmap_mode</span><span class="op">(</span><span class="st">"plot"</span><span class="op">)</span></span>
+<span><span class="fu">tm_shape</span><span class="op">(</span><span class="va">HCSA</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_fill</span><span class="op">(</span><span class="st">"p_sim"</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu">tm_borders</span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="In-class_Ex05_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section><section id="visuaising-local-hcsa" class="level3" data-number="4.5"><h3 data-number="4.5" class="anchored" data-anchor-id="visuaising-local-hcsa">
+<span class="header-section-number">4.5</span> Visuaising Local HCSA</h3>
+<p>Next we plot the choropleth maps for local Gi* and its p-value together.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb34"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">tmap_mode</span><span class="op">(</span><span class="st">"plot"</span><span class="op">)</span></span>
+<span><span class="va">map1</span> <span class="op">&lt;-</span> <span class="fu">tm_shape</span><span class="op">(</span><span class="va">HCSA</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_fill</span><span class="op">(</span><span class="st">"gi_star"</span>,</span>
+<span>    fill.legend <span class="op">=</span> <span class="fu">tm_legend</span><span class="op">(</span></span>
+<span>    position <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"left"</span>, <span class="st">"bottom"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu">tm_borders</span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_view</span><span class="op">(</span>set.zoom.limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">6</span>,<span class="fl">8</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_layout</span><span class="op">(</span>main.title <span class="op">=</span> <span class="st">"Gi* of GDPPC"</span>,</span>
+<span>            main.title.size <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> </span>
+<span>  </span>
+<span><span class="va">map2</span> <span class="op">&lt;-</span> <span class="fu">tm_shape</span><span class="op">(</span><span class="va">HCSA</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_fill</span><span class="op">(</span><span class="st">"p_value"</span>,</span>
+<span>    breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.001</span>, <span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>    labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"0.001"</span>, <span class="st">"0.01"</span>, <span class="st">"0.05"</span>, <span class="st">"Not sig"</span><span class="op">)</span>,</span>
+<span>    fill.legend <span class="op">=</span> <span class="fu">tm_legend</span><span class="op">(</span></span>
+<span>    position <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"left"</span>, <span class="st">"bottom"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu">tm_borders</span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_layout</span><span class="op">(</span>main.title <span class="op">=</span> <span class="st">"p-value of Gi*"</span>,</span>
+<span>            main.title.size <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">tmap_arrange</span><span class="op">(</span><span class="va">map1</span>, <span class="va">map2</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="In-class_Ex05_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section><section id="visualising-hot-spot-and-cold-spot-areas" class="level3" data-number="4.6"><h3 data-number="4.6" class="anchored" data-anchor-id="visualising-hot-spot-and-cold-spot-areas">
+<span class="header-section-number">4.6</span> Visualising hot spot and cold spot areas</h3>
+<p>The code chunk below colour codes the hot and cold areas based on the significant (i.e.&nbsp;p-values less than 0.05).</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb35"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">HCSA_sig</span> <span class="op">&lt;-</span> <span class="va">HCSA</span>  <span class="op">%&gt;%</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">p_sim</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span></span>
+<span><span class="fu">tmap_mode</span><span class="op">(</span><span class="st">"plot"</span><span class="op">)</span></span>
+<span><span class="fu">tm_shape</span><span class="op">(</span><span class="va">HCSA</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_polygons</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_borders</span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="fu">tm_shape</span><span class="op">(</span><span class="va">HCSA_sig</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tm_fill</span><span class="op">(</span><span class="st">"cluster"</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu">tm_borders</span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="In-class_Ex05_files/figure-html/unnamed-chunk-25-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The figure above show a few hot spot and cold spot areas. Notably, the hotspot aligns with the High–High cluster previously identified using the Local Moran’s I method.</p>
+</div>
+</div>
+</section><section id="in-class-ex-part-2-emerging-hot-spot-analysis-ehsa" class="level2" data-number="5"><h2 data-number="5" class="anchored" data-anchor-id="in-class-ex-part-2-emerging-hot-spot-analysis-ehsa">
+<span class="header-section-number">5</span> In-class Ex Part-2: Emerging Hot Spot Analysis (EHSA)</h2>
 <p><a href="https://sfdep.josiahparry.com/articles/understanding-emerging-hotspots">**EHSA*</a></p>
 <p><strong>EHSA Four steps:</strong></p>
 <ul>
@@ -772,22 +1129,22 @@ Caution
 <p>-Evaluate the hot/cold-spot trend using the Mann–Kendall test.</p>
 <ul>
 <li>Categorising each study area location by referring to the resultant trend z-score and p-value for each location with data, and with the hot spot z-score and p-value for each bin.</li>
-</ul></section><section id="getting-started" class="level2" data-number="5"><h2 data-number="5" class="anchored" data-anchor-id="getting-started">
-<span class="header-section-number">5</span> Getting started</h2>
-<section id="installing-and-loading-the-r-packages" class="level3" data-number="5.1"><h3 data-number="5.1" class="anchored" data-anchor-id="installing-and-loading-the-r-packages">
-<span class="header-section-number">5.1</span> Installing and Loading the R Packages</h3>
+</ul></section><section id="getting-started" class="level2" data-number="6"><h2 data-number="6" class="anchored" data-anchor-id="getting-started">
+<span class="header-section-number">6</span> Getting started</h2>
+<section id="installing-and-loading-the-r-packages" class="level3" data-number="6.1"><h3 data-number="6.1" class="anchored" data-anchor-id="installing-and-loading-the-r-packages">
+<span class="header-section-number">6.1</span> Installing and Loading the R Packages</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">pacman</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pacman/man/p_load.html">p_load</a></span><span class="op">(</span><span class="va">sf</span>, <span class="va">sfdep</span>, <span class="va">tmap</span>, </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">pacman</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pacman/man/p_load.html">p_load</a></span><span class="op">(</span><span class="va">sf</span>, <span class="va">sfdep</span>, <span class="va">tmap</span>, </span>
 <span>               <span class="va">plotly</span>, <span class="va">tidyverse</span>, </span>
 <span>               <span class="va">Kendall</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-</section><section id="importing-data" class="level3" data-number="5.2"><h3 data-number="5.2" class="anchored" data-anchor-id="importing-data">
-<span class="header-section-number">5.2</span> Importing Data</h3>
-<section id="importing-geospatial-data" class="level4" data-number="5.2.1"><h4 data-number="5.2.1" class="anchored" data-anchor-id="importing-geospatial-data">
-<span class="header-section-number">5.2.1</span> Importing Geospatial Data</h4>
+</section><section id="importing-data" class="level3" data-number="6.2"><h3 data-number="6.2" class="anchored" data-anchor-id="importing-data">
+<span class="header-section-number">6.2</span> Importing Data</h3>
+<section id="importing-geospatial-data" class="level4" data-number="6.2.1"><h4 data-number="6.2.1" class="anchored" data-anchor-id="importing-geospatial-data">
+<span class="header-section-number">6.2.1</span> Importing Geospatial Data</h4>
 <p>The code chunk below imports hunan, a geospatial data set in ESRI shapefile format.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">hunan</span> <span class="op">&lt;-</span> <span class="fu">st_read</span><span class="op">(</span>dsn <span class="op">=</span> <span class="st">"data/geospatial"</span>, layer <span class="op">=</span> <span class="st">"hunan"</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">hunan</span> <span class="op">&lt;-</span> <span class="fu">st_read</span><span class="op">(</span>dsn <span class="op">=</span> <span class="st">"data/geospatial"</span>, layer <span class="op">=</span> <span class="st">"hunan"</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">st_transform</span><span class="op">(</span>crs <span class="op">=</span> <span class="fl">32650</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Reading layer `hunan' from data source 
@@ -799,7 +1156,7 @@ Dimension:     XY
 Bounding box:  xmin: 108.7831 ymin: 24.6342 xmax: 114.2544 ymax: 30.12812
 Geodetic CRS:  WGS 84</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">st_crs</span><span class="op">(</span><span class="va">hunan</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb39"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">st_crs</span><span class="op">(</span><span class="va">hunan</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Coordinate Reference System:
   User input: EPSG:32650 
@@ -853,11 +1210,11 @@ PROJCRS["WGS 84 / UTM zone 50N",
     ID["EPSG",32650]]</code></pre>
 </div>
 </div>
-</section><section id="importing-aspatial-data" class="level4" data-number="5.2.2"><h4 data-number="5.2.2" class="anchored" data-anchor-id="importing-aspatial-data">
-<span class="header-section-number">5.2.2</span> Importing Aspatial Data</h4>
+</section><section id="importing-aspatial-data" class="level4" data-number="6.2.2"><h4 data-number="6.2.2" class="anchored" data-anchor-id="importing-aspatial-data">
+<span class="header-section-number">6.2.2</span> Importing Aspatial Data</h4>
 <p>The code chunk below imports Hunan_GDPPC, an attribute data set in csv format.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">GDPPC</span> <span class="op">&lt;-</span> <span class="fu">read_csv</span><span class="op">(</span><span class="st">"data/aspatial/Hunan_GDPPC.csv"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb41"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">GDPPC</span> <span class="op">&lt;-</span> <span class="fu">read_csv</span><span class="op">(</span><span class="st">"data/aspatial/Hunan_GDPPC.csv"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="callout callout-style-default callout-important callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -872,20 +1229,20 @@ Important
 <p>The GDPPC data set must follow certain orders to avoid the errors (time (integer), space, value).</p>
 </div>
 </div>
-</section></section></section><section id="step-1-creating-a-time-series-cube" class="level2" data-number="6"><h2 data-number="6" class="anchored" data-anchor-id="step-1-creating-a-time-series-cube">
-<span class="header-section-number">6</span> Step 1: Creating a Time Series Cube</h2>
-<p>The code chunk below us <a href="https://sfdep.josiahparry.com/reference/spacetime.html"><code>spacetime()</code></a> of <strong>sfdep</strong> to create an <a href="https://sfdep.josiahparry.com/articles/spacetime-s3.html"><strong>spatio-temporal cube</strong></a> and verifies the class using <code>is_spacetime_cube()</code>.</p>
+</section></section></section><section id="step-1-creating-a-time-series-cube" class="level2" data-number="7"><h2 data-number="7" class="anchored" data-anchor-id="step-1-creating-a-time-series-cube">
+<span class="header-section-number">7</span> Step 1: Creating a Time Series Cube</h2>
+<p>The code chunk below uses <a href="https://sfdep.josiahparry.com/reference/spacetime.html"><code>spacetime()</code></a> of <strong>sfdep</strong> to create an <a href="https://sfdep.josiahparry.com/articles/spacetime-s3.html"><strong>spatio-temporal cube</strong></a> and verifies the class using <code>is_spacetime_cube()</code>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">GDPPC_st</span> <span class="op">&lt;-</span> <span class="fu">spacetime</span><span class="op">(</span><span class="va">GDPPC</span>, <span class="va">hunan</span>, .loc_col <span class="op">=</span> <span class="st">"County"</span>, .time_col <span class="op">=</span><span class="st">"Year"</span><span class="op">)</span>  <span class="co"># data, geometry, loc, time</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb42"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">GDPPC_st</span> <span class="op">&lt;-</span> <span class="fu">spacetime</span><span class="op">(</span><span class="va">GDPPC</span>, <span class="va">hunan</span>, .loc_col <span class="op">=</span> <span class="st">"County"</span>, .time_col <span class="op">=</span><span class="st">"Year"</span><span class="op">)</span>  <span class="co"># data, geometry, loc, time</span></span>
 <span><span class="fu">is_spacetime_cube</span><span class="op">(</span><span class="va">GDPPC_st</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] TRUE</code></pre>
 </div>
 </div>
-</section><section id="step-2-calculate-local-gi" class="level2" data-number="7"><h2 data-number="7" class="anchored" data-anchor-id="step-2-calculate-local-gi">
-<span class="header-section-number">7</span> Step 2: Calculate local Gi*</h2>
-<section id="deriving-the-spatial-weights" class="level3" data-number="7.1"><h3 data-number="7.1" class="anchored" data-anchor-id="deriving-the-spatial-weights">
-<span class="header-section-number">7.1</span> Deriving the spatial weights</h3>
+</section><section id="step-2-calculate-local-gi" class="level2" data-number="8"><h2 data-number="8" class="anchored" data-anchor-id="step-2-calculate-local-gi">
+<span class="header-section-number">8</span> Step 2: Calculate local Gi*</h2>
+<section id="deriving-the-spatial-weights" class="level3" data-number="8.1"><h3 data-number="8.1" class="anchored" data-anchor-id="deriving-the-spatial-weights">
+<span class="header-section-number">8.1</span> Deriving the spatial weights</h3>
 <p>The code chunk below uses:</p>
 <ul>
 <li><p><code>activate()</code> of <strong>dplyr</strong> package to activate the geometry context;</p></li>
@@ -893,7 +1250,7 @@ Important
 </ul>
 <p>Then we will activate the data context again and copy over the <strong>nb and wt columns</strong> to each time-slice using <code>set_nbs()</code> and <code>set_wts()</code>. Row order is very important, so do not rearrange the observations after using <code>set_nbs()</code> or <code>set_wts()</code>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">GDPPC_nb</span> <span class="op">&lt;-</span> <span class="va">GDPPC_st</span> <span class="op">%&gt;%</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb44"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">GDPPC_nb</span> <span class="op">&lt;-</span> <span class="va">GDPPC_st</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">activate</span><span class="op">(</span><span class="st">"geometry"</span><span class="op">)</span> <span class="op">%&gt;%</span>    <span class="co">#activate is crucial</span></span>
 <span>  <span class="fu">mutate</span><span class="op">(</span>nb <span class="op">=</span> <span class="fu">include_self</span><span class="op">(</span>   <span class="co">#ensures each region is considered its own neighbour (adds self-links).</span></span>
 <span>    <span class="fu">st_contiguity</span><span class="op">(</span><span class="va">geometry</span><span class="op">)</span><span class="op">)</span>,  <span class="co">#contiguity-based neighbour list</span></span>
@@ -927,12 +1284,12 @@ Important
 <p>Either is fine for EHSA; just keep it consistent over time.</p>
 </div>
 </div>
-</section><section id="computing-gi" class="level3" data-number="7.2"><h3 data-number="7.2" class="anchored" data-anchor-id="computing-gi">
-<span class="header-section-number">7.2</span> Computing Gi*</h3>
+</section><section id="computing-gi" class="level3" data-number="8.2"><h3 data-number="8.2" class="anchored" data-anchor-id="computing-gi">
+<span class="header-section-number">8.2</span> Computing Gi*</h3>
 <p>The code chunk below uses <a href="https://sfdep.josiahparry.com/reference/local_gstar"><code>local_gstar_perm()</code></a> of sfdep package and <code>groupb_by()</code> to calculate the Gi* by year for each location, and flatten out Gi* statisitc matrix as gi_star column and attach to the sf dataset.</p>
 <p><strong>group_by(Year) that is why the table format is useful that we can calculate by year.</strong></p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">gi_stars</span> <span class="op">&lt;-</span> <span class="va">GDPPC_nb</span> <span class="op">%&gt;%</span> </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb45"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">gi_stars</span> <span class="op">&lt;-</span> <span class="va">GDPPC_nb</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">Year</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu">mutate</span><span class="op">(</span>gi_star <span class="op">=</span> <span class="fu">local_gstar_perm</span><span class="op">(</span></span>
 <span>    <span class="va">GDPPC</span>, <span class="va">nb</span>, <span class="va">wt</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
@@ -943,16 +1300,16 @@ Important
 # Groups:   Year [17]
     Year County    GDPPC nb        wt    gi_star cluster   e_gi  var_gi  std_dev
    &lt;dbl&gt; &lt;chr&gt;     &lt;dbl&gt; &lt;list&gt;    &lt;lis&gt;   &lt;dbl&gt; &lt;fct&gt;    &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;
- 1  2005 Anxiang    8184 &lt;int [6]&gt; &lt;dbl&gt;   0.398 High    0.0115 2.84e-6  0.359  
- 2  2005 Hanshou    6560 &lt;int [6]&gt; &lt;dbl&gt;  -0.237 Low     0.0109 2.73e-6 -0.00637
- 3  2005 Jinshi     9956 &lt;int [5]&gt; &lt;dbl&gt;   1.05  High    0.0126 3.03e-6  0.541  
- 4  2005 Li         8394 &lt;int [5]&gt; &lt;dbl&gt;   0.966 High    0.0117 3.08e-6  0.937  
- 5  2005 Linli      8850 &lt;int [5]&gt; &lt;dbl&gt;   1.05  High    0.0120 3.31e-6  0.848  
- 6  2005 Shimen     9244 &lt;int [6]&gt; &lt;dbl&gt;   0.210 High    0.0120 2.55e-6 -0.141  
- 7  2005 Liuyang   13406 &lt;int [5]&gt; &lt;dbl&gt;   3.91  High    0.0143 3.00e-6  3.02   
- 8  2005 Ningxiang 11687 &lt;int [8]&gt; &lt;dbl&gt;   1.61  High    0.0128 2.23e-6  0.865  
- 9  2005 Wangcheng 14659 &lt;int [7]&gt; &lt;dbl&gt;   3.88  High    0.0139 2.93e-6  2.56   
-10  2005 Anren      7423 &lt;int [9]&gt; &lt;dbl&gt;   1.67  Low     0.0113 2.29e-6  1.81   
+ 1  2005 Anxiang    8184 &lt;int [6]&gt; &lt;dbl&gt;   0.398 High    0.0115 2.69e-6  0.382  
+ 2  2005 Hanshou    6560 &lt;int [6]&gt; &lt;dbl&gt;  -0.237 Low     0.0109 2.64e-6  0.00199
+ 3  2005 Jinshi     9956 &lt;int [5]&gt; &lt;dbl&gt;   1.05  High    0.0126 3.33e-6  0.507  
+ 4  2005 Li         8394 &lt;int [5]&gt; &lt;dbl&gt;   0.966 High    0.0117 3.24e-6  0.920  
+ 5  2005 Linli      8850 &lt;int [5]&gt; &lt;dbl&gt;   1.05  High    0.0120 3.23e-6  0.885  
+ 6  2005 Shimen     9244 &lt;int [6]&gt; &lt;dbl&gt;   0.210 High    0.0121 2.99e-6 -0.215  
+ 7  2005 Liuyang   13406 &lt;int [5]&gt; &lt;dbl&gt;   3.91  High    0.0142 2.52e-6  3.36   
+ 8  2005 Ningxiang 11687 &lt;int [8]&gt; &lt;dbl&gt;   1.61  High    0.0127 2.30e-6  0.895  
+ 9  2005 Wangcheng 14659 &lt;int [7]&gt; &lt;dbl&gt;   3.88  High    0.0140 2.49e-6  2.73   
+10  2005 Anren      7423 &lt;int [9]&gt; &lt;dbl&gt;   1.67  Low     0.0113 2.14e-6  1.87   
 # ℹ 1,486 more rows
 # ℹ 5 more variables: p_value &lt;dbl&gt;, p_sim &lt;dbl&gt;, p_folded_sim &lt;dbl&gt;,
 #   skewness &lt;dbl&gt;, kurtosis &lt;dbl&gt;</code></pre>
@@ -979,43 +1336,43 @@ Note
 <p>… )</p>
 </div>
 </div>
-</section></section><section id="step-3-mann-kendall-test" class="level2" data-number="8"><h2 data-number="8" class="anchored" data-anchor-id="step-3-mann-kendall-test">
-<span class="header-section-number">8</span> Step 3: Mann-Kendall Test</h2>
+</section></section><section id="step-3-mann-kendall-test" class="level2" data-number="9"><h2 data-number="9" class="anchored" data-anchor-id="step-3-mann-kendall-test">
+<span class="header-section-number">9</span> Step 3: Mann-Kendall Test</h2>
 <p><a href="https://vsp.pnnl.gov/help/vsample/design_trend_mann_kendall.htm">Mann–Kendall</a> (MK) is a non-parametric trend test:</p>
 <p>H₀: no monotonic trend (flat).</p>
 <p>H₁: a monotonic trend exists (consistently increases or decreases).</p>
-<section id="interpreting-kendalls" class="level3" data-number="8.1"><h3 data-number="8.1" class="anchored" data-anchor-id="interpreting-kendalls">
-<span class="header-section-number">8.1</span> Interpreting Kendall’s</h3>
+<section id="interpreting-kendalls" class="level3" data-number="9.1"><h3 data-number="9.1" class="anchored" data-anchor-id="interpreting-kendalls">
+<span class="header-section-number">9.1</span> Interpreting Kendall’s</h3>
 <p>τ ranges from −1 to +1 (direction = sign; strength = magnitude).</p>
 <p>In Kendall::MannKendall, sl is the p-value.</p>
-</section><section id="mann-kendall-test-on-gi" class="level3" data-number="8.2"><h3 data-number="8.2" class="anchored" data-anchor-id="mann-kendall-test-on-gi">
-<span class="header-section-number">8.2</span> Mann-Kendall Test on Gi</h3>
+</section><section id="mann-kendall-test-on-gi" class="level3" data-number="9.2"><h3 data-number="9.2" class="anchored" data-anchor-id="mann-kendall-test-on-gi">
+<span class="header-section-number">9.2</span> Mann-Kendall Test on Gi</h3>
 <p>Outliers/clusters vs hot/cold spots: Local Moran’s I (LISA) finds high–high/low–low clusters and outliers;</p>
 <p>EHSA/Gi* focuses on hot/cold spots.</p>
 <p>We select counties manually to show their Gi* time series and MK result (trend line figure).</p>
 <p>The code chunk below filters the required region: Changsha county and plot the result to evaluate local tread using Mann-Kendall test.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cbg</span> <span class="op">&lt;-</span> <span class="va">gi_stars</span> <span class="op">%&gt;%</span> </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb47"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cbg</span> <span class="op">&lt;-</span> <span class="va">gi_stars</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">County</span> <span class="op">==</span> <span class="st">"Changsha"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">select</span><span class="op">(</span><span class="va">County</span>, <span class="va">Year</span>, <span class="va">gi_star</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">cbg</span>, </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb48"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">cbg</span>, </span>
 <span>       <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">Year</span>, </span>
 <span>           y <span class="op">=</span> <span class="va">gi_star</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_line</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">theme_light</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="In-class_Ex05_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="In-class_Ex05_files/figure-html/unnamed-chunk-33-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 <p>THe code chunk below uses <code>ggplotly()</code> of <strong>plotly</strong> package for an interactive plot where we can observe the exact Gi* value for each year.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">cbg</span>, </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb49"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">cbg</span>, </span>
 <span>       <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">Year</span>, </span>
 <span>           y <span class="op">=</span> <span class="va">gi_star</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_line</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
@@ -1023,16 +1380,16 @@ Note
 <span></span>
 <span><span class="fu">ggplotly</span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
-<div class="plotly html-widget html-fill-item" id="htmlwidget-316e0b4e41f764f025fa" style="width:100%;height:464px;"></div>
-<script type="application/json" data-for="htmlwidget-316e0b4e41f764f025fa">{"x":{"data":[{"x":[2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021],"y":[5.0282995066289047,5.1692011079782345,5.2958892892912894,5.6039537096873993,6.2788862246004742,5.9357455762937326,5.7508709054298892,5.6942475830114576,5.7085054237054784,5.7608121561733521,6.097127241257188,6.0036547779673146,6.2028053540357906,6.0371816202738318,6.579432171885526,5.7669155664195504,5.7486534794156494],"text":["Year: 2005<br />gi_star: 5.028300","Year: 2006<br />gi_star: 5.169201","Year: 2007<br />gi_star: 5.295889","Year: 2008<br />gi_star: 5.603954","Year: 2009<br />gi_star: 6.278886","Year: 2010<br />gi_star: 5.935746","Year: 2011<br />gi_star: 5.750871","Year: 2012<br />gi_star: 5.694248","Year: 2013<br />gi_star: 5.708505","Year: 2014<br />gi_star: 5.760812","Year: 2015<br />gi_star: 6.097127","Year: 2016<br />gi_star: 6.003655","Year: 2017<br />gi_star: 6.202805","Year: 2018<br />gi_star: 6.037182","Year: 2019<br />gi_star: 6.579432","Year: 2020<br />gi_star: 5.766916","Year: 2021<br />gi_star: 5.748653"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)","dash":"solid"},"hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":23.305936073059364,"r":7.3059360730593621,"b":37.260273972602747,"l":43.105022831050235},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.611872146118724},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[2004.2,2021.8],"tickmode":"array","ticktext":["2005","2010","2015","2020"],"tickvals":[2005,2010,2015,2020],"categoryorder":"array","categoryarray":["2005","2010","2015","2020"],"nticks":null,"ticks":"outside","tickcolor":"rgba(179,179,179,1)","ticklen":3.6529680365296811,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.68949771689498},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(222,222,222,1)","gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"Year","font":{"color":"rgba(0,0,0,1)","family":"","size":14.611872146118724}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[4.9507428733660737,6.656988805148357],"tickmode":"array","ticktext":["5.0","5.5","6.0","6.5"],"tickvals":[5,5.5,6,6.5],"categoryorder":"array","categoryarray":["5.0","5.5","6.0","6.5"],"nticks":null,"ticks":"outside","tickcolor":"rgba(179,179,179,1)","ticklen":3.6529680365296811,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.68949771689498},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(222,222,222,1)","gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"gi_star","font":{"color":"rgba(0,0,0,1)","family":"","size":14.611872146118724}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":"rgba(255,255,255,1)","line":{"color":"rgba(179,179,179,1)","width":0,"linetype":"solid"},"yref":"paper","xref":"paper","layer":"below","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.68949771689498}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"6b40694e3f4a":{"x":{},"y":{},"type":"scatter"}},"cur_data":"6b40694e3f4a","visdat":{"6b40694e3f4a":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<div class="plotly html-widget html-fill-item" id="htmlwidget-9ff13a907ae150a3bad3" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-9ff13a907ae150a3bad3">{"x":{"data":[{"x":[2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021],"y":[5.0282995066289047,5.1692011079782345,5.2958892892912894,5.6039537096873993,6.2788862246004742,5.9357455762937326,5.7508709054298892,5.6942475830114576,5.7085054237054784,5.7608121561733521,6.097127241257188,6.0036547779673146,6.2028053540357906,6.0371816202738318,6.579432171885526,5.7669155664195504,5.7486534794156494],"text":["Year: 2005<br />gi_star: 5.028300","Year: 2006<br />gi_star: 5.169201","Year: 2007<br />gi_star: 5.295889","Year: 2008<br />gi_star: 5.603954","Year: 2009<br />gi_star: 6.278886","Year: 2010<br />gi_star: 5.935746","Year: 2011<br />gi_star: 5.750871","Year: 2012<br />gi_star: 5.694248","Year: 2013<br />gi_star: 5.708505","Year: 2014<br />gi_star: 5.760812","Year: 2015<br />gi_star: 6.097127","Year: 2016<br />gi_star: 6.003655","Year: 2017<br />gi_star: 6.202805","Year: 2018<br />gi_star: 6.037182","Year: 2019<br />gi_star: 6.579432","Year: 2020<br />gi_star: 5.766916","Year: 2021<br />gi_star: 5.748653"],"type":"scatter","mode":"lines","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)","dash":"solid"},"hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":23.305936073059364,"r":7.3059360730593621,"b":37.260273972602747,"l":43.105022831050235},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.611872146118724},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[2004.2,2021.8],"tickmode":"array","ticktext":["2005","2010","2015","2020"],"tickvals":[2005,2010,2015,2020],"categoryorder":"array","categoryarray":["2005","2010","2015","2020"],"nticks":null,"ticks":"outside","tickcolor":"rgba(179,179,179,1)","ticklen":3.6529680365296811,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.68949771689498},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(222,222,222,1)","gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"Year","font":{"color":"rgba(0,0,0,1)","family":"","size":14.611872146118724}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[4.9507428733660737,6.656988805148357],"tickmode":"array","ticktext":["5.0","5.5","6.0","6.5"],"tickvals":[5,5.5,6,6.5],"categoryorder":"array","categoryarray":["5.0","5.5","6.0","6.5"],"nticks":null,"ticks":"outside","tickcolor":"rgba(179,179,179,1)","ticklen":3.6529680365296811,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.68949771689498},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(222,222,222,1)","gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"gi_star","font":{"color":"rgba(0,0,0,1)","family":"","size":14.611872146118724}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":"rgba(255,255,255,1)","line":{"color":"rgba(179,179,179,1)","width":0,"linetype":"solid"},"yref":"paper","xref":"paper","layer":"below","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.68949771689498}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"40281fde2cb3":{"x":{},"y":{},"type":"scatter"}},"cur_data":"40281fde2cb3","visdat":{"40281fde2cb3":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
-</section><section id="printing-mann-kendall-test-report" class="level3" data-number="8.3"><h3 data-number="8.3" class="anchored" data-anchor-id="printing-mann-kendall-test-report">
-<span class="header-section-number">8.3</span> Printing Mann-Kendall test report</h3>
+</section><section id="printing-mann-kendall-test-report" class="level3" data-number="9.3"><h3 data-number="9.3" class="anchored" data-anchor-id="printing-mann-kendall-test-report">
+<span class="header-section-number">9.3</span> Printing Mann-Kendall test report</h3>
 <p>The code chunk below generates a summary on the Kendall test for <strong>Changsha</strong>.</p>
 <p>The Mann–Kendall test yields a Kendall’s tau of 0.48, indicating a moderate positive monotonic trend. Since the p-value (0.007) is less than 0.05, we reject the null hypothesis of no trend and conclude that the data exhibit a statistically significant upward trend.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cbg</span> <span class="op">%&gt;%</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb50"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cbg</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">summarise</span><span class="op">(</span>mk <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/class.html">unclass</a></span><span class="op">(</span></span>
 <span>      <span class="fu">Kendall</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Kendall/man/MannKendall.html">MannKendall</a></span><span class="op">(</span><span class="va">gi_star</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
@@ -1044,11 +1401,11 @@ Note
 1 0.485 0.00742    66  136.  589.</code></pre>
 </div>
 </div>
-</section><section id="mann-kendall-test-data.frame" class="level3" data-number="8.4"><h3 data-number="8.4" class="anchored" data-anchor-id="mann-kendall-test-data.frame">
-<span class="header-section-number">8.4</span> Mann-Kendall test data.frame</h3>
+</section><section id="mann-kendall-test-data.frame" class="level3" data-number="9.4"><h3 data-number="9.4" class="anchored" data-anchor-id="mann-kendall-test-data.frame">
+<span class="header-section-number">9.4</span> Mann-Kendall test data.frame</h3>
 <p>We can replicate this for each location by using <code>group_by()</code> of <strong>dplyr</strong> package.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ehsa</span> <span class="op">&lt;-</span> <span class="va">gi_stars</span> <span class="op">%&gt;%</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb52"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ehsa</span> <span class="op">&lt;-</span> <span class="va">gi_stars</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">County</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">summarise</span><span class="op">(</span>mk <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/class.html">unclass</a></span><span class="op">(</span></span>
@@ -1069,7 +1426,7 @@ Note
 </div>
 <p>We can also sort to show <strong>significant</strong> emerging hot/cold spots</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb34"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">emerging</span> <span class="op">&lt;-</span> <span class="va">ehsa</span> <span class="op">%&gt;%</span> </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb54"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">emerging</span> <span class="op">&lt;-</span> <span class="va">ehsa</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu">arrange</span><span class="op">(</span><span class="va">sl</span>, <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">tau</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>  <span class="co">#Sorts the ehsa table by sl and tau in asc order ### arrange(sl, desc(abs(tau)))</span></span>
 <span>  <span class="fu">slice</span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span>  <span class="co">#top 10 emerging</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">emerging</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1085,8 +1442,8 @@ Note
 6 Wugang     -0.809 0.00000712  -110  136.  589.</code></pre>
 </div>
 </div>
-</section></section><section id="step-4-performing-emerging-hotspot-analysis" class="level2" data-number="9"><h2 data-number="9" class="anchored" data-anchor-id="step-4-performing-emerging-hotspot-analysis">
-<span class="header-section-number">9</span> Step 4: Performing Emerging Hotspot Analysis</h2>
+</section></section><section id="step-4-performing-emerging-hotspot-analysis" class="level2" data-number="10"><h2 data-number="10" class="anchored" data-anchor-id="step-4-performing-emerging-hotspot-analysis">
+<span class="header-section-number">10</span> Step 4: Performing Emerging Hotspot Analysis</h2>
 <p>Lastly, we will perform EHSA analysis by using <a href="https://sfdep.josiahparry.com/reference/emerging_hotspot_analysis.html"><code>emerging_hotspot_analysis()</code></a> of <strong>sfdep</strong> package.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1113,45 +1470,45 @@ Note
 - gi_star &lt;= -1.96 ~ -2L, - gi_star &lt;= -1.65 ~ -1L, - TRUE ~ 0L #not sig</p>
 </div>
 </div>
-<section id="ehsa" class="level3" data-number="9.1"><h3 data-number="9.1" class="anchored" data-anchor-id="ehsa">
-<span class="header-section-number">9.1</span> EHSA</h3>
+<section id="ehsa" class="level3" data-number="10.1"><h3 data-number="10.1" class="anchored" data-anchor-id="ehsa">
+<span class="header-section-number">10.1</span> EHSA</h3>
 <p>The code chunk below generates the EHSA statistics for each region.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb56"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ehsa_sim</span> <span class="op">&lt;-</span> <span class="fu">emerging_hotspot_analysis</span><span class="op">(</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb57"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ehsa_sim</span> <span class="op">&lt;-</span> <span class="fu">emerging_hotspot_analysis</span><span class="op">(</span></span>
 <span>  x <span class="op">=</span> <span class="va">GDPPC_st</span>,    <span class="co"># spacetime object</span></span>
 <span>  .var <span class="op">=</span> <span class="st">"GDPPC"</span>,  <span class="co"># variable of interest</span></span>
 <span>  k <span class="op">=</span> <span class="fl">1</span>,           <span class="co"># Number of time lags, default 1</span></span>
 <span>  nsim <span class="op">=</span> <span class="fl">99</span>        <span class="co"># 100 permutations</span></span>
 <span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-</section><section id="viusalising-the-ehsa-class-distribution" class="level3" data-number="9.2"><h3 data-number="9.2" class="anchored" data-anchor-id="viusalising-the-ehsa-class-distribution">
-<span class="header-section-number">9.2</span> Viusalising the EHSA Class Distribution</h3>
+</section><section id="viusalising-the-ehsa-class-distribution" class="level3" data-number="10.2"><h3 data-number="10.2" class="anchored" data-anchor-id="viusalising-the-ehsa-class-distribution">
+<span class="header-section-number">10.2</span> Viusalising the EHSA Class Distribution</h3>
 <p>Bar chart summarises counts of Hot/Cold spots. Figure above shows that sporadic cold spots class has the high numbers of county.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb38"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">ehsa_sim</span>, <span class="va">p_value</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span>, <span class="co"># we see the auto-classification is misleading</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb58"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">ehsa_sim</span>, <span class="va">p_value</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span>, <span class="co"># we see the auto-classification is misleading</span></span>
 <span>       <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">classification</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_bar</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="In-class_Ex05_files/figure-html/unnamed-chunk-25-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="In-class_Ex05_files/figure-html/unnamed-chunk-41-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
-</section><section id="visualising-ehsa" class="level3" data-number="9.3"><h3 data-number="9.3" class="anchored" data-anchor-id="visualising-ehsa">
-<span class="header-section-number">9.3</span> Visualising EHSA</h3>
+</section><section id="visualising-ehsa" class="level3" data-number="10.3"><h3 data-number="10.3" class="anchored" data-anchor-id="visualising-ehsa">
+<span class="header-section-number">10.3</span> Visualising EHSA</h3>
 <p>First, we need to join both hunan and ehsa together by using the code chunk below.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb39"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">hunan_ehsa</span> <span class="op">&lt;-</span> <span class="va">hunan</span> <span class="op">%&gt;%</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb59"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">hunan_ehsa</span> <span class="op">&lt;-</span> <span class="va">hunan</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">left_join</span><span class="op">(</span><span class="va">ehsa_sim</span>,</span>
 <span>            by <span class="op">=</span> <span class="fu">join_by</span><span class="op">(</span><span class="va">County</span> <span class="op">==</span> <span class="va">location</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Next, tmap functions will be used to plot a categorical choropleth map by using the code chunk below.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb40"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ehsa_sig</span> <span class="op">&lt;-</span> <span class="va">hunan_ehsa</span>  <span class="op">%&gt;%</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb60"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ehsa_sig</span> <span class="op">&lt;-</span> <span class="va">hunan_ehsa</span>  <span class="op">%&gt;%</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">p_value</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span></span>
 <span><span class="fu">tmap_mode</span><span class="op">(</span><span class="st">"plot"</span><span class="op">)</span></span>
 <span><span class="fu">tm_shape</span><span class="op">(</span><span class="va">hunan_ehsa</span><span class="op">)</span> <span class="op">+</span></span>
@@ -1162,18 +1519,18 @@ Note
 <span>  <span class="fu">tm_borders</span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="In-class_Ex05_files/figure-html/unnamed-chunk-27-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="In-class_Ex05_files/figure-html/unnamed-chunk-43-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
-</section><section id="plot-diy" class="level3" data-number="9.4"><h3 data-number="9.4" class="anchored" data-anchor-id="plot-diy">
-<span class="header-section-number">9.4</span> Plot DIY</h3>
+</section><section id="plot-diy" class="level3" data-number="10.4"><h3 data-number="10.4" class="anchored" data-anchor-id="plot-diy">
+<span class="header-section-number">10.4</span> Plot DIY</h3>
 <ol type="1">
 <li>Gi*</li>
 </ol>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb41"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">gi_stars</span> <span class="op">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb61"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">gi_stars</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">mutate</span><span class="op">(</span>bins <span class="op">=</span> <span class="fu">case_when</span><span class="op">(</span></span>
 <span>    <span class="va">gi_star</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">p_sim</span> <span class="op">&lt;=</span> <span class="fl">0.01</span> <span class="op">~</span> <span class="st">"Hot 99%"</span>,</span>
 <span>    <span class="va">gi_star</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">p_sim</span> <span class="op">&lt;=</span> <span class="fl">0.05</span> <span class="op">~</span> <span class="st">"Hot 95%"</span>,</span>
@@ -1263,13 +1620,15 @@ Tip
 <p><img src="img/Screenshot 2025-09-29 234337.png" class="img-fluid"></p>
 <p><img src="img/Screenshot 2025-09-29 234344.png" class="img-fluid"></p>
 <p><img src="img/Screenshot 2025-09-29 234351.png" class="img-fluid"></p>
-</section></section><section id="reference" class="level2" data-number="10"><h2 data-number="10" class="anchored" data-anchor-id="reference">
-<span class="header-section-number">10</span> Reference</h2>
+</section></section><section id="reference" class="level2" data-number="11"><h2 data-number="11" class="anchored" data-anchor-id="reference">
+<span class="header-section-number">11</span> Reference</h2>
 <p>Dr.Kam Tin Seong, 21/09/2025, In-class Exercise 6: Emerging Hot Spot Analysis</p>
 <p><a href="https://isss626-ay2025-26aug.netlify.app/in-class_ex/in-class_ex06/in-class_ex06-ehsa" class="uri">https://isss626-ay2025-26aug.netlify.app/in-class_ex/in-class_ex06/in-class_ex06-ehsa</a></p>
 
 
-</section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+</section>
+</div>
+</section></section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     // Ensure there is a toggle, if there isn't float one in the top right
     if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {

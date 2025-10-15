@@ -225,7 +225,7 @@ tm_shape(lisa) +
             main.title.size = 2)
 ```
 
-::: callout-warning4
+::: callout-warning
 For p-values, the appropriate classification should be 0.001, 0.01, 0.05 and not significant instead of using default classification scheme.
 :::
 
@@ -292,11 +292,11 @@ tm_shape(lisa_sig) +
 
 ## Hot Spot and Cold Spot Area Analysis (HCSA)
 
-HCSA uses spatial weights to identify locations of statistically significant hot spots and cold spots in an spatially weighted attribute that are in proximity to one another based on a calculated distance. The analysis groups features when similar high (hot) or low (cold) values are found in a cluster. The polygon features usually represent administration boundaries or a custom grid structure.
+HCSA uses spatial weights to find areas where high (hot) or low (cold) values cluster together based on **distance**. It analyses polygon features, such as administrative boundaries or custom grids, to identify statistically significant hotspots and coldspots.
 
 ### Computing local Gi\* statistics
 
-As usual, we will need to derive a spatial weight matrix before we can compute local Gi\* statistics. Code chunk below will be used to derive a spatial weight matrix by using sfdep functions and tidyverse approach.
+As usual, we first derive a spatial weights matrix before computing local Gi\* statistics. The code below uses **sfdep** with **tidyverse** to build the weights.
 
 ```{r}
 wm_idw <- hunan_GDPPC %>%
@@ -308,6 +308,102 @@ wm_idw <- hunan_GDPPC %>%
                               alpha = 1),
          .before = 1)
 ```
+
+
+::: callout-note
+- Gi* and local Gi* are distance-based spatial statistics, so distance-based methods (rather than contiguity) should be used to create the spatial weights matrix.
+
+- Because Gi* measures each feature’s value relative to its neighbours, include_self() is applied to ensure each feature is included in its own neighbourhood during the calculation.
+:::
+
+### Computing local Gi\* statistics
+
+The local Gi\* is calculated by using `local_gstar_perm()` of **sfdep** package.
+
+::: {style="font-size: 1.5em"}
+```{r}
+HCSA <- wm_idw %>% 
+  mutate(local_Gi = local_gstar_perm(
+    GDPPC, nb, wts, nsim = 99),
+         .before = 1) %>%
+  unnest(local_Gi)
+HCSA
+```
+
+```{r}
+glimpse(HCSA)
+```
+
+
+
+### Visualising Gi\*
+
+We use tmap functions to plot the local Gi\* (i.e. gi_star) for Hunan.
+
+```{r}
+tmap_mode("plot")
+tm_shape(HCSA) +
+  tm_fill("gi_star") + 
+  tm_borders(alpha = 0.5) +
+  tm_view(set.zoom.limits = c(6,8))
+```
+### Visualising p-value of HCSA
+
+Similarly, we use tmap functions to plot p-value of HCSA for Hunan.
+
+```{r}
+tmap_mode("plot")
+tm_shape(HCSA) +
+  tm_fill("p_sim") + 
+  tm_borders(alpha = 0.5)
+```
+### Visuaising Local HCSA
+
+Next we plot the choropleth maps for local Gi* and its p-value together.
+
+```{r}
+#| fig-height: 7
+tmap_mode("plot")
+map1 <- tm_shape(HCSA) +
+  tm_fill("gi_star",
+    fill.legend = tm_legend(
+    position = c("left", "bottom"))) + 
+  tm_borders(alpha = 0.5) +
+  tm_view(set.zoom.limits = c(6,8)) +
+  tm_layout(main.title = "Gi* of GDPPC",
+            main.title.size = 0.8) 
+  
+map2 <- tm_shape(HCSA) +
+  tm_fill("p_value",
+    breaks = c(0, 0.001, 0.01, 0.05, 1),
+    labels = c("0.001", "0.01", "0.05", "Not sig"),
+    fill.legend = tm_legend(
+    position = c("left", "bottom"))) + 
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "p-value of Gi*",
+            main.title.size = 0.8)
+
+tmap_arrange(map1, map2, ncol = 2)
+```
+### Visualising hot spot and cold spot areas
+
+The code chunk below colour codes the hot and cold areas based on the significant (i.e. p-values less than 0.05).
+
+```{r}
+HCSA_sig <- HCSA  %>%
+  filter(p_sim < 0.05)
+tmap_mode("plot")
+tm_shape(HCSA) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(HCSA_sig) +
+  tm_fill("cluster") + 
+  tm_borders(alpha = 0.4)
+```
+::: callout-note
+The figure above show a few hot spot and cold spot areas. Notably, the hotspot aligns with the High–High cluster previously identified using the Local Moran’s I method.
+:::
+
 
 ## In-class Ex Part-2: Emerging Hot Spot Analysis (EHSA)
 
@@ -359,7 +455,7 @@ The GDPPC data set must follow certain orders to avoid the errors (time (integer
 
 ## Step 1: Creating a Time Series Cube
 
-The code chunk below us [`spacetime()`](https://sfdep.josiahparry.com/reference/spacetime.html) of **sfdep** to create an [**spatio-temporal cube**](https://sfdep.josiahparry.com/articles/spacetime-s3.html) and verifies the class using `is_spacetime_cube()`.
+The code chunk below uses [`spacetime()`](https://sfdep.josiahparry.com/reference/spacetime.html) of **sfdep** to create an [**spatio-temporal cube**](https://sfdep.josiahparry.com/articles/spacetime-s3.html) and verifies the class using `is_spacetime_cube()`.
 
 ```{r}
 GDPPC_st <- spacetime(GDPPC, hunan, .loc_col = "County", .time_col ="Year")  # data, geometry, loc, time
