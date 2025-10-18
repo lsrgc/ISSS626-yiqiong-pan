@@ -827,7 +827,7 @@ tmap_mode("plot")
 The code chunk below creates an interactive choropelth map for distribution of local R2 value in East Region. The east region includes plan areas like Bedok ,Paya Lebar, Tampine and Pasir Ris.
 
 ```{r}
-tmap_mode("view")
+tmap_mode("plot")
 tm_shape(mpsz[mpsz$REGION_N=="EAST REGION", ])+
   tm_polygons()+
 tm_shape(condo_resale.sf.adaptive) + 
