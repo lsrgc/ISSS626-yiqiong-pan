@@ -824,7 +824,7 @@ tmap_mode("plot")
 
 ### Visualsing R2 in East Region
 
-The code chunk below creates an interactive choropelth map for distribution of local R2 value in East Region. The east region includes plan areas like Bedok,Paya Lebar, Tampine and Pasir Ris.
+The code chunk below creates an interactive choropelth map for distribution of local R2 value in East Region. The east region includes plan areas like Bedok ,Paya Lebar, Tampine and Pasir Ris.
 
 ```{r}
 tmap_mode("view")
@@ -840,7 +840,7 @@ tm_shape(condo_resale.sf.adaptive) +
 
 The local R2 means the model explains e.g. 90% of variance in condo selling prices, when R2 value is 0.9.
 
-The values of local R2 of East Region vary from 80% to over 95%. The west side of East Region demonstrates lower R2 around 90%, compared to 95% east side of the East Region. 
+The values of local R2 of East Region vary from 80% to over 95%. The west side of East Region demonstrates lower R2 around 90%, compared to 95% east side of the East Region. Bedok has a mix of 80% and 90%.
 
 Overall the Adaptive geographically weighted model (AIC bandwidth method) performs quite well. 
 
