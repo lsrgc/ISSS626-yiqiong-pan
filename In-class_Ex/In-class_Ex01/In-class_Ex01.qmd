@@ -267,7 +267,7 @@ With 95% confidence, the Spearman correlation is 0.86 with a p-value close to 0,
 
 ### Importing Data
 
-The lastest dataset of **Singapore Residents by Planning Area / Subzone, Age Group, Sex and Type of Dwelling Jun 2025** can be download from [Singstat](https://www.singstat.gov.sg/) homepage.
+The lastest dataset of **Singapore Residents by Planning Area / Subzone, Age Group, Sex and Type of Dwelling Jun 2025** can be downloaded from [Singstat](https://www.singstat.gov.sg/) homepage.
 
 The code chunk below imports the population data into R.
 
@@ -294,7 +294,7 @@ colnames(popdata2025)
 
 The code chunk derives a tibble data.frame with the following fields PA, SZ, YOUNG, ECONOMY ACTIVE, AGED, TOTAL, DEPENDENCY where by:
 
--   YOUNG: age group 0 to 4 until age groyup 20 to 24,
+-   YOUNG: age group 0 to 4 until age group 20 to 24,
 
 -   ECONOMY ACTIVE: age group 25-29 until age group 60-64,
 

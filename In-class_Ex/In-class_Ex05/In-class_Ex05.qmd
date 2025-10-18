@@ -309,18 +309,16 @@ wm_idw <- hunan_GDPPC %>%
          .before = 1)
 ```
 
-
 ::: callout-note
-- Gi* and local Gi* are distance-based spatial statistics, so distance-based methods (rather than contiguity) should be used to create the spatial weights matrix.
+-   Gi\* and local Gi\* are distance-based spatial statistics, so distance-based methods (rather than contiguity) should be used to create the spatial weights matrix.
 
-- Because Gi* measures each feature’s value relative to its neighbours, include_self() is applied to ensure each feature is included in its own neighbourhood during the calculation.
+-   Because Gi\* measures each feature’s value relative to its neighbours, include_self() is applied to ensure each feature is included in its own neighbourhood during the calculation.
 :::
 
 ### Computing local Gi\* statistics
 
 The local Gi\* is calculated by using `local_gstar_perm()` of **sfdep** package.
 
-::: {style="font-size: 1.5em"}
 ```{r}
 HCSA <- wm_idw %>% 
   mutate(local_Gi = local_gstar_perm(
@@ -334,8 +332,6 @@ HCSA
 glimpse(HCSA)
 ```
 
-
-
 ### Visualising Gi\*
 
 We use tmap functions to plot the local Gi\* (i.e. gi_star) for Hunan.
@@ -347,6 +343,7 @@ tm_shape(HCSA) +
   tm_borders(alpha = 0.5) +
   tm_view(set.zoom.limits = c(6,8))
 ```
+
 ### Visualising p-value of HCSA
 
 Similarly, we use tmap functions to plot p-value of HCSA for Hunan.
@@ -357,9 +354,10 @@ tm_shape(HCSA) +
   tm_fill("p_sim") + 
   tm_borders(alpha = 0.5)
 ```
+
 ### Visuaising Local HCSA
 
-Next we plot the choropleth maps for local Gi* and its p-value together.
+Next we plot the choropleth maps for local Gi\* and its p-value together.
 
 ```{r}
 #| fig-height: 7
@@ -385,6 +383,7 @@ map2 <- tm_shape(HCSA) +
 
 tmap_arrange(map1, map2, ncol = 2)
 ```
+
 ### Visualising hot spot and cold spot areas
 
 The code chunk below colour codes the hot and cold areas based on the significant (i.e. p-values less than 0.05).
@@ -400,10 +399,10 @@ tm_shape(HCSA_sig) +
   tm_fill("cluster") + 
   tm_borders(alpha = 0.4)
 ```
+
 ::: callout-note
 The figure above show a few hot spot and cold spot areas. Notably, the hotspot aligns with the High–High cluster previously identified using the Local Moran’s I method.
 :::
-
 
 ## In-class Ex Part-2: Emerging Hot Spot Analysis (EHSA)
 
@@ -891,3 +890,4 @@ Cold Spot families (mirror 8 types):
 Dr.Kam Tin Seong, 21/09/2025, In-class Exercise 6: Emerging Hot Spot Analysis
 
 <https://isss626-ay2025-26aug.netlify.app/in-class_ex/in-class_ex06/in-class_ex06-ehsa>
+::::::::::

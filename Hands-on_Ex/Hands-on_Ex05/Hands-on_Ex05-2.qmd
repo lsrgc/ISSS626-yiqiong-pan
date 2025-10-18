@@ -63,7 +63,7 @@ The main development objective for urban planners is to achieve **equal developm
 The following two data sets are used here:
 
 | Data Name | Format | Descrption |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | Hunan | shapefile | Geospatial data for county boundary layer |
 | Hunan_2012 | csv | Aspatial data for Hunan’s local development indicators in 2012 |
 
@@ -74,7 +74,7 @@ The following two data sets are used here:
 A total of **five** R packages will be used in this exercise.
 
 | Package | Description |
-|----|----|
+|------------------------------------|------------------------------------|
 | [sf](https://r-spatial.github.io/sf/) | Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data. |
 | [spdep](https://cran.r-project.org/web/packages/spdep/index.html) | Tools for computing spatial weights and calculating spatially lagged variables. |
 | [tmap](https://r-tmap.github.io/tmap/) | Creates cartographic quality static or interactive choropleth maps. |

@@ -54,7 +54,7 @@ There are **10** packages used in this exercise.
 -   Multivariate exploration & Visualisation (corrplot)
 
 | Package | Description |
-|-------------------------|-----------------------------------------------|
+|------------------------------------|------------------------------------|
 | [olsrr](https://olsrr.rsquaredacademy.com/) | Builds OLS and performs diagnostics tests |
 | [GWmodel](https://cran.r-project.org/web/packages/GWmodel/index.html) | Calibrates geographical weighted family of models |
 | [corrplot](https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html) | Performs multivariate data visualisation and analysis |
@@ -231,7 +231,7 @@ ggarrange(plotlist = plot_list, ncol = 3, nrow = 4)
 The code chunk below displays the geospatial distribution of condominium resale prices in Singapore in an interactive point symbol map.
 
 ```{r}
-tmap_mode("view")
+tmap_mode("plot")
 ```
 
 ```{r}
@@ -481,7 +481,7 @@ The olsrr package provides following tools for building OLS regression models us
 -   Residual Diagnostics
 -   Variable Contribution Assessment
 
-:::panel-tabset
+:::: panel-tabset
 #### Multicollinearity Test
 
 **Multicollinearity** occurs when independent variables are highly correlated. High multicollinearity inflates the variance of coefficient estimates, leading to unstable and unreliable results, and may cause truly important predictors to appear statistically insignificant.
@@ -594,7 +594,7 @@ condo_resale.sf <- cbind(condo_resale.sf, mlr.output) %>%
 Next, we plot the distribution of residuals using functions from tmap package on an interactive map.
 
 ```{r}
-tmap_mode("view")
+tmap_mode("plot")
 ```
 
 ```{r}
@@ -799,7 +799,7 @@ summary(gwr.adaptive$SDF$yhat)
 The code chunks below is used to create an interactive point symbol map.
 
 ```{r}
-tmap_mode("view")
+tmap_mode("plot")
 tm_shape(mpsz_svy21)+
   tm_polygons(fill_alpha = 0.1) +
 tm_shape(condo_resale.sf.adaptive) +  
@@ -816,7 +816,7 @@ tmap_mode("plot")
 The code chunks below is used to create an interactive point symbol map for **AREA_SQM**.
 
 ```{r}
-tmap_mode("view")
+tmap_mode("plot")
 AREA_SQM_SE <- tm_shape(mpsz_svy21)+
   tm_polygons(alpha = 0.1) +
 tm_shape(condo_resale.sf.adaptive) +  
