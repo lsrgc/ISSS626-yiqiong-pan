@@ -824,7 +824,7 @@ tmap_mode("plot")
 
 ### Visualsing R2 in East Region
 
-The code chunk below creates an interactive choropelth map for distribution of local R2 value in East Region. The east region includes plan areas like Bedok ,Paya Lebar, Tampine and Pasir Ris.
+The code chunk below creates an interactive choropelth map for distribution of local R2 value in East Region. The east region includes plan areas like Bedok ,Paya Lebar, Tampine and Pasir Ris. Note there are no condos in Changi.
 
 ```{r}
 tmap_mode("plot")
