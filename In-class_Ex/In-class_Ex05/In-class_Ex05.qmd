@@ -638,10 +638,16 @@ emerging_hotspot_analysis(
 -   nb_col = NULL,
 -   wt_col = NULL,
 -   nsim = 199, #default
--   threshold = 0.01, #The significance threshold to use. ... )
+-   threshold = 0.01, #The significance threshold to use
 
-Gi_Bin = case_when( - gi_star \>= 2.58 \~ 3L, #99% - gi_star \>= 1.96 \~ 2L, #95% - gi_star \>= 1.65 \~ 1L, #90% - gi_star \<= -2.58 \~ -3L,\
-- gi_star \<= -1.96 \~ -2L, - gi_star \<= -1.65 \~ -1L, - TRUE \~ 0L #not sig
+Gi_Bin = case_when( 
+- gi_star \>= 2.58 \~ 3L, #99% 
+- gi_star \>= 1.96 \~ 2L, #95% 
+- gi_star \>= 1.65 \~ 1L, #90% 
+- gi_star \<= -2.58 \~ -3L,\
+- gi_star \<= -1.96 \~ -2L, 
+- gi_star \<= -1.65 \~ -1L, 
+- TRUE \~ 0L #not sig
 :::
 
 ### EHSA
@@ -889,5 +895,4 @@ Cold Spot families (mirror 8 types):
 
 Dr.Kam Tin Seong, 21/09/2025, In-class Exercise 6: Emerging Hot Spot Analysis
 
-<https://isss626-ay2025-26aug.netlify.app/in-class_ex/in-class_ex06/in-class_ex06-ehsa>
-::::::::::
+<https://isss626-ay2025-26aug.netlify.app/in-class_ex/in-class_ex06/in-class_ex06-ehsa> ::::::::::
