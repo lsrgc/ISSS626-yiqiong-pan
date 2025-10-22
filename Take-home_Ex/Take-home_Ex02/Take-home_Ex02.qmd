@@ -1443,7 +1443,7 @@ There are three levels of Global Moran’s I available:
 
 In this study, we use the `global_moran_perm()` for a more robust inference with 100 simulation.
 
-::: panel-tabset
+:::{.panel-tabset}
 #### Weekday Morning Peak
 
 [`global_moran_perm()`](https://sfdep.josiahparry.com/reference/global_moran_perm.html) is used to perform 100 Monte Carlo simulations.
@@ -1578,7 +1578,7 @@ Similar to Global Moran’s I, there are three levels of Global Geary’s C test
 
 In this section, `global_c_perm()`is used to conduct permutation test for Geary’s C with 100 simulation.
 
-::: panel-tabset
+:::{.panel-tabset}
 #### Weekday Morning Peak
 
 [`global_c_perm()`](https://sfdep.josiahparry.com/reference/global_c_perm) from **sfdep** package is used to conduct permutation test for Geary’s C with 100 simulation.
@@ -1696,7 +1696,7 @@ The summary table shows the global Geary’s C statistics are all less than 1 an
 
 Here we explore patterns of spatial autocorrelation in data or model residuals using spatial correlograms. We can see correlation changes as distance increases(lag).
 
-::: panel-tabset
+:::{.panel-tabset}
 #### Weekday Morning Peak
 
 ##### Computing and Plotting Moran’s I correlogram
@@ -2031,7 +2031,7 @@ tm_shape(lisa_wkd) +
 
 ### Visualising Local Moran’s I
 
-::: panel-tablet
+::: {.panel-tabset}
 
 #### Weekday Morning Peak
 
@@ -2704,7 +2704,7 @@ tm_shape(hcsa_wkd) +
 
 ### Visualising Local Gi*
 
-::: panel-tablet
+::: {.panel-tabset}
 #### Weekday Morning Peak
 
 ```{r, fig.width=14, fig.height=8}
@@ -3098,7 +3098,7 @@ The code chunk below creates useful Gi maps for debugging.
 
 The distribution of trip origination appears similar to the previous Local Gi* results under the HCSA, even though the time period has been extended for the space–time cube. Therefore, it is appropriate to proceed with the Mann–Kendall trend test.
 
-:::{panel-tabset}
+:::{.panel-tabset}
 
 #### Weekday Morning Peak
 
