@@ -1,2 +1,1570 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"></html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.23">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<meta name="author" content="Yiqiong PAN">
+<meta name="dcterms.date" content="2025-10-22">
+<title>08:Geographically Weighted Predictive Models – ISSS626-yiqiong-pan</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-1fe81d0376b2c50856e68e651e390326.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-6f6599830d51be977da3b6af758f8eff.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-1fe81d0376b2c50856e68e651e390326.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-ffa9a6279353761231ec249df0a7fdd3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-24772959a0e306aba8d7698078628ce7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-ffa9a6279353761231ec249df0a7fdd3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script><link rel="stylesheet" href="../../styles.css">
+</head>
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const queryPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const darkModeDefault = queryPrefersDark.matches;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    queryPrefersDark.addEventListener("change", e => {
+      if(window.localStorage.getItem("quarto-color-scheme") !== null)
+        return;
+      const alternate = e.matches
+      toggleColorMode(alternate);
+      localAlternateSentinel = e.matches ? 'alternate' : 'default'; // this is used alongside local storage!
+      toggleGiscusIfUsed(alternate, darkModeDefault);
+    });
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">ISSS626-yiqiong-pan</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+<li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-hands-on-exercise" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Hands-on Exercise</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-hands-on-exercise">
+<li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex01_1/Hands-on_Ex01_1.html">
+ <span class="dropdown-text">01-1 Geospatial Data Science with R</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex01_2/Hands-on_Ex01_2.html">
+ <span class="dropdown-text">01-2 Thematic Mapping and GeoVisualisation with R</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02_1.html">
+ <span class="dropdown-text">02-1: First-order Spatial Point Patterns Analysis Methods</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02_2.html">
+ <span class="dropdown-text">02-2: 2nd Order Spatial Point Patterns Analysis Methods</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex03/Hands-on_Ex03.html">
+ <span class="dropdown-text">03: Spatio-Temporal Point Patterns Analysis</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html">
+ <span class="dropdown-text">04: Spatial Weights and Applications</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex05/Hands-on_Ex05-1.html">
+ <span class="dropdown-text">05-1: Global Measures of Spatial Autocorrelation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex05/Hands-on_Ex05-2.html">
+ <span class="dropdown-text">05-2: Local Measures of Spatial Autocorrelation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex06/Hands-on_Ex06.html">
+ <span class="dropdown-text">06: Geographical Segmentation with Spatially Constrained Clustering Techniques</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex07/Hands-on_Ex07.html">
+ <span class="dropdown-text">07: Calibrating Hedonic Pricing Model for Private Highrise Property with GWR Method</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex08/Hands-on_Ex08.html">
+ <span class="dropdown-text">08:Geographically Weighted Predictive Models</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html">
+ <span class="dropdown-text">09:</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex10/Hands-on_Ex10-1.html">
+ <span class="dropdown-text">10-1:</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex10/Hands-on_Ex10-2.html">
+ <span class="dropdown-text">10-2:</span></a>
+  </li>  
+    </ul>
+</li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-in-class-exercise" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">In-class Exercise</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-in-class-exercise">
+<li>
+    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex01/In-class_Ex01.html">
+ <span class="dropdown-text">In-class Exercise 01: Geospatial Data Science with R</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex02/In-class_Ex02.html">
+ <span class="dropdown-text">In-class Exercise 02: Spatial Point Patterns Analysis: spatstat methods</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex03/In-class_Ex03a.html">
+ <span class="dropdown-text">In-class Exercise 03a</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex03/In-class_Ex03b.html">
+ <span class="dropdown-text">In-class Exercise 03b</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex04/In-class_Ex04.html">
+ <span class="dropdown-text">In-class Exercise 04</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex05/In-class_Ex05.html">
+ <span class="dropdown-text">In-class Exercise 05: GMSA, LMSA &amp; EHSA</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex06/In-class_Ex06.html">
+ <span class="dropdown-text">In-class Exercise 06</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex07/In-class_Ex07.html">
+ <span class="dropdown-text">In-class Exercise 07: Calibrating Hedonic Pricing Model for Private Highrise Property with GWR Method</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex08/In-class_Ex08.html">
+ <span class="dropdown-text">In-class Exercise 08</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex09/In-class_Ex09.html">
+ <span class="dropdown-text">In-class Exercise 09</span></a>
+  </li>  
+    </ul>
+</li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-take-home-exercise" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Take-home Exercise</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-take-home-exercise">
+<li>
+    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html">
+ <span class="dropdown-text">01: Geospatial Analytics for Public Good: Agglomeration in Play</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex02/Take-home_Ex02.html">
+ <span class="dropdown-text">02: Geospatial Analytics for Public Good: Urban mobility</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html">
+ <span class="dropdown-text">03:</span></a>
+  </li>  
+    </ul>
+</li>
+</ul>
+<ul class="navbar-nav navbar-nav-scroll ms-auto">
+<li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/lsrgc"> <i class="bi bi-github" role="img" aria-label="Github">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://isss626-ay2025-26aug.netlify.app/"> <i class="bi bi-eyeglasses" role="img" aria-label="Course Textbook">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+</div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
+   
+  <ul>
+<li>
+<a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview"><span class="header-section-number">1</span> Overview</a>
+  <ul class="collapse">
+<li><a href="#learning-outcomes" id="toc-learning-outcomes" class="nav-link" data-scroll-target="#learning-outcomes"><span class="header-section-number">1.1</span> Learning Outcomes</a></li>
+  </ul>
+</li>
+  <li><a href="#the-data" id="toc-the-data" class="nav-link" data-scroll-target="#the-data"><span class="header-section-number">2</span> The Data</a></li>
+  <li><a href="#installing-and-loading-r-packages" id="toc-installing-and-loading-r-packages" class="nav-link" data-scroll-target="#installing-and-loading-r-packages"><span class="header-section-number">3</span> Installing and Loading R packages</a></li>
+  <li>
+<a href="#preparing-data" id="toc-preparing-data" class="nav-link" data-scroll-target="#preparing-data"><span class="header-section-number">4</span> Preparing Data</a>
+  <ul class="collapse">
+<li><a href="#reading-data-file-to-rds" id="toc-reading-data-file-to-rds" class="nav-link" data-scroll-target="#reading-data-file-to-rds"><span class="header-section-number">4.1</span> Reading data file to rds</a></li>
+  <li><a href="#data-sampling" id="toc-data-sampling" class="nav-link" data-scroll-target="#data-sampling"><span class="header-section-number">4.2</span> Data Sampling</a></li>
+  <li><a href="#computing-correlation-matrix" id="toc-computing-correlation-matrix" class="nav-link" data-scroll-target="#computing-correlation-matrix"><span class="header-section-number">4.3</span> Computing Correlation Matrix</a></li>
+  </ul>
+</li>
+  <li><a href="#retriving-the-stored-data" id="toc-retriving-the-stored-data" class="nav-link" data-scroll-target="#retriving-the-stored-data"><span class="header-section-number">5</span> Retriving the Stored Data</a></li>
+  <li><a href="#building-a-non-spatial-multiple-linear-regression" id="toc-building-a-non-spatial-multiple-linear-regression" class="nav-link" data-scroll-target="#building-a-non-spatial-multiple-linear-regression"><span class="header-section-number">6</span> Building a Non-spatial Multiple Linear Regression</a></li>
+  <li>
+<a href="#gwr-predictive-method" id="toc-gwr-predictive-method" class="nav-link" data-scroll-target="#gwr-predictive-method"><span class="header-section-number">7</span> gwr Predictive Method</a>
+  <ul class="collapse">
+<li><a href="#computing-adaptive-bandwidth" id="toc-computing-adaptive-bandwidth" class="nav-link" data-scroll-target="#computing-adaptive-bandwidth"><span class="header-section-number">7.1</span> Computing Adaptive Bandwidth</a></li>
+  <li><a href="#constructing-the-adaptive-bandwidth-gwr-model" id="toc-constructing-the-adaptive-bandwidth-gwr-model" class="nav-link" data-scroll-target="#constructing-the-adaptive-bandwidth-gwr-model"><span class="header-section-number">7.2</span> Constructing the Adaptive Bandwidth GWR Model</a></li>
+  <li><a href="#retrieve-gwr-output-object" id="toc-retrieve-gwr-output-object" class="nav-link" data-scroll-target="#retrieve-gwr-output-object"><span class="header-section-number">7.3</span> Retrieve gwr Output Object</a></li>
+  <li><a href="#computing-adaptive-bandwidth-for-the-test-data" id="toc-computing-adaptive-bandwidth-for-the-test-data" class="nav-link" data-scroll-target="#computing-adaptive-bandwidth-for-the-test-data"><span class="header-section-number">7.4</span> Computing Adaptive Bandwidth for the Test Data</a></li>
+  <li><a href="#computing-predicted-values-of-the-test-data" id="toc-computing-predicted-values-of-the-test-data" class="nav-link" data-scroll-target="#computing-predicted-values-of-the-test-data"><span class="header-section-number">7.5</span> Computing Predicted Values of the Test Data</a></li>
+  </ul>
+</li>
+  <li>
+<a href="#calibrating-random-forest-model" id="toc-calibrating-random-forest-model" class="nav-link" data-scroll-target="#calibrating-random-forest-model"><span class="header-section-number">8</span> Calibrating Random Forest Model</a>
+  <ul class="collapse">
+<li><a href="#preparing-coordinates-data" id="toc-preparing-coordinates-data" class="nav-link" data-scroll-target="#preparing-coordinates-data"><span class="header-section-number">8.1</span> Preparing Coordinates Data</a></li>
+  <li><a href="#dropping-geometry-field" id="toc-dropping-geometry-field" class="nav-link" data-scroll-target="#dropping-geometry-field"><span class="header-section-number">8.2</span> Dropping Geometry Field</a></li>
+  <li><a href="#calibrating-a-non-spatial-random-forest-model" id="toc-calibrating-a-non-spatial-random-forest-model" class="nav-link" data-scroll-target="#calibrating-a-non-spatial-random-forest-model"><span class="header-section-number">8.3</span> Calibrating a Non-spatial Random Forest Model</a></li>
+  </ul>
+</li>
+  <li>
+<a href="#calibrating-geographical-weighted-random-forest-model" id="toc-calibrating-geographical-weighted-random-forest-model" class="nav-link" data-scroll-target="#calibrating-geographical-weighted-random-forest-model"><span class="header-section-number">9</span> Calibrating Geographical Weighted Random Forest Model</a>
+  <ul class="collapse">
+<li><a href="#calibrating-using-training-data" id="toc-calibrating-using-training-data" class="nav-link" data-scroll-target="#calibrating-using-training-data"><span class="header-section-number">9.1</span> Calibrating Using Training Data</a></li>
+  <li><a href="#predicting-by-using-test-data" id="toc-predicting-by-using-test-data" class="nav-link" data-scroll-target="#predicting-by-using-test-data"><span class="header-section-number">9.2</span> Predicting by Using Test Data</a></li>
+  </ul>
+</li>
+  <li><a href="#reference" id="toc-reference" class="nav-link" data-scroll-target="#reference"><span class="header-section-number">10</span> Reference</a></li>
+  </ul></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
+<h1 class="title">08:Geographically Weighted Predictive Models</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Yiqiong PAN </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 22, 2025</p>
+    </div>
+  </div>
+  
+    <div>
+    <div class="quarto-title-meta-heading">Modified</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date-modified">October 23, 2025</p>
+    </div>
+  </div>
+    
+  </div>
+  
+
+
+</header><section id="overview" class="level2" data-number="1"><h2 data-number="1" class="anchored" data-anchor-id="overview">
+<span class="header-section-number">1</span> Overview</h2>
+<p>Predictive modelling uses statistical or machine learning techniques to forecast future events based on known data (predictors and outcomes). In <strong>geospatial predictive modelling</strong>, the goal is to understand and predict <strong>how</strong> events occur by incorporating their spatial patterns into the modelling process.</p>
+<p>Events should be <strong>not randomly or uniformly distributed</strong> across space. They are influenced by geospatial factors such as infrastructure, social conditions, and topography (natural landscapes).</p>
+<p>By correlating historical event locations with environmental variables, geospatial predictive models capture these spatial constraints and influences.</p>
+<section id="learning-outcomes" class="level3" data-number="1.1"><h3 data-number="1.1" class="anchored" data-anchor-id="learning-outcomes">
+<span class="header-section-number">1.1</span> Learning Outcomes</h3>
+<p>By completing this hands-on exercise, we learn to:</p>
+<ol type="1">
+<li>Prepare training and test datasets using appropriate sampling techniques.</li>
+<li>Calibrate predictive models using both geospatial statistical learning and machine learning methods.</li>
+<li>Compare and select the best-performing model.</li>
+<li>Predict future outcomes using the optimised model.</li>
+</ol></section></section><section id="the-data" class="level2" data-number="2"><h2 data-number="2" class="anchored" data-anchor-id="the-data">
+<span class="header-section-number">2</span> The Data</h2>
+<p>The study integrates both <strong>aspatial</strong> and <strong>geospatial</strong> datasets to model HDB resale prices in Singapore.</p>
+<table class="caption-top table">
+<thead><tr class="header">
+<th>Dataset</th>
+<th>Description</th>
+<th>Format</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Aspatial dataset</td>
+<td>HDB Resale data: a list of HDB resale transacted prices in Singapore from Jan 2017 onwards, downloaded from <a href="Data.gov.sg">Data.gov.sg.</a>
+</td>
+<td>CSV</td>
+</tr>
+<tr class="even">
+<td>Geospatial&nbsp;dataset</td>
+<td>
+<em>P14_SUBZONE_WEB_PL</em>: a polygon feature data providing information of URA 2014 Master Plan Planning Subzone boundary data, also downloaded from <a href="Data.gov.sg">Data.gov.sg.</a>
+</td>
+<td>ESRI shapefile</td>
+</tr>
+<tr class="odd">
+<td>Locational factors with geographic coordinates</td>
+<td>Eldercare centres, Hawker centres ,Parks ,Supermarkets ,CHAS clinics ,Childcare services ,Kindergartens downloaded from <a href="Data.gov.sg">Data.gov.sg</a> MRT/LRT stations ,Bus stops downloaded from <a href="Datamall.lta.gov.sg">Datamall.lta.gov.sg</a>,</td>
+<td>GeoJSON or Shapefile</td>
+</tr>
+<tr class="even">
+<td>Locational factors without geographic coordinates</td>
+<td>Primary schools, extracted from Data.gov.sg’s school information dataset. CBD coordinates, retrieved from Google. Shopping malls , scraped from <a href="https://en.wikipedia.org/wiki/List_of_shopping_malls_in_Singapore">Wikipedia</a>. Good primary schools , ranked list of popular schools from<a href="https://www.salary.sg/2021/best-primary-schools-2021-by-popularity/">Local Salary Forum.</a>
+</td>
+<td>CSV</td>
+</tr>
+</tbody>
+</table>
+<p>{tbl-colwidths=“[30,60,10]”}</p>
+</section><section id="installing-and-loading-r-packages" class="level2" data-number="3"><h2 data-number="3" class="anchored" data-anchor-id="installing-and-loading-r-packages">
+<span class="header-section-number">3</span> Installing and Loading R packages</h2>
+<p>There are 8 packages used in this exercise.</p>
+<table class="caption-top table">
+<thead><tr class="header">
+<th></th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><a href="https://cran.r-project.org/web/packages/GWmodel/index.html">GWmodel</a></td>
+<td>Calibrates geographical weighted family of models</td>
+</tr>
+<tr class="even">
+<td><a href="https://rsample.tidymodels.org/">rsample</a></td>
+<td>Provides functions to create different types of resamples and corresponding classes for their analysis.</td>
+</tr>
+<tr class="odd">
+<td><a href="https://r-spatial.github.io/sf/">sf</a></td>
+<td>Handles importing, managing, and processing vector-based geospatial data</td>
+</tr>
+<tr class="even">
+<td><a href="https://www.tidyverse.org/">tidyverse</a></td>
+<td>A collection of R packages for data wrangling and visualisation, including <strong>readr</strong>, <strong>dplyr</strong>, and <strong>ggplot2</strong>.</td>
+</tr>
+<tr class="odd">
+<td><a href="https://r-tmap.github.io/tmap/">tmap</a></td>
+<td>Creates cartographic quality static and interactive thematic (choropleth) maps.</td>
+</tr>
+<tr class="even">
+<td><a href="https://cran.r-project.org/web/packages/SpatialML/index.html">SpatialML</a></td>
+<td>Allows for a geographically weighted random forest regression including a function to find the optical bandwidth.&nbsp;</td>
+</tr>
+<tr class="odd">
+<td><a href="https://cran.r-project.org/web/packages/Metrics/index.html">Metrics</a></td>
+<td>Implements metrics for regression, time series, binary classification, classification, and information retrieval problems.</td>
+</tr>
+<tr class="even">
+<td><a href="https://cran.r-project.org/web/packages/spdep/index.html">spdep</a></td>
+<td>Provides tools for spatial dependence: building neighbour lists, spatial weights, and spatial autocorrelation analysis.</td>
+</tr>
+</tbody>
+</table>
+<p>{tbl-colwidths=“[15,85]”}</p>
+<p>We load the following packages into R environment.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">pacman</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pacman/man/p_load.html">p_load</a></span><span class="op">(</span><span class="va">sf</span>, <span class="va">spdep</span>, <span class="va">GWmodel</span>, <span class="va">SpatialML</span>, </span>
+<span>               <span class="va">tmap</span>, <span class="va">rsample</span>, <span class="va">Metrics</span>, <span class="va">tidyverse</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section><section id="preparing-data" class="level2" data-number="4"><h2 data-number="4" class="anchored" data-anchor-id="preparing-data">
+<span class="header-section-number">4</span> Preparing Data</h2>
+<section id="reading-data-file-to-rds" class="level3" data-number="4.1"><h3 data-number="4.1" class="anchored" data-anchor-id="reading-data-file-to-rds">
+<span class="header-section-number">4.1</span> Reading data file to rds</h3>
+<p>We first read the input data sets that is saved in <code>simple feature</code> data frame.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">mdata</span> <span class="op">&lt;-</span> <span class="fu">read_rds</span><span class="op">(</span><span class="st">"data/rawdata/mdata.rds"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">mdata</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "resale_price"             "floor_area_sqm"          
+ [3] "storey_order"             "remaining_lease_mths"    
+ [5] "PROX_CBD"                 "PROX_ELDERLYCARE"        
+ [7] "PROX_HAWKER"              "PROX_MRT"                
+ [9] "PROX_PARK"                "PROX_GOOD_PRISCH"        
+[11] "PROX_MALL"                "PROX_CHAS"               
+[13] "PROX_SUPERMARKET"         "WITHIN_350M_KINDERGARTEN"
+[15] "WITHIN_350M_CHILDCARE"    "WITHIN_350M_BUS"         
+[17] "WITHIN_1KM_PRISCH"        "geometry"                </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">glimpse</span><span class="op">(</span><span class="va">mdata</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 15,901
+Columns: 18
+$ resale_price             &lt;dbl&gt; 330000, 360000, 370000, 375000, 380000, 38000…
+$ floor_area_sqm           &lt;dbl&gt; 92, 91, 92, 99, 92, 92, 92, 92, 93, 91, 91, 9…
+$ storey_order             &lt;int&gt; 1, 3, 1, 2, 2, 4, 3, 2, 4, 3, 3, 3, 4, 3, 2, …
+$ remaining_lease_mths     &lt;dbl&gt; 684, 738, 733, 700, 715, 732, 706, 745, 731, …
+$ PROX_CBD                 &lt;dbl&gt; 8.824749, 9.841309, 9.560780, 9.609731, 8.351…
+$ PROX_ELDERLYCARE         &lt;dbl&gt; 0.2514065, 0.6318448, 1.0824168, 0.3473195, 0…
+$ PROX_HAWKER              &lt;dbl&gt; 0.44182653, 0.26972560, 0.25829513, 0.4364751…
+$ PROX_MRT                 &lt;dbl&gt; 0.6885144, 1.0969096, 0.8862859, 1.4093169, 0…
+$ PROX_PARK                &lt;dbl&gt; 0.7450859, 0.4294870, 0.7800777, 0.1776163, 0…
+$ PROX_GOOD_PRISCH         &lt;dbl&gt; 1.2703931, 0.4045792, 2.0942375, 0.1375070, 1…
+$ PROX_MALL                &lt;dbl&gt; 0.5534331, 1.0677012, 0.9751113, 1.1752392, 1…
+$ PROX_CHAS                &lt;dbl&gt; 1.364596e-01, 2.569863e-01, 1.906189e-01, 2.9…
+$ PROX_SUPERMARKET         &lt;dbl&gt; 0.2708222, 0.3101889, 0.3187560, 0.4586748, 0…
+$ WITHIN_350M_KINDERGARTEN &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, …
+$ WITHIN_350M_CHILDCARE    &lt;int&gt; 6, 5, 2, 3, 3, 2, 3, 4, 3, 2, 4, 4, 4, 5, 2, …
+$ WITHIN_350M_BUS          &lt;int&gt; 8, 8, 8, 7, 6, 9, 6, 6, 5, 4, 10, 5, 6, 9, 8,…
+$ WITHIN_1KM_PRISCH        &lt;int&gt; 2, 2, 1, 2, 2, 1, 3, 2, 2, 2, 2, 2, 3, 2, 2, …
+$ geometry                 &lt;POINT [m]&gt; POINT (29179.92 38822.08), POINT (28423…</code></pre>
+</div>
+</div>
+</section><section id="data-sampling" class="level3" data-number="4.2"><h3 data-number="4.2" class="anchored" data-anchor-id="data-sampling">
+<span class="header-section-number">4.2</span> Data Sampling</h3>
+<p>We split the entire data into 65% training and 35% test by using <code>initial_split()</code> of <strong>rsample</strong> package, which belongs to <strong>tigymodels</strong> ecosystem. Then we extract the training set and test set from a data split object created by functions <code>initial_split()</code>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
+<span><span class="va">resale_split</span> <span class="op">&lt;-</span> <span class="fu">initial_split</span><span class="op">(</span><span class="va">mdata</span>, prop <span class="op">=</span> <span class="fl">6.5</span><span class="op">/</span><span class="fl">10</span>,<span class="op">)</span></span>
+<span><span class="va">train_data</span> <span class="op">&lt;-</span> <span class="fu">training</span><span class="op">(</span><span class="va">resale_split</span><span class="op">)</span></span>
+<span><span class="va">test_data</span> <span class="op">&lt;-</span> <span class="fu">testing</span><span class="op">(</span><span class="va">resale_split</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>We save both files on the disk.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">write_rds</span><span class="op">(</span><span class="va">train_data</span>, <span class="st">"data/model/train_data.rds"</span><span class="op">)</span></span>
+<span><span class="fu">write_rds</span><span class="op">(</span><span class="va">test_data</span>, <span class="st">"data/model/test_data.rds"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section><section id="computing-correlation-matrix" class="level3" data-number="4.3"><h3 data-number="4.3" class="anchored" data-anchor-id="computing-correlation-matrix">
+<span class="header-section-number">4.3</span> Computing Correlation Matrix</h3>
+<p>Before loading predictor into a predictive model, let’s plot the correlation matrix to check if there is any sign of multicolinearity.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">mdata_nogeo</span> <span class="op">&lt;-</span> <span class="fu">st_drop_geometry</span><span class="op">(</span><span class="va">mdata</span><span class="op">)</span></span>
+<span><span class="fu">corrplot</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/corrplot/man/corrplot.html">corrplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span><span class="op">(</span><span class="va">mdata_nogeo</span><span class="op">[</span>, <span class="fl">2</span><span class="op">:</span><span class="fl">17</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>                   diag <span class="op">=</span> <span class="cn">FALSE</span>, <span class="co"># hide diagonal or TRUE</span></span>
+<span>                   order <span class="op">=</span> <span class="st">"AOE"</span>,<span class="co"># angular order of the eigenvectors" /original/AOE/FPC/hclust/alphabet</span></span>
+<span>                   tl.pos <span class="op">=</span> <span class="st">"td"</span>, <span class="co"># text label position: top and diagonal/lt/n null</span></span>
+<span>                   tl.cex <span class="op">=</span> <span class="fl">0.5</span>,  <span class="co"># text label size: shrinks 50%</span></span>
+<span>                   method <span class="op">=</span> <span class="st">"number"</span>,  <span class="co"># display number/circle/color/shade/pie</span></span>
+<span>                   type <span class="op">=</span> <span class="st">"upper"</span><span class="op">)</span> <span class="co">#show only the upper triangle/full/lower</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="Hands-on_Ex08_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="1344"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>There is no sign of multicolinearity since all correlation values are below <strong>0.8</strong>.</p>
+</section></section><section id="retriving-the-stored-data" class="level2" data-number="5"><h2 data-number="5" class="anchored" data-anchor-id="retriving-the-stored-data">
+<span class="header-section-number">5</span> Retriving the Stored Data</h2>
+<p>We load the saved data into R.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">train_data</span> <span class="op">&lt;-</span> <span class="fu">read_rds</span><span class="op">(</span><span class="st">"data/model/train_data.rds"</span><span class="op">)</span></span>
+<span><span class="va">test_data</span> <span class="op">&lt;-</span> <span class="fu">read_rds</span><span class="op">(</span><span class="st">"data/model/test_data.rds"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section><section id="building-a-non-spatial-multiple-linear-regression" class="level2" data-number="6"><h2 data-number="6" class="anchored" data-anchor-id="building-a-non-spatial-multiple-linear-regression">
+<span class="header-section-number">6</span> Building a Non-spatial Multiple Linear Regression</h2>
+<p>A multiple regression model is built as a base line model.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">price_mlr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">resale_price</span> <span class="op">~</span> <span class="va">floor_area_sqm</span> <span class="op">+</span>                   <span class="co"># target ~ independent variables</span></span>
+<span>                  <span class="va">storey_order</span> <span class="op">+</span> <span class="va">remaining_lease_mths</span> <span class="op">+</span></span>
+<span>                  <span class="va">PROX_CBD</span> <span class="op">+</span> <span class="va">PROX_ELDERLYCARE</span> <span class="op">+</span> <span class="va">PROX_HAWKER</span> <span class="op">+</span></span>
+<span>                  <span class="va">PROX_MRT</span> <span class="op">+</span> <span class="va">PROX_PARK</span> <span class="op">+</span> <span class="va">PROX_MALL</span> <span class="op">+</span> </span>
+<span>                  <span class="va">PROX_SUPERMARKET</span> <span class="op">+</span> <span class="va">WITHIN_350M_KINDERGARTEN</span> <span class="op">+</span></span>
+<span>                  <span class="va">WITHIN_350M_CHILDCARE</span> <span class="op">+</span> <span class="va">WITHIN_350M_BUS</span> <span class="op">+</span></span>
+<span>                  <span class="va">WITHIN_1KM_PRISCH</span>,</span>
+<span>                data<span class="op">=</span><span class="va">train_data</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">price_mlr</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The regression summary report indicates that the model slightly underestimates HDB resale prices, as shown by the residual median of –1,930. However, the R2 value of 0.7373 suggests that the model explains approximately 74% of the variation in HDB resale prices since 2017, which exhibits good predictive performance overall.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">write_rds</span><span class="op">(</span><span class="va">price_mlr</span>, <span class="st">"data/model/price_mlr.rds"</span> <span class="op">)</span> </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section><section id="gwr-predictive-method" class="level2" data-number="7"><h2 data-number="7" class="anchored" data-anchor-id="gwr-predictive-method">
+<span class="header-section-number">7</span> gwr Predictive Method</h2>
+<p>Next we build and calibrate geographically weighted regression model to preidict HDB resales prices using methods from <a href="https://cran.r-project.org/web/packages/GWmodel/index.html">GWmodel</a> package.</p>
+<p>Somehow error occurred in the later step <code>Computing Predicted Values of the Test Data</code> suggests that we need to convert the data to spatial objects first. Convert the training and test data into <code>SpatialPointDateFrame</code> for use in GWR:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">train_data_sp</span> <span class="op">&lt;-</span> <span class="fu">as</span><span class="op">(</span><span class="va">train_data</span>, <span class="st">"Spatial"</span><span class="op">)</span></span>
+<span><span class="va">test_data_sp</span> <span class="op">&lt;-</span> <span class="fu">as</span><span class="op">(</span><span class="va">test_data</span>, <span class="st">"Spatial"</span><span class="op">)</span></span>
+<span><span class="va">train_data_sp</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>class       : SpatialPointsDataFrame 
+features    : 10335 
+extent      : 11597.31, 42623.63, 28217.39, 48741.06  (xmin, xmax, ymin, ymax)
+crs         : +proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs 
+variables   : 17
+names       : resale_price, floor_area_sqm, storey_order, remaining_lease_mths,          PROX_CBD,     PROX_ELDERLYCARE,        PROX_HAWKER,           PROX_MRT,          PROX_PARK,   PROX_GOOD_PRISCH,        PROX_MALL,            PROX_CHAS,     PROX_SUPERMARKET, WITHIN_350M_KINDERGARTEN, WITHIN_350M_CHILDCARE, ... 
+min values  :       218000,             74,            1,                  555, 0.999393538715878, 1.98943787433087e-08, 0.0333358643817954, 0.0220407324774434, 0.0441643212802781, 0.0652540365486641,                0, 6.20621206270077e-09, 1.21715176356525e-07,                        0,                     0, ... 
+max values  :      1186888,            133,           17,                 1164,  19.6500691667807,     3.30163731686804,   2.86763031236184,   2.13060636038504,   2.41313695915468,   10.6223726149914, 2.27100643784442,    0.808332738794272,     1.57131703651196,                        7,                    20, ... </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">test_data_sp</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>class       : SpatialPointsDataFrame 
+features    : 5566 
+extent      : 11597.31, 42623.63, 28287.8, 48669.59  (xmin, xmax, ymin, ymax)
+crs         : +proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs 
+variables   : 17
+names       : resale_price, floor_area_sqm, storey_order, remaining_lease_mths,         PROX_CBD,     PROX_ELDERLYCARE,        PROX_HAWKER,           PROX_MRT,          PROX_PARK,   PROX_GOOD_PRISCH,        PROX_MALL,            PROX_CHAS,     PROX_SUPERMARKET, WITHIN_350M_KINDERGARTEN, WITHIN_350M_CHILDCARE, ... 
+min values  :       230888,             74,            1,                  546, 1.00583660772922, 3.34897933104965e-07, 0.0474019664161957, 0.0414043955932523, 0.0502664084494264, 0.0907500295577619,                0, 4.55547870890763e-09, 1.21715176356525e-07,                        0,                     0, ... 
+max values  :      1050000,            138,           14,                 1151,  19.632402730488,     3.30163731686804,   2.83106651960209,   2.13060636038504,   2.41313695915468,   10.6169590126272, 2.26056404492346,     0.79249074802552,     1.53786629004208,                        7,                    16, ... </code></pre>
+</div>
+</div>
+<section id="computing-adaptive-bandwidth" class="level3" data-number="7.1"><h3 data-number="7.1" class="anchored" data-anchor-id="computing-adaptive-bandwidth">
+<span class="header-section-number">7.1</span> Computing Adaptive Bandwidth</h3>
+<p>We use the <code>bw.gwr()</code> function from the <strong>GWmodel</strong> package to determine the optimal bandwidth. The “CV” (Cross Validation) method is chosen for calibration because, between the two available options “CV” and “AIC”, the CV method generally produces a smaller bandwidth, allowing the model to capture more local variation in the data.</p>
+<p>The code chunk below computes and saves the optimal bandwidth. The search can be time consuming and computationally intensive.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">bw_adaptive</span> <span class="op">&lt;-</span> <span class="fu">bw.gwr</span><span class="op">(</span></span>
+<span>  formula <span class="op">=</span> <span class="va">resale_price</span> <span class="op">~</span> <span class="va">floor_area_sqm</span> <span class="op">+</span></span>
+<span>    <span class="va">storey_order</span> <span class="op">+</span> <span class="va">remaining_lease_mths</span> <span class="op">+</span></span>
+<span>    <span class="va">PROX_CBD</span> <span class="op">+</span> <span class="va">PROX_ELDERLYCARE</span> <span class="op">+</span> <span class="va">PROX_HAWKER</span> <span class="op">+</span></span>
+<span>    <span class="va">PROX_MRT</span> <span class="op">+</span> <span class="va">PROX_PARK</span> <span class="op">+</span> <span class="va">PROX_MALL</span> <span class="op">+</span> </span>
+<span>    <span class="va">PROX_SUPERMARKET</span> <span class="op">+</span> <span class="va">WITHIN_350M_KINDERGARTEN</span> <span class="op">+</span></span>
+<span>    <span class="va">WITHIN_350M_CHILDCARE</span> <span class="op">+</span> <span class="va">WITHIN_350M_BUS</span> <span class="op">+</span></span>
+<span>    <span class="va">WITHIN_1KM_PRISCH</span>,</span>
+<span>  data<span class="op">=</span><span class="va">train_data_sp</span>,</span>
+<span>  approach<span class="op">=</span><span class="st">"CV"</span>,</span>
+<span>  kernel<span class="op">=</span><span class="st">"gaussian"</span>,</span>
+<span>  adaptive<span class="op">=</span><span class="cn">TRUE</span>,</span>
+<span>  longlat<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">write_rds</span><span class="op">(</span><span class="va">bw_adaptive</span>, <span class="st">"data/model/bw_adaptive.rds"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>After a few couple of teas, we’ve found optimal bandwidth is 40 neighour points.</p>
+</section><section id="constructing-the-adaptive-bandwidth-gwr-model" class="level3" data-number="7.2"><h3 data-number="7.2" class="anchored" data-anchor-id="constructing-the-adaptive-bandwidth-gwr-model">
+<span class="header-section-number">7.2</span> Constructing the Adaptive Bandwidth GWR Model</h3>
+<p>We first re-load the data into R.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">bw_adaptive</span> <span class="op">&lt;-</span> <span class="fu">read_rds</span><span class="op">(</span><span class="st">"data/model/bw_adaptive.rds"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">bw_adaptive</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 40</code></pre>
+</div>
+</div>
+<p>Then we build the GWR-based hedonic pricing model using adaptive bandwidth and Gaussian kernel. Same reason as the previous step, we save a copy of the <code>gwrm</code> file.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">gwr_adaptive</span> <span class="op">&lt;-</span> <span class="fu">gwr.basic</span><span class="op">(</span></span>
+<span>  formula <span class="op">=</span> <span class="va">resale_price</span> <span class="op">~</span> <span class="va">floor_area_sqm</span> <span class="op">+</span></span>
+<span>    <span class="va">storey_order</span> <span class="op">+</span> <span class="va">remaining_lease_mths</span> <span class="op">+</span> </span>
+<span>    <span class="va">PROX_CBD</span> <span class="op">+</span> <span class="va">PROX_ELDERLYCARE</span> <span class="op">+</span> </span>
+<span>    <span class="va">PROX_HAWKER</span> <span class="op">+</span> <span class="va">PROX_MRT</span> <span class="op">+</span> <span class="va">PROX_PARK</span> <span class="op">+</span> </span>
+<span>    <span class="va">PROX_MALL</span> <span class="op">+</span> <span class="va">PROX_SUPERMARKET</span> <span class="op">+</span></span>
+<span>    <span class="va">WITHIN_350M_KINDERGARTEN</span> <span class="op">+</span></span>
+<span>    <span class="va">WITHIN_350M_CHILDCARE</span> <span class="op">+</span> </span>
+<span>    <span class="va">WITHIN_350M_BUS</span> <span class="op">+</span> <span class="va">WITHIN_1KM_PRISCH</span>,</span>
+<span>  data<span class="op">=</span><span class="va">train_data_sp</span>,</span>
+<span>  bw<span class="op">=</span><span class="va">bw_adaptive</span>, </span>
+<span>  kernel <span class="op">=</span> <span class="st">'gaussian'</span>, </span>
+<span>  adaptive<span class="op">=</span><span class="cn">TRUE</span>,</span>
+<span>  longlat <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu">write_rds</span><span class="op">(</span><span class="va">gwr_adaptive</span>, </span>
+<span>          <span class="st">"data/model/gwr_adaptive.rds"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section><section id="retrieve-gwr-output-object" class="level3" data-number="7.3"><h3 data-number="7.3" class="anchored" data-anchor-id="retrieve-gwr-output-object">
+<span class="header-section-number">7.3</span> Retrieve gwr Output Object</h3>
+<p>We re-load the saved <code>gwrm</code> object and retrieve the report of model output.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">gwr_adaptive</span> <span class="op">&lt;-</span> <span class="fu">read_rds</span><span class="op">(</span><span class="st">"data/model/gwr_adaptive.rds"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">gwr_adaptive</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   ***********************************************************************
+   *                       Package   GWmodel                             *
+   ***********************************************************************
+   Program starts at: 2025-10-22 22:00:33.551728 
+   Call:
+   gwr.basic(formula = resale_price ~ floor_area_sqm + storey_order + 
+    remaining_lease_mths + PROX_CBD + PROX_ELDERLYCARE + PROX_HAWKER + 
+    PROX_MRT + PROX_PARK + PROX_MALL + PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN + 
+    WITHIN_350M_CHILDCARE + WITHIN_350M_BUS + WITHIN_1KM_PRISCH, 
+    data = train_data.sp, bw = bw_adaptive, kernel = "gaussian", 
+    adaptive = TRUE, longlat = FALSE)
+
+   Dependent (y) variable:  resale_price
+   Independent variables:  floor_area_sqm storey_order remaining_lease_mths PROX_CBD PROX_ELDERLYCARE PROX_HAWKER PROX_MRT PROX_PARK PROX_MALL PROX_SUPERMARKET WITHIN_350M_KINDERGARTEN WITHIN_350M_CHILDCARE WITHIN_350M_BUS WITHIN_1KM_PRISCH
+   Number of data points: 10335
+   ***********************************************************************
+   *                    Results of Global Regression                     *
+   ***********************************************************************
+
+   Call:
+    lm(formula = formula, data = data)
+
+   Residuals:
+    Min      1Q  Median      3Q     Max 
+-205193  -39120   -1930   36545  472355 
+
+   Coefficients:
+                              Estimate Std. Error t value Pr(&gt;|t|)    
+   (Intercept)              107601.073  10601.261  10.150  &lt; 2e-16 ***
+   floor_area_sqm             2780.698     90.579  30.699  &lt; 2e-16 ***
+   storey_order              14299.298    339.115  42.167  &lt; 2e-16 ***
+   remaining_lease_mths        344.490      4.592  75.027  &lt; 2e-16 ***
+   PROX_CBD                 -16930.196    201.254 -84.124  &lt; 2e-16 ***
+   PROX_ELDERLYCARE         -14441.025    994.867 -14.516  &lt; 2e-16 ***
+   PROX_HAWKER              -19265.648   1273.597 -15.127  &lt; 2e-16 ***
+   PROX_MRT                 -32564.272   1744.232 -18.670  &lt; 2e-16 ***
+   PROX_PARK                 -5712.625   1483.885  -3.850 0.000119 ***
+   PROX_MALL                -14717.388   2007.818  -7.330 2.47e-13 ***
+   PROX_SUPERMARKET         -26881.938   4189.624  -6.416 1.46e-10 ***
+   WITHIN_350M_KINDERGARTEN   8520.472    632.812  13.464  &lt; 2e-16 ***
+   WITHIN_350M_CHILDCARE     -4510.650    354.015 -12.741  &lt; 2e-16 ***
+   WITHIN_350M_BUS             813.493    222.574   3.655 0.000259 ***
+   WITHIN_1KM_PRISCH         -8010.834    491.512 -16.298  &lt; 2e-16 ***
+
+   ---Significance stars
+   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
+   Residual standard error: 61650 on 10320 degrees of freedom
+   Multiple R-squared: 0.7373
+   Adjusted R-squared: 0.737 
+   F-statistic:  2069 on 14 and 10320 DF,  p-value: &lt; 2.2e-16 
+   ***Extra Diagnostic information
+   Residual sum of squares: 3.922202e+13
+   Sigma(hat): 61610.08
+   AIC:  257320.2
+   AICc:  257320.3
+   BIC:  247249
+   ***********************************************************************
+   *          Results of Geographically Weighted Regression              *
+   ***********************************************************************
+
+   *********************Model calibration information*********************
+   Kernel function: gaussian 
+   Adaptive bandwidth: 40 (number of nearest neighbours)
+   Regression points: the same locations as observations are used.
+   Distance metric: Euclidean distance metric is used.
+
+   ****************Summary of GWR coefficient estimates:******************
+                                   Min.     1st Qu.      Median     3rd Qu.
+   Intercept                -3.2111e+08 -4.7727e+05 -8.3004e+03  5.5025e+05
+   floor_area_sqm           -2.8714e+04  1.4475e+03  2.3011e+03  3.3900e+03
+   storey_order              3.3186e+03  8.5899e+03  1.0826e+04  1.3397e+04
+   remaining_lease_mths     -1.4431e+03  2.6063e+02  3.9048e+02  5.2865e+02
+   PROX_CBD                 -1.0837e+07 -5.7697e+04 -1.3787e+04  2.6552e+04
+   PROX_ELDERLYCARE         -3.1896e+07 -4.0643e+04  1.0562e+04  6.1054e+04
+   PROX_HAWKER              -2.3985e+08 -5.1365e+04  3.0026e+03  6.4287e+04
+   PROX_MRT                 -1.1544e+07 -1.0488e+05 -4.9373e+04  5.1037e+03
+   PROX_PARK                -6.5961e+06 -4.8671e+04 -8.8128e+02  5.3498e+04
+   PROX_MALL                -1.8113e+07 -7.4238e+04 -1.3982e+04  4.9779e+04
+   PROX_SUPERMARKET         -4.5761e+06 -6.3461e+04 -1.7429e+04  3.5616e+04
+   WITHIN_350M_KINDERGARTEN -4.1638e+05 -6.0040e+03  9.0209e+01  4.7127e+03
+   WITHIN_350M_CHILDCARE    -1.0273e+05 -2.2375e+03  2.6668e+02  2.6388e+03
+   WITHIN_350M_BUS          -1.1757e+05 -1.4719e+03  1.1626e+02  1.7584e+03
+   WITHIN_1KM_PRISCH        -6.6465e+05 -5.5959e+03  2.6916e+02  5.7500e+03
+                                  Max.
+   Intercept                1.6493e+08
+   floor_area_sqm           5.0908e+04
+   storey_order             2.9537e+04
+   remaining_lease_mths     1.8119e+03
+   PROX_CBD                 2.2166e+07
+   PROX_ELDERLYCARE         8.2445e+07
+   PROX_HAWKER              5.9654e+06
+   PROX_MRT                 2.0189e+08
+   PROX_PARK                1.5072e+07
+   PROX_MALL                1.0443e+07
+   PROX_SUPERMARKET         3.8330e+06
+   WITHIN_350M_KINDERGARTEN 6.6799e+05
+   WITHIN_350M_CHILDCARE    1.0802e+05
+   WITHIN_350M_BUS          3.7313e+04
+   WITHIN_1KM_PRISCH        5.0133e+05
+   ************************Diagnostic information*************************
+   Number of data points: 10335 
+   Effective number of parameters (2trace(S) - trace(S'S)): 1730.101 
+   Effective degrees of freedom (n-2trace(S) + trace(S'S)): 8604.899 
+   AICc (GWR book, Fotheringham, et al. 2002, p. 61, eq 2.33): 238871.8 
+   AIC (GWR book, Fotheringham, et al. 2002,GWR p. 96, eq. 4.22): 237036.9 
+   BIC (GWR book, Fotheringham, et al. 2002,GWR p. 61, eq. 2.34): 238209 
+   Residual sum of squares: 4.829176e+12 
+   R-square value:  0.9676571 
+   Adjusted R-square value:  0.9611535 
+
+   ***********************************************************************
+   Program stops at: 2025-10-22 22:01:48.29539 </code></pre>
+</div>
+</div>
+<p>The report reads that R2 value has increased from 0.7373 to 0.9677 indicating model’s fit has substantially proved and information loss has decresed as AICc down from 257320.3 to 238871.8.</p>
+</section><section id="computing-adaptive-bandwidth-for-the-test-data" class="level3" data-number="7.4"><h3 data-number="7.4" class="anchored" data-anchor-id="computing-adaptive-bandwidth-for-the-test-data">
+<span class="header-section-number">7.4</span> Computing Adaptive Bandwidth for the Test Data</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">gwr_bw_test_adaptive</span> <span class="op">&lt;-</span> <span class="fu">bw.gwr</span><span class="op">(</span></span>
+<span>  formula <span class="op">=</span> <span class="va">resale_price</span> <span class="op">~</span> <span class="va">floor_area_sqm</span> <span class="op">+</span></span>
+<span>    <span class="va">storey_order</span> <span class="op">+</span> <span class="va">remaining_lease_mths</span> <span class="op">+</span></span>
+<span>    <span class="va">PROX_CBD</span> <span class="op">+</span> <span class="va">PROX_ELDERLYCARE</span> <span class="op">+</span> <span class="va">PROX_HAWKER</span> <span class="op">+</span></span>
+<span>    <span class="va">PROX_MRT</span> <span class="op">+</span> <span class="va">PROX_PARK</span> <span class="op">+</span> <span class="va">PROX_MALL</span> <span class="op">+</span> </span>
+<span>    <span class="va">PROX_SUPERMARKET</span> <span class="op">+</span> <span class="va">WITHIN_350M_KINDERGARTEN</span> <span class="op">+</span></span>
+<span>    <span class="va">WITHIN_350M_CHILDCARE</span> <span class="op">+</span> <span class="va">WITHIN_350M_BUS</span> <span class="op">+</span></span>
+<span>    <span class="va">WITHIN_1KM_PRISCH</span>,</span>
+<span>  data<span class="op">=</span><span class="va">test_data_sp</span>,</span>
+<span>  approach<span class="op">=</span><span class="st">"CV"</span>, <span class="co">#   note we use approach="CV" compared with bw=bw_adaptive in training</span></span>
+<span>  kernel<span class="op">=</span><span class="st">"gaussian"</span>,</span>
+<span>  adaptive<span class="op">=</span><span class="cn">TRUE</span>,</span>
+<span>  longlat<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">write_rds</span><span class="op">(</span><span class="va">gwr_bw_test_adaptive</span>, </span>
+<span>          <span class="st">"data/model/gwr_bw_test_adaptive.rds"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>After a bit of scrolling, cross-validation determines the optimal adaptive bandwidth is <strong>25</strong> for the test set.</p>
+</section><section id="computing-predicted-values-of-the-test-data" class="level3" data-number="7.5"><h3 data-number="7.5" class="anchored" data-anchor-id="computing-predicted-values-of-the-test-data">
+<span class="header-section-number">7.5</span> Computing Predicted Values of the Test Data</h3>
+<p>We still encountered an error <code>inv(): matrix is singular</code> when computing the predictions.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">gwr_pred</span> <span class="op">&lt;-</span> <span class="fu">gwr.predict</span><span class="op">(</span></span>
+<span>  formula <span class="op">=</span> <span class="va">resale_price</span> <span class="op">~</span></span>
+<span>        <span class="va">floor_area_sqm</span> <span class="op">+</span> <span class="va">storey_order</span> <span class="op">+</span></span>
+<span>        <span class="va">remaining_lease_mths</span> <span class="op">+</span> <span class="va">PROX_CBD</span> <span class="op">+</span> </span>
+<span>        <span class="va">PROX_ELDERLYCARE</span> <span class="op">+</span> <span class="va">PROX_HAWKER</span> <span class="op">+</span> </span>
+<span>        <span class="va">PROX_MRT</span> <span class="op">+</span> <span class="va">PROX_PARK</span> <span class="op">+</span> <span class="va">PROX_MALL</span> <span class="op">+</span> </span>
+<span>        <span class="va">PROX_SUPERMARKET</span> <span class="op">+</span> <span class="va">WITHIN_350M_KINDERGARTEN</span> <span class="op">+</span></span>
+<span>        <span class="va">WITHIN_350M_CHILDCARE</span> <span class="op">+</span> <span class="va">WITHIN_350M_BUS</span> <span class="op">+</span> </span>
+<span>        <span class="va">WITHIN_1KM_PRISCH</span>, </span>
+<span>        data<span class="op">=</span><span class="va">train_data_sp</span>, </span>
+<span>        predictdata <span class="op">=</span> <span class="va">test_data_sp</span>, </span>
+<span>        bw<span class="op">=</span><span class="fl">25</span>, </span>
+<span>        kernel <span class="op">=</span> <span class="st">'gaussian'</span>, </span>
+<span>        adaptive<span class="op">=</span><span class="cn">TRUE</span>, </span>
+<span>        longlat <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu">write_rds</span><span class="op">(</span><span class="va">gwr_pred</span>, </span>
+<span>          <span class="st">"data/model/gwr_pred.rds"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section></section><section id="calibrating-random-forest-model" class="level2" data-number="8"><h2 data-number="8" class="anchored" data-anchor-id="calibrating-random-forest-model">
+<span class="header-section-number">8</span> Calibrating Random Forest Model</h2>
+<p>Next we calibrate the model by using random forest function from <a href="https://cran.r-project.org/web/packages/ranger/index.html">ranger</a> package.</p>
+<section id="preparing-coordinates-data" class="level3" data-number="8.1"><h3 data-number="8.1" class="anchored" data-anchor-id="preparing-coordinates-data">
+<span class="header-section-number">8.1</span> Preparing Coordinates Data</h3>
+<p>First we calculate x,y coordinates matrix for whole dataset, and training and test sets, and save them on the disk.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">train_data</span> <span class="op">&lt;-</span> <span class="fu">read_rds</span><span class="op">(</span><span class="st">"data/model/train_data.rds"</span><span class="op">)</span></span>
+<span><span class="va">test_data</span> <span class="op">&lt;-</span> <span class="fu">read_rds</span><span class="op">(</span><span class="st">"data/model/test_data.rds"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coords</span> <span class="op">&lt;-</span> <span class="fu">st_coordinates</span><span class="op">(</span><span class="va">mdata</span><span class="op">)</span></span>
+<span><span class="va">coords_train</span> <span class="op">&lt;-</span> <span class="fu">st_coordinates</span><span class="op">(</span><span class="va">train_data</span><span class="op">)</span></span>
+<span><span class="va">coords_test</span> <span class="op">&lt;-</span> <span class="fu">st_coordinates</span><span class="op">(</span><span class="va">test_data</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coords_train</span> <span class="op">&lt;-</span> <span class="fu">write_rds</span><span class="op">(</span><span class="va">coords_train</span>, <span class="st">"data/geospatial/coords_train.rds"</span> <span class="op">)</span></span>
+<span><span class="va">coords_test</span> <span class="op">&lt;-</span> <span class="fu">write_rds</span><span class="op">(</span><span class="va">coords_test</span>, <span class="st">"data/geospatial/coords_test.rds"</span> <span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section><section id="dropping-geometry-field" class="level3" data-number="8.2"><h3 data-number="8.2" class="anchored" data-anchor-id="dropping-geometry-field">
+<span class="header-section-number">8.2</span> Dropping Geometry Field</h3>
+<p>The geometry column should be removed since it is not required for the upcoming analysis. The code chunk below uses <code>st_drop_geometry()</code> function from the <strong>sf</strong> package to drop the <code>geometry</code>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">train_data_nogeom</span> <span class="op">&lt;-</span> <span class="va">train_data</span> <span class="op">%&gt;%</span> <span class="fu">st_drop_geometry</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">test_data_nogeom</span> <span class="op">&lt;-</span> <span class="va">test_data</span> <span class="op">%&gt;%</span> <span class="fu">st_drop_geometry</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section><section id="calibrating-a-non-spatial-random-forest-model" class="level3" data-number="8.3"><h3 data-number="8.3" class="anchored" data-anchor-id="calibrating-a-non-spatial-random-forest-model">
+<span class="header-section-number">8.3</span> Calibrating a Non-spatial Random Forest Model</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
+<span><span class="va">rf</span> <span class="op">&lt;-</span> <span class="fu">ranger</span><span class="op">(</span></span>
+<span>  formula <span class="op">=</span> <span class="va">resale_price</span> <span class="op">~</span> <span class="va">floor_area_sqm</span> <span class="op">+</span></span>
+<span>    <span class="va">storey_order</span> <span class="op">+</span> <span class="va">remaining_lease_mths</span> <span class="op">+</span> </span>
+<span>    <span class="va">PROX_CBD</span> <span class="op">+</span> <span class="va">PROX_ELDERLYCARE</span> <span class="op">+</span> </span>
+<span>    <span class="va">PROX_HAWKER</span> <span class="op">+</span> <span class="va">PROX_MRT</span> <span class="op">+</span> <span class="va">PROX_PARK</span> <span class="op">+</span> </span>
+<span>    <span class="va">PROX_MALL</span> <span class="op">+</span> <span class="va">PROX_SUPERMARKET</span> <span class="op">+</span></span>
+<span>    <span class="va">WITHIN_350M_KINDERGARTEN</span> <span class="op">+</span> </span>
+<span>    <span class="va">WITHIN_350M_CHILDCARE</span> <span class="op">+</span> </span>
+<span>    <span class="va">WITHIN_350M_BUS</span> <span class="op">+</span>  </span>
+<span>    <span class="va">WITHIN_1KM_PRISCH</span>,</span>
+<span>  data<span class="op">=</span><span class="va">train_data_nogeom</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">rf</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The Ranger result shows our R2 value is 0.9496 that is much higher than non-spatial regression model.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb33"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">write_rds</span><span class="op">(</span><span class="va">rf</span>, <span class="st">"data/model/rf.rds"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section></section><section id="calibrating-geographical-weighted-random-forest-model" class="level2" data-number="9"><h2 data-number="9" class="anchored" data-anchor-id="calibrating-geographical-weighted-random-forest-model">
+<span class="header-section-number">9</span> Calibrating Geographical Weighted Random Forest Model</h2>
+<p>Next we <code>grf()</code> of <a href="https://cran.r-project.org/web/packages/ranger/index.html">SpatialML</a> package to calibrate a geographic random forest model.</p>
+<section id="calibrating-using-training-data" class="level3" data-number="9.1"><h3 data-number="9.1" class="anchored" data-anchor-id="calibrating-using-training-data">
+<span class="header-section-number">9.1</span> Calibrating Using Training Data</h3>
+<p>We apply <code>grf()</code> of <a href="https://cran.r-project.org/web/packages/ranger/index.html">SpatialML</a> package to calibrate model on training data.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb34"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
+<span><span class="va">gwRF_adaptive</span> <span class="op">&lt;-</span> <span class="fu">grf</span><span class="op">(</span></span>
+<span>  formula <span class="op">=</span> <span class="va">resale_price</span> <span class="op">~</span> <span class="va">floor_area_sqm</span> <span class="op">+</span></span>
+<span>    <span class="va">storey_order</span> <span class="op">+</span> <span class="va">remaining_lease_mths</span> <span class="op">+</span> </span>
+<span>    <span class="va">PROX_CBD</span> <span class="op">+</span> <span class="va">PROX_ELDERLYCARE</span> <span class="op">+</span> </span>
+<span>    <span class="va">PROX_HAWKER</span> <span class="op">+</span> <span class="va">PROX_MRT</span> <span class="op">+</span> <span class="va">PROX_PARK</span> <span class="op">+</span> </span>
+<span>    <span class="va">PROX_MALL</span> <span class="op">+</span> <span class="va">PROX_SUPERMARKET</span> <span class="op">+</span></span>
+<span>    <span class="va">WITHIN_350M_KINDERGARTEN</span> <span class="op">+</span></span>
+<span>    <span class="va">WITHIN_350M_CHILDCARE</span> <span class="op">+</span> </span>
+<span>    <span class="va">WITHIN_350M_BUS</span> <span class="op">+</span> <span class="va">WITHIN_1KM_PRISCH</span>,</span>
+<span>  dframe<span class="op">=</span><span class="va">train_data_nogeom</span>, </span>
+<span>  bw<span class="op">=</span><span class="fl">40</span>,</span>
+<span>  kernel<span class="op">=</span><span class="st">"adaptive"</span>,</span>
+<span>  coords<span class="op">=</span><span class="va">coords_train</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>R2 on the training set is 0.9515.</p>
+<p>We again save the new model on training data.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb35"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">write_rds</span><span class="op">(</span><span class="va">gwRF_adaptive</span>, <span class="st">"data/model/gwRF_adaptive.rds"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Then we retrieve the model for next steps.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">gwRF_adaptive</span> <span class="op">&lt;-</span> <span class="fu">read_rds</span><span class="op">(</span><span class="st">"data/model/gwRF_adaptive.rds"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section><section id="predicting-by-using-test-data" class="level3" data-number="9.2"><h3 data-number="9.2" class="anchored" data-anchor-id="predicting-by-using-test-data">
+<span class="header-section-number">9.2</span> Predicting by Using Test Data</h3>
+<section id="preparing-the-test-data" class="level4" data-number="9.2.1"><h4 data-number="9.2.1" class="anchored" data-anchor-id="preparing-the-test-data">
+<span class="header-section-number">9.2.1</span> Preparing the Test Data</h4>
+<p>We use <code><a href="https://rdrr.io/r/base/cbind.html">cbind()</a></code> to combine <code>test_data</code> and <code>coords_test</code> and remove the <code>geometry</code>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">test_data_nogeom</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span><span class="va">test_data</span>, <span class="va">coords_test</span><span class="op">)</span><span class="op">%&gt;%</span></span>
+<span>  <span class="fu">st_drop_geometry</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section><section id="predicting-with-test-data" class="level4" data-number="9.2.2"><h4 data-number="9.2.2" class="anchored" data-anchor-id="predicting-with-test-data">
+<span class="header-section-number">9.2.2</span> Predicting with Test Data</h4>
+<p>We use <code>predict.grf()</code> of <strong>SpatialML</strong> package to predict the resale price using <code>gwPF_adaptive</code> model on the test data.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb38"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">gwRF_pred</span> <span class="op">&lt;-</span> <span class="fu">predict.grf</span><span class="op">(</span><span class="va">gwRF_adaptive</span>, </span>
+<span>                        <span class="va">test_data_nogeom</span>, </span>
+<span>                        x.var.name<span class="op">=</span><span class="st">"X"</span>,</span>
+<span>                        y.var.name<span class="op">=</span><span class="st">"Y"</span>, </span>
+<span>                        local.w<span class="op">=</span><span class="fl">1</span>,</span>
+<span>                        global.w<span class="op">=</span><span class="fl">0</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb39"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">GRF_pred</span> <span class="op">&lt;-</span> <span class="fu">write_rds</span><span class="op">(</span><span class="va">gwRF_pred</span>, <span class="st">"data/model/GRF_pred.rds"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section><section id="converting-the-predicting-output-into-a-data.frame" class="level4" data-number="9.2.3"><h4 data-number="9.2.3" class="anchored" data-anchor-id="converting-the-predicting-output-into-a-data.frame">
+<span class="header-section-number">9.2.3</span> Converting the Predicting Output into a data.frame</h4>
+<p>We reload the saved predicting output (generated from <code>predict.grf()</code> in the previous step) back to R and convert it into a data frame for further study since the original output is in <code>numeric</code> format.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb40"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">GRF_pred</span> <span class="op">&lt;-</span> <span class="fu">read_rds</span><span class="op">(</span><span class="st">"data/model/GRF_pred.rds"</span><span class="op">)</span></span>
+<span><span class="va">GRF_pred_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">GRF_pred</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb41"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">glimpse</span><span class="op">(</span><span class="va">GRF_pred_df</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 5,566
+Columns: 1
+$ GRF_pred &lt;dbl&gt; 384349.1, 352091.0, 413359.4, 375758.8, 419446.1, 379228.8, 3…</code></pre>
+</div>
+</div>
+<p>To compare the actual and predicted, we combine the with <code>GRF_pred_df</code> and select required columns: <code>resale_price</code>in <code>test_data</code> and <code>GRF_pred</code> the column where predicting outputs are in <code>GRF_pred_df</code> into a new data frame called <code>test_data_p</code> and save it on the disk.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb43"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">test_data_p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span><span class="va">test_data</span>, <span class="va">GRF_pred_df</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">select</span><span class="op">(</span><span class="va">resale_price</span>, <span class="va">GRF_pred</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">glimpse</span><span class="op">(</span><span class="va">test_data_p</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 5,566
+Columns: 3
+$ resale_price &lt;dbl&gt; 360000, 370000, 375000, 380000, 385000, 395000, 395000, 4…
+$ GRF_pred     &lt;dbl&gt; 384349.1, 352091.0, 413359.4, 375758.8, 419446.1, 379228.…
+$ geometry     &lt;POINT [m]&gt; POINT (28423.42 39745.94), POINT (30550.38 39588.77…</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb45"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">write_rds</span><span class="op">(</span><span class="va">test_data_p</span>,<span class="st">"data/model/test_data_p.rds"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section><section id="calculating-root-mean-square-error" class="level4" data-number="9.2.4"><h4 data-number="9.2.4" class="anchored" data-anchor-id="calculating-root-mean-square-error">
+<span class="header-section-number">9.2.4</span> Calculating Root Mean Square Error</h4>
+<p>To measure the difference between actual and predicted in the regression model, we use <code>rmse()</code> of <strong>Metrics</strong> package to compute the Root Mean Square Error (RMSE). The RMSE is 28160.87 for this GWR model.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb46"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">rmse</span><span class="op">(</span><span class="va">test_data_p</span><span class="op">$</span><span class="va">resale_price</span>, <span class="va">test_data_p</span><span class="op">$</span><span class="va">GRF_pred</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 28160.87</code></pre>
+</div>
+</div>
+</section><section id="visualising-the-predicted-values" class="level4" data-number="9.2.5"><h4 data-number="9.2.5" class="anchored" data-anchor-id="visualising-the-predicted-values">
+<span class="header-section-number">9.2.5</span> Visualising the Predicted Values</h4>
+<p>Here, we employ a scatterplot to visualise how far the predicted values deviate from the actual ones using the functions <code>geom_point()</code> and <code>ggplot()</code>.</p>
+<p>For the reference line, we use <code>geom_abline()</code> to create a 45-degree line in the positive quadrant by setting the arguments <code>slope = 1</code> and <code>intercept = 0</code>. To customise the line style, we can specify the <code>linetype</code> argument using numeric values or their names: 0: blank 1: solid (default) 2: dashed 3: dotted 4: dotdash 5: longdash 6: twodash</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb48"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">test_data_p</span>, <span class="fu">aes</span><span class="op">(</span>x<span class="op">=</span> <span class="va">GRF_pred</span>, y <span class="op">=</span> <span class="va">resale_price</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_point</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span> <span class="fu">geom_abline</span><span class="op">(</span>slope <span class="op">=</span> <span class="fl">1</span>, intercept <span class="op">=</span> <span class="fl">0</span>, color <span class="op">=</span> <span class="st">"red"</span>, linetype <span class="op">=</span> <span class="fl">1</span>, size <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="Hands-on_Ex08_files/figure-html/unnamed-chunk-37-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The general rule for evaluating model performance is that the closer the scatter points are to the diagonal line, the better the model predicts. In addition, potential outliers can be identified from the scatterplot if required, for example when points deviate significantly from the diagonal line.</p>
+<p>In this case, we observed that most of the predicted and actual values are located close to the reference line in red.</p>
+</section></section></section><section id="reference" class="level2" data-number="10"><h2 data-number="10" class="anchored" data-anchor-id="reference">
+<span class="header-section-number">10</span> Reference</h2>
+<p>Kam, T. S. 14 Geographically Weighted Predictive Models. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap14.html</p>
+
+
+</section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+</body></html>
