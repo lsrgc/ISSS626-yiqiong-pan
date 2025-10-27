@@ -1,0 +1,195 @@
+---
+title: "In-class Exercise 8a: Data Preparation for Take-home_Ex03"
+author: "Yiqiong PAN"
+date: "25 Oct, 2025"
+date-modified: last-modified
+
+execute:
+  echo: true    # display the code
+  eval: true    # run the code
+  message: false
+  warning: false
+  freeze: true  # do not re-render if nothing edited
+
+format: 
+  html:
+    toc: true
+    code-link: true
+
+number-sections: true
+number-depth: 5
+
+editor: visual
+---
+
+## Overview
+
+### Learning Outcomes
+
+## The Data
+
+The study integrates both **aspatial** and **geospatial** datasets to model HDB resale prices in Singapore.
+
+| Dataset | Description | Format |
+|------------------|-------------------------------------|------------------|
+| Aspatial dataset | HDB Resale data: a list of HDB resale transacted prices in Singapore from Jan 2017 onwards, downloaded from [Data.gov.sg.](Data.gov.sg) | CSV |
+| Geospatial dataset | *P14_SUBZONE_WEB_PL*: a polygon feature data providing information of URA 2014 Master Plan Planning Subzone boundary data, also downloaded from [Data.gov.sg.](Data.gov.sg) | ESRI shapefile |
+| Locational factors with geographic coordinates | Eldercare centres, Hawker centres ,Parks ,Supermarkets ,CHAS clinics ,Childcare services ,Kindergartens downloaded from [Data.gov.sg](Data.gov.sg) MRT/LRT stations ,Bus stops downloaded from [Datamall.lta.gov.sg](Datamall.lta.gov.sg), | GeoJSON or Shapefile |
+| Locational factors without geographic coordinates | Primary schools, extracted from Data.gov.sg’s school information dataset. CBD coordinates, retrieved from Google. Shopping malls , scraped from [Wikipedia](https://en.wikipedia.org/wiki/List_of_shopping_malls_in_Singapore). Good primary schools , ranked list of popular schools from[Local Salary Forum.](https://www.salary.sg/2021/best-primary-schools-2021-by-popularity/) | CSV |
+
+{tbl-colwidths="\[30,60,10\]"}
+
+## Installing and Loading R packages
+
+There are 6 packages used in this exercise.
+
+environment.
+
+```{r}
+pacman::p_load(sf,tmap, tidyverse, httr, jsonlite, progress)
+```
+
+## Geocoding HDB resale data
+
+We import the data set for Sep 2025. Later we could try to retrieve the `XCOORD` and `YCOORD` for coordinates in projected CRS (SVY21).
+
+```{r}
+HDBresale <- read_csv(
+  "data/rawdata/HDBresale.csv") %>%
+  filter(flat_type== "4 ROOM") %>%
+  filter(month >= "2025-09" & month < "2025-10")
+```
+
+We replace the `st.` as `saint` in the street name which might cause unnecesary confusion later.
+
+```{r}
+HDBresale$street_name <- gsub(
+  "ST\\.", "SAINT",
+  HDBresale$street_name)
+```
+
+```{r}
+geocode <- function(block, streetname) {
+  base_url <- "https://onemap.gov.sg/api/common/elastic/search"
+  address <- paste(block, streetname, sep= " ")
+  query <-list(
+    "searchVal" = address,
+    "returnGeom" = "Y",
+    "getAddrDetails" = "N",  #Y get full address
+    "pageNum" = "1")
+  res <- GET(base_url, query = query)
+  restext <-content(res, as="text")
+  
+  output <- fromJSON(restext) %>%
+    as.data.frame %>%
+    select(results.LATITUDE, results.LONGITUDE)
+  
+  return(output)
+}
+```
+
+```{r}
+HDBresale$LATITUDE <- 0
+HDBresale$LONGITUDE <- 0
+
+for (i in 1:nrow(HDBresale)) {
+  temp_output <- geocode(HDBresale[i,4], HDBresale[i,5])
+  
+  HDBresale$LATITUDE[i] <- temp_output$results.LATITUDE
+  HDBresale$LONGITUDE[i] <- temp_output$results.LONGITUDE
+}
+```
+
+For sanity check, we should filter out the data and check if there are any missing values or zeroes in the `LATITUDE` and `LONGITUDE`.
+
+```{r}
+HDBresale_sf <- st_as_sf(HDBresale,
+                         coords = c("LONGITUDE", "LATITUDE"),
+                         crs = 4326) %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+preschool = st_read("data/rawdata/PreSchoolsLocation.kml") %>%
+st_transform(crs = 3414)
+```
+
+```{r}
+within_350m <- st_is_within_distance(
+  HDBresale_sf, preschool, dist = 350)
+
+HDBresale_sf <- HDBresale_sf %>%
+  mutate(prischool_350m = map_int(within_350m, length))
+```
+
+## Checklist for evaluating and explaining two different types of spatial regression models: an **Explanatory** model (using Geographically Weighted Regression - GWR) and a **Predictive** model.
+
+**Option 1: Explanatory Analysis (Using Geographically Weighted Regression - GWR)**
+
+The goal here is to understand *how and why* location influences the relationship between your independent variables (like square footage, number of bedrooms) and the dependent variable (property price).
+
+**Step 1: Check Global Model Significance**
+
+First, check the p-value of the global model (the standard least squares regression). This p-value should be small (typically \< 0.05) to confirm that the model as a whole is statistically significant and that your independent variables, together, have a significant relationship with property prices.
+
+**Step 2: Compare Model Fit (R²)**
+
+Examine the **Adjusted R²** values.
+
+The global model's Adjusted R² should be reasonably high (a common rule of thumb is at least 0.6). Your result of **0.7387** is good, meaning the global model explains about 74% of the variation in property prices.
+
+The GWR model's Adjusted R² is **0.9280**. This is a **significant improvement**. It means that by allowing the relationships to vary across space, the model now explains over 92% of the price variation.
+
+**Interpretation:** This massive improvement strongly implies that the factors affecting property prices (the coefficients) are not constant across the study area. Properties near each other are likely to have similar pricing dynamics, which are different from those in areas farther away.
+
+**Step 3: Compare Model Complexity and Efficiency (AICc or BIC)**
+
+Further evidence can be found by comparing the **Akaike Information Criterion (AICc)** or **Bayesian Information Criterion (BIC)** between the models. A lower AICc/BIC for the GWR model indicates a better fit while penalizing for increased model complexity, confirming that the GWR model is a superior representation of the data.
+
+**Step 4: Analyze Local Coefficients**
+
+Now, dig into the GWR results themselves. Check the p-values of the *local coefficients* for each independent variable at different locations. This tells you where a specific variable (e.g., number of bedrooms) is a statistically significant predictor of price.
+
+**We use the whole dataset for this explanatory analysis** to understand the spatial process, not a split one.
+
+**Step 5: Map and Interpret the Results**
+
+The most powerful way to explain GWR results is by **mapping the local coefficients**. You would create a map for each independent variable, showing how its influence on price changes across the geography.
+
+For example, a map of the 'number of bedrooms' coefficient might show it is strongly positive in suburban areas (more bedrooms add value) but weak or even negative in a downtown core (where lot size or other factors matter more).
+
+**Refer to "Week 7: Mapping" materials** for guidance on how to create and interpret these maps. You stop the analysis when you have compared the spatial patterns of the different variables' influences.
+
+------------------------------------------------------------------------
+
+**Option 2: Predictive Analysis**
+
+The goal here is to accurately *predict* property prices for new locations or a hold-out sample, often using a method like Random Forests or the `gwr.predict` function.
+
+**Step 1: Split the Data and Train the Model**
+
+Unlike the explanatory approach, for prediction, you **must split your data** into a **training set** (to build the model) and a **testing set** (to validate its predictive power). A common split is 70%/30% or 80%/20%.
+
+**Step 2: Make Predictions and Evaluate Accuracy**
+
+Use the trained model (e.g., a Random Forest model or `gwr.predict` function) to predict prices for the testing set.
+
+**Change the prediction data** to be your testing set, not the training data.
+
+**Step 3: Assess Predictive Performance**
+
+Evaluate the model's performance using metrics on the *testing set*:
+
+**R²:** The proportion of variance in the test data that is predictable from the model.
+
+**Root Mean Square Error (RMSE):** The average prediction error, in the units of the dependent variable (e.g., dollars). A lower RMSE is better.
+
+Compare these metrics against a global model to see if the spatial model provides more accurate predictions.
+
+**Step 4: Explain the Predictive Model**
+
+**Refer to "Week 8: RF modelling" materials** to learn how to explain the results of a predictive model like Random Forest. This often involves:
+
+**Variable Importance:** Identifying which variables were the most important in making accurate predictions.
+
+**Partial Dependence Plots:** Understanding the marginal effect of a variable on the predicted outcome.

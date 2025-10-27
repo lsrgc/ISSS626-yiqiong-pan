@@ -676,8 +676,7 @@ bw.fixed <- bw.gwr(
   longlat = FALSE)
 ```
 
-AIC Recommended bandwidth is 1,391.309 metres, since we are using projected crs measured in metres.
-CV Recommended bandwidth is 971.340 metres, since we are using projected crs measured in metres.
+AIC Recommended bandwidth is 1,391.309 metres, since we are using projected crs measured in metres. CV Recommended bandwidth is 971.340 metres, since we are using projected crs measured in metres.
 
 ### GWModel method - fixed bandwith
 
@@ -758,11 +757,9 @@ gwr.adaptive <- gwr.basic(
 gwr.adaptive
 ```
 
-The report for AIC method indicates AICc of adaptive bandwidth GWR model  is reduced from 42,254.7 to 41978.63. Also we see improved R-square 0.901 and Adjusted R-square is 0.863. This time Adaptive AIC method outperform the CV method.
+The report for AIC method indicates AICc of adaptive bandwidth GWR model is reduced from 42,254.7 to 41978.63. Also we see improved R-square 0.901 and Adjusted R-square is 0.863. This time Adaptive AIC method outperform the CV method.
 
-The report for CV method indicatesAICc of adaptive bandwidth GWR model  is reduced from 42263.61.to 41982.22. Also we see improved R-square 0.891 and Adjusted R-square is 0.856.
-
-
+The report for CV method indicatesAICc of adaptive bandwidth GWR model is reduced from 42263.61.to 41982.22. Also we see improved R-square 0.891 and Adjusted R-square is 0.856.
 
 ```{r}
 str(gwr.adaptive)
@@ -824,7 +821,7 @@ tmap_mode("plot")
 
 ### Visualsing R2 in East Region
 
-The code chunk below creates an interactive choropelth map for distribution of local R2 value in East Region. The east region includes plan areas like Bedok ,Paya Lebar, Tampine and Pasir Ris. Note there are no condos in Changi.
+The code chunk below creates an interactive choropleth map for the distribution of local R2 values in the East Region. The East Region includes planning areas like Bedok, Paya Lebar, Tampines, and Pasir Ris. Note there are no condos in Changi. The local R2 means the model explains, for example, 90% of the variance in condo selling prices when the R2 value is 0.9.
 
 ```{r}
 tmap_mode("plot")
@@ -838,13 +835,9 @@ tm_shape(condo_resale.sf.adaptive) +
   tm_view(set.zoom.limits = c(11,14))
 ```
 
-The local R2 means the model explains e.g. 90% of variance in condo selling prices, when R2 value is 0.9.
+The local R2 values in the East Region vary from 80% to over 95%. The west side of the East Region demonstrates lower R² values around 90%, compared to about 95% on the east side. Bedok has a mix of 80% and 90%.
 
-The values of local R2 of East Region vary from 80% to over 95%. The west side of East Region demonstrates lower R2 around 90%, compared to 95% east side of the East Region. Bedok has a mix of 80% and 90%.
-
-Overall the Adaptive geographically weighted model (AIC bandwidth method) performs quite well. 
-
-
+Overall, the adaptive geographically weighted model (AIC bandwidth method) performs quite well.
 
 ### Visualising Coefficient Estimates
 
