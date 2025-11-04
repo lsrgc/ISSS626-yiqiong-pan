@@ -1,0 +1,2808 @@
+---
+title: "Take-home Exercise 3: Modelling HDB Resale Prices with Geographically Weighted Methods"
+author: "Yiqiong PAN"
+date: "27 Oct, 2025"
+date-modified: last-modified
+
+execute:
+  echo: true    # display the code
+  eval: true    # run the code
+  message: false
+  warning: false
+  freeze: true  # do not re-render if nothing edited
+
+format: 
+  html:
+    toc: true
+    code-link: true
+
+number-sections: true
+number-depth: 5
+
+editor: visual
+---
+
+## Overview
+
+Buying a house is considered as one of the most significant investments for individuals. People purchase homes for various reasons, such as building wealth, achieving financial stability, and fulfilling the desire for ownership and privacy. Understanding housing prices is essential, as fluctuations in property values can have profound effects on individuals’ financial wellbeing and the broader economy.
+
+A house price can be influenced by multiple factors, including the overall condition, size, age, and location of the property, as well as the general economy state and broader market sentiment. Traditionally, hedonic pricing models for housing have been estimated using the Ordinary Least Squares (OLS) method. However, this approach does not adequately account for spatial autocorrelation and spatial heterogeneity, both of which are commonly found in housing transaction data. Failure to consider these spatial effects can lead to biased, inconsistent, or inefficient OLS estimates (Anselin, 1998). To address these limitations, Geographically Weighted Models (GWMs) have been developed to better capture spatial variations and improve the explanatory accuracy of housing resale price analysis.
+
+## Objective
+
+In Singapore, the Housing and Development Board (HDB) resale market offers a dynamic context for examining the determinants of housing prices. With about 90 percent of households owning their homes and approximately 74 percent residing in HDB flats, public housing plays a central role in national housing trends (Lim, 2025).
+
+In recent years, strong demand for housing upgrades and a limited supply of relatively new flats have fuelled a steady rise in HDB resale prices, particularly for four room and five room units (Sia, 2025). However, recent data shows that price growth has slowed to its weakest pace in five years, rising by only 0.4 percent in Q3 2025, even as resale activity increased by 1.7 percent (Lim, 2025).
+
+Given these evolving market dynamics, this study aims to develop a hedonic pricing model for HDB resale prices in Singapore using Geographically Weighted Models to more effectively capture spatial variations and identify the key factors influencing housing values across the island.
+
+## Independent Variables for the Hedonic Pricing Model
+
+This study focuses on four room HDB flats, as they represent the most frequently transacted flat type in Singapore. Developing a hedonic pricing model requires careful selection of both intrinsic and environmental factors that influence resale prices. By incorporating these factors, the model aims to better capture spatial variations and identify the key determinants of housing values across Singapore.
+
+The independent variables considered in this study include both structural and locational attributes. Additional relevant factors that may enhance the model’s accuracy are also included.
+
+**Structural Factors**
+
+-   Floor area (square metres): total size of the flat.
+
+-   Floor level: the relative storey height of the unit, typically classified as low, middle, or high floor.
+
+-   Remaining lease (months): tenure balance of the flat at the time of transaction.
+
+-   Age of the unit (months): number of months since completion.
+
+-   Main Upgrading Programme (MUP or HIP): whether major upgrading works have been completed.
+
+**Locational Factors**
+
+-   Proximity to the Central Business District (CBD): measured using City Hall MRT Station as the reference point.
+
+-   Proximity to eldercare facilities.
+
+-   Proximity to hawker centres.
+
+-   Proximity to MRT stations.
+
+-   Proximity to parks.
+
+-   Proximity to good primary schools: school quality determined by popularity scores.
+
+-   Proximity to shopping malls.
+
+-   Proximity to supermarkets.
+
+-   Proximity to hospitals (new).
+
+-   Proximity to community clubs (new).
+
+-   Proximity to sports facilities(new)
+
+-   Number of kindergartens within 350 metres.
+
+-   Number of childcare centres within 350 metres.
+
+-   Number of bus stops within 350 metres.
+
+-   Number to CHAS clinics within 350 metres (new).
+
+-   Number of primary schools within 1 kilometre.
+
+
+
+## Getting Started
+
+### The Data
+
+The study integrates both **aspatial** and **geospatial** datasets to model HDB resale prices in Singapore.
+
++---------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
+| Dataset                                           | Description                                                                                                                                                                                                                     | Format & Source           |
++===================================================+=================================================================================================================================================================================================================================+===========================+
+| Aspatial dataset                                  | HDB Resale data: a list of HDB resale transacted prices in Singapore from Jan 2017 onwards, downloaded from [Data.gov.sg.](Data.gov.sg)                                                                                         | CSV                       |
++---------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
+| Geospatial dataset                                | MasterPlan2019SubzoneBoundaryNoSeaKML: a polygon feature data providing information of URA 2019 Master Plan Planning Subzone boundary data, also downloaded from [Data.gov.sg.](Data.gov.sg)                                    | KML                       |
++---------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
+| Structural factor without geographic coordinates  | A list of of completion information for each block was extracted from the [HDB](https://services2.hdb.gov.sg/webapp/BB33RESLSTATUS/BB33SEnquiry) records.                                                                       | CSV                       |
++---------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
+| Locational factors with geographic coordinates    | The following datasets were downloaded from [data.gov.sg](Data.gov.sg)                                                                                                                                                          | GeoJSON, KML or Shapefile |
+|                                                   |                                                                                                                                                                                                                                 |                           |
+|                                                   | -   Eldercare centres                                                                                                                                                                                                           |                           |
+|                                                   |                                                                                                                                                                                                                                 |                           |
+|                                                   | -   Hawker centres                                                                                                                                                                                                              |                           |
+|                                                   |                                                                                                                                                                                                                                 |                           |
+|                                                   | -   Parks                                                                                                                                                                                                                       |                           |
+|                                                   |                                                                                                                                                                                                                                 |                           |
+|                                                   | -   Supermarkets                                                                                                                                                                                                                |                           |
+|                                                   |                                                                                                                                                                                                                                 |                           |
+|                                                   | -   CHAS clinics                                                                                                                                                                                                                |                           |
+|                                                   |                                                                                                                                                                                                                                 |                           |
+|                                                   | -   Childcare services                                                                                                                                                                                                          |                           |
+|                                                   |                                                                                                                                                                                                                                 |                           |
+|                                                   | -   Kindergartens                                                                                                                                                                                                               |                           |
+|                                                   |                                                                                                                                                                                                                                 |                           |
+|                                                   | -   Community clubs                                                                                                                                                                                                             |                           |
+|                                                   |                                                                                                                                                                                                                                 |                           |
+|                                                   | -   MRT and LRT station exits                                                                                                                                                                                                   |                           |
+|                                                   |                                                                                                                                                                                                                                 |                           |
+|                                                   | The following datasets were downloaded from [**datamall.lta.gov.sg**](https://datamall.lta.gov.sg/content/datamall/en/static-data.html):                                                                                        |                           |
+|                                                   |                                                                                                                                                                                                                                 |                           |
+|                                                   | -   Bus stops                                                                                                                                                                                                                   |                           |
++---------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
+| Locational factors without geographic coordinates | -   A list of Primary schools, extracted from the Ministry of Education ([MOE](https://www.moe.gov.sg/schoolfinder?journey=Primary%20school)).                                                                                  | CSV                       |
+|                                                   |                                                                                                                                                                                                                                 |                           |
+|                                                   | -   CBD coordinates: retrieved from Google.                                                                                                                                                                                     |                           |
+|                                                   |                                                                                                                                                                                                                                 |                           |
+|                                                   | -   Shopping malls: scraped from [Wikipedia](https://en.wikipedia.org/wiki/List_of_shopping_malls_in_Singapore).                                                                                                                |                           |
+|                                                   |                                                                                                                                                                                                                                 |                           |
+|                                                   | -   Hospitals: scraped from [Wikipeidia](https://en.wikipedia.org/wiki/List_of_hospitals_in_Singapore).                                                                                                                         |                           |
+|                                                   |                                                                                                                                                                                                                                 |                           |
+|                                                   | -   Good primary schools: ranked list of popular schools from [Local Website](https://www.creativecampus.com.sg/best-primary-schools-in-singapore-2024)[.](https://www.salary.sg/2021/best-primary-schools-2021-by-popularity/) |                           |
+|                                                   |                                                                                                                                                                                                                                 |                           |
+|                                                   | -   Sports facilities: scrapped from the [ActiveSG Circle](#0) website.                                                                                                                                                         |                           |
+|                                                   |                                                                                                                                                                                                                                 |                           |
+|                                                   | -   Demographic distribution by planning zone (June 2024): downloaded from the Department of Statistics ([singstat](#0)).                                                                                                       |                           |
++---------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
+
+### Installing and Loading R packages
+
+#### Package Description
+
+There are **10** packages used in this exercise.
+
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Package                                                                                               | Description                                                                                                                                                                                                                                  |
++=======================================================================================================+==============================================================================================================================================================================================================================================+
+| [olsrr](https://olsrr.rsquaredacademy.com/)                                                           | Builds OLS and performs diagnostics tests                                                                                                                                                                                                    |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [GWmodel](https://cran.r-project.org/web/packages/GWmodel/index.html)                                 | Calibrates geographical weighted family of models                                                                                                                                                                                            |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [corrplot](https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html)            | Performs multivariate data visualisation and analysis                                                                                                                                                                                        |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [sf](https://r-spatial.github.io/sf/)                                                                 | Handles importing, managing, and processing vector-based geospatial data                                                                                                                                                                     |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [tidyverse](https://www.tidyverse.org/)                                                               | A collection of R packages for data wrangling and visualisation, including **readr**, **dplyr**, and **ggplot2**.                                                                                                                            |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [tmap](https://r-tmap.github.io/tmap/)                                                                | Creates cartographic quality static and interactive thematic (choropleth) maps.                                                                                                                                                              |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [ggpubr](https://rpkgs.datanovia.com/ggpubr/)                                                         | Provides some easy-to-use functions for creating and customising ‘ggplot2’- based publication ready plots.                                                                                                                                   |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [gtsummary](https://www.danieldsjoberg.com/gtsummary/)                                                | Provides an elegant and flexible way to create publication-ready analytical and summary tables.                                                                                                                                              |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [performance](https://cran.r-project.org/web/packages/performance/index.html)                         | Provides assessment of regression models performance (e.g. r-squared)                                                                                                                                                                        |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [RColorBrewer](https://cran.r-project.org/web/packages/RColorBrewer/index.html)                       | Provides color schemes for maps (and other graphics) designed by Cynthia Brewer.                                                                                                                                                             |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [sfdep](https://sfdep.josiahparry.com/)                                                               | built on **spdep** provides a tidyverse-friendly interface with list-columns and additional functionality. **spdep** provides tools for spatial dependence: building neighbour lists, spatial weights, and spatial autocorrelation analysis. |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [httr](https://cran.r-project.org/web/packages/httr/index.html)                                       | Tools designed for handling HTTP requests, organised according to HTTP verbs such as GET and POST.                                                                                                                                           |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [jsonlite](https://cran.r-project.org/web/packages/jsonlite/index.html)                               | An efficient JSON parser and generator optimised for web use and statistical data processing.                                                                                                                                                |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [knitr](https://cran.r-project.org/web/packages/knitr/index.html)                                     | Provides an elegant, flexible, and fast static table generation with R                                                                                                                                                                       |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [kableExtra](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html) | An extension of knitr for creating elegant html table with R                                                                                                                                                                                 |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [DT](https://rstudio.github.io/DT/)                                                                   | Provides an R interface to the JavaScript library DataTables for create interactive html tables.                                                                                                                                             |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [progress](https://cran.r-project.org/web/packages/progress/index.html)                               | Provides customisable progress bars including percentage and estimated completion time.                                                                                                                                                      |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [rvest](https://cran.r-project.org/web/packages/rvest/index.html)                                     | Scrapes or harvests data from web pages.                                                                                                                                                                                                     |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [plotly](https://plotly.com/r/getting-started/)                                                       | Creates interactive praphs.                                                                                                                                                                                                                  |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [ggstatsplot](https://indrajeetpatil.github.io/ggstatsplot/)                                          | An extension of the ggplot2 package that allows statistical test results to be displayed within the plots, making the visualisations more informative and data-driven                                                                        |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+#### The Code
+
+```{r}
+pacman::p_load(olsrr, GWmodel, corrplot, sf, tidyverse, tmap, ggpubr, gtsummary, performance, RColorBrewer, sfdep, httr, jsonlite, knitr, kableExtra, DT, progress, rvest, plotly, ggstatsplot, ranger, SpatialML, spatialRF, randomForestExplainer)
+```
+
+## Importing Data into R Environment
+
+### HDB Resale Dataset
+
+#### Import and Extraction
+
+We first import the dataset `HDBresale.csv`, which was downloaded from [data.gov.sg](data.gov.sg) on 25 October 2025 . The original dataset contains resale transactions from January 2017. For this study, we focus on 4-room transactions between January 2025 and September 2025 (inclusive). After filtering, we obtained 8,679 transaction records from 4,800 HDB blocks. We treat all 4-room transactions during the past nine months as potential comparable sales. Using the adaptive bandwidth approach, GWR dynamically determines the number of nearby transactions to include when estimating local coefficients. This ensures that each transaction’s model is calibrated with spatially relevant comparable sales while accounting for variations in housing density across regions.
+
+```{r}
+HDBresale_all <- read_csv(
+  "data/rawdata/HDBresale.csv") %>%
+  filter(month >= "2025-01" & month < "2025-10")
+```
+
+Here is a quick overview of the 11 columns in the HDB resale dataset.
+
+`month` indicates the transaction date in the format *YYYY/MM*.
+
+`town` refers to the planning area.
+
+`flat_type` includes categories such as 2-room, 3-room, 4-room, etc., and we will extract only 4-room transactions for this study.
+
+`block` and `street_name` describe the property’s location, which can be used to retrieve geometric information (X and Y coordinates) from **OneMap**.
+
+`storey_range` represents the floor range in text format (e.g., “04 TO 06”). We convert this into a discrete numerical value by taking the midpoint (e.g., 5 for “04 TO 06”).
+
+`floor_area_sqm` is the size of the property in square metres.
+
+`flat_model` denotes the layout and design type of the flat. As these evolve over time and have limited predictive value, we exclude this variable from the model.
+
+`lease_commence_date` indicates the year the property obtained its Temporary Occupation Permit (TOP), which is similar in meaning to `remaining_lease`, expressed as text such as “53 years 1 month”. We use the `remaining_lease` field to calculate both the property’s age (in months) and its remaining lease. Given that the standard HDB lease term is 99 years, we first extract the number of years and months from the text, convert it into total months, and then subtract it from 99 years to derive the property’s age at the time of the transaction.
+
+Finally, `resale_price` is our **target variable**.
+
+```{r}
+glimpse(HDBresale_all)
+```
+
+```{r}
+HDBresale <- HDBresale_all %>%
+  filter(flat_type == "4 ROOM")
+```
+
+Here, we create a preview table of the extracted transactions.
+
+```{r}
+kable(head(HDBresale,10), caption = "Preview of 4-Room HDB Resale Transactions")
+```
+
+#### Geocoding
+
+Next, the `block` and `streetname` attributes are used to retrieve the geographic coordinates from the OneMap API. Prior to this, abbreviations "ST." are standardised to "SAINT" in the `streetname` field to avoid potential mismatches or errors during the coordinate retrieval process. `gsub(a, b, col)` from base R is used to replace all of the occurrences of `a` to `b` in the `col`.
+
+```{r}
+#| eval: false
+HDBresale$street_name <- gsub(
+  "ST\\.", "SAINT",
+  HDBresale$street_name)
+```
+
+Then we create a function called `geocode`, which uses the `GET()` function from the **httr** package to make HTTP requests to the OneMap API. and `fromJSON()` from **jsonlite** package to parse the returned JSON data.
+
+```{r}
+#| eval: false
+#| code-fold: true
+#| code-summary: "CODE"
+geocode <- function(block, streetname) {
+  base_url <- "https://onemap.gov.sg/api/common/elastic/search"
+  address <- paste(block, streetname, sep= " ")
+  query <-list(
+    "searchVal" = address,
+    "returnGeom" = "Y",
+    "getAddrDetails" = "N",  #Y get full address
+    "pageNum" = "1")
+  res <- GET(base_url, query = query)
+  restext <-content(res, as="text")
+  
+  output <- fromJSON(restext) %>%
+    as.data.frame %>%
+    select(results.LATITUDE, results.LONGITUDE)
+  
+  return(output)
+}
+
+```
+
+```{r}
+#| eval: false
+#| code-fold: true
+#| code-summary: "CODE"
+HDBresale$LATITUDE <- 0
+HDBresale$LONGITUDE <- 0
+
+for (i in 1:nrow(HDBresale)) {
+  temp_output <- geocode(HDBresale[i,4], HDBresale[i,5])
+  
+  HDBresale$LATITUDE[i] <- temp_output$results.LATITUDE
+  HDBresale$LONGITUDE[i] <- temp_output$results.LONGITUDE
+}
+```
+
+As a data validation step, we perform a sanity check by filtering the dataset to detect any missing or zero values in the `LATITUDE` and `LONGITUDE` fields. After ensuring data completeness, the `HDBresale` tibble is converted into an `sf` object to enable spatial analysis.
+
+```{r}
+#| eval: false
+HDBresale_sf <- st_as_sf(HDBresale,
+                         coords = c("LONGITUDE", "LATITUDE"),
+                         crs = 4326) %>%
+  st_transform(crs = 3414)
+write_rds(HDBresale_sf, "data/geospatial/HDBresale_sf.rds")
+```
+
+```{r}
+#| echo: false
+HDBresale_sf <- read_rds("data/geospatial/HDBresale_sf.rds")
+```
+
+A total of 8,679 4-room resale transactions were recorded between January 2025 and September 2025. The median resale price was approximately \$630,000, ranging from \$300,000 to \$1.518 million.
+
+```{r}
+unique(HDBresale_sf$month)
+```
+
+```{r}
+unique(HDBresale_sf$flat_type)
+```
+
+```{r}
+nrow(HDBresale_sf)
+```
+
+The code chunk below reveals the summary statistics for each field. 
+```{r}
+summary(HDBresale_sf)
+```
+
+### Importing Singpore Master Plan Subzone 2019
+
+We reused the previously created dataset from *Take-Home Exercise 02* which is Master Plan 2019 Subzone Boundary (No Sea) in KML format. The detailed processing steps can be found in [here](https://isss626-ypan.netlify.app/take-home_ex/take-home_ex02/take-home_ex02#importing-the-geospatial-ploygon-data-master-plan-2019-subzone).
+
+```{r}
+#Load pre-processed data
+mpsz <- read_rds("data/rds/mpsz.rds")
+```
+
+The `mpsz `sf` data frame contains the attributes `REGION_N`, `PLN_AREA_N`, `SUBZONE_N`, and the corresponding `geometry` information, represented in the projected coordinate reference system SVY21 (EPSG:3414) with XY dimensions.
+
+```{r}
+mpsz
+```
+
+Here we have a quick look at the imported map.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz) +
+  tm_polygons("PLN_AREA_N", col = "MAP_COLORS", alpha = 0.9, border.col = "white") +
+  tm_title("Singapore Master Plan Subzones 2019", frame = FALSE) +
+  tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: data.gov.sg",
+            position = c("right", "bottom")) +
+  tm_legend(show = FALSE) + 
+  tm_layout(frame= FALSE)
+
+```
+
+### Structural Factor MUP/HIP
+
+The internal condition of a flat is one of the key factors influencing its valuation. Although it is difficult to obtain detailed renovation histories for individual units, we use the HDB upgrading programmes, the Main Upgrading Programme (MUP) and the Home Improvement Programme (HIP), as proxies to incorporate flat condition into the model.
+
+
+The Main Upgrading Programme (MUP) was introduced in the 1990s to improve existing HDB flats, blocks, and neighbourhoods. The programme was gradually phased out and replaced by the Home Improvement Programme (HIP) in 2007, with all MUP projects completed by 2012.
+
+The HIP continues to provide essential renovations to individual flats that are about 30 years old. Under both programmes, the government bears the majority of the cost, with flat owners responsible for only about 5% of the total expenses.
+
+Other improvement initiatives, such as the Neighbourhood Renewal Programme (NRP) and the Lift Upgrading Programme (LUP), have operated in parallel with HIP. Most blocks that have undergone HIP have also been included in either LUP or NRP. In this study, however, we focus solely on MUP and HIP.
+
+Since there is no direct dataset available for download from official sources, it required additional effort to manually extract the MUP and HIP information for each block. We first identified the blocks appearing in the nine-month resale records and then searched for their corresponding upgrade information on the HDB [portal](https://services2.hdb.gov.sg/webapp/BB33RESLSTATUS/BB33SEnquiry).
+
+```{r}
+unique_blocks <- HDBresale_sf %>%
+  distinct(block, street_name, town)
+nrow(unique_blocks)
+```
+
+```{r}
+kable(head(unique_blocks, 10), caption = "Preview of HDB Blocks")
+```
+
+```{r}
+#|eval: false
+write_csv(unique_blocks, "data/rawdata/unique_blocks.csv")
+```
+
+Here, we import the self-sourced HIP/MUP status for a total of 4,148 HDB blocks in our dataset.
+
+```{r}
+HIP <- read_csv("data/rawdata/HIP_MUP.csv")
+kable(head(HIP, 10), caption = "Preivew of HIP/MUP History for HDB Blocks")
+nrow(HIP)
+```
+There are 1832 HIPed blocks and 124 MUPed blocks in the sale records.
+
+```{r}
+sum(HIP$HIP)
+sum(HIP$MUP)
+```
+
+
+### Locational Factors with Geographic Coordinates
+
+#### Bus Stops
+
+We reused the previously created dataset for bus stops from *Take-home Exercise 02*, which contains bus stop locations across Singapore in ESRI shapefile format issued on Aug 2025 by Land Transport Authority (LTA). The detailed processing steps can be found in this [exercise](https://isss626-ypan.netlify.app/take-home_ex/take-home_ex02/take-home_ex02#importing-the-attribute-data-bus-trips).
+
+It is worth noting that, during preprocessing, we excluded five bus stops located outside Singapore (mainly transit hubs in Johor Bahru, Malaysia) and eighteen duplicated bus stops, which were likely due to temporary measures such as road maintenance or refurbishment.
+
+```{r}
+#Load pre-processed data
+BusStop_in_SG <- read_rds("data/geospatial/BusStop_in_SG.rds")
+BusStop_in_SG
+```
+
+The map below visualises the distribution of 5149 bus stops in Singapore. 
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz) +
+  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+tm_shape(BusStop_in_SG) +
+  tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
+  tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: data.gov.sg",
+            position = c("right", "bottom")) +
+  tm_title("Bus Stops in Singapore") +
+  tm_layout(frame = FALSE)
+```
+
+#### Community Clubs
+
+We import the Community Clubs KML file, which represents 125 community clubs across Singapore. Since the dataset’s geometry dimensions were in XYZ and the CRS was WGS 84, we update the code to correctly assign the projected CRS (EPSG: 3414) using `st_transform()` from **sf** package. The redundant Z dimension was removed with `st_zm()` from **sf** package.
+
+The same process will be applied to all other KML and GeoJSON files to ensure consistent and correct spatial projection across datasets.
+
+```{r}
+communityclubs <- st_read("data/rawdata/CommunityClubs.kml")%>%
+  st_transform(crs = 3414)%>%
+  st_zm(drop = TRUE, what = "ZM")
+```
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(communityclubs, "data/geospatial/communityclubs.rds")
+```
+
+```{r}
+#| echo: false
+communityclubs <- read_rds("data/geospatial/communityclubs.rds")
+```
+
+
+The map below illustrates the distribution of community clubs in Singapore. 
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz) +
+  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+tm_shape(communityclubs) +
+  tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
+  tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: data.gov.sg",
+            position = c("right", "bottom")) +
+  tm_title("Community Clubs in Singapore") +
+  tm_layout(frame = FALSE)
+```
+
+#### Childcare Centres
+Here we import the Childcare kml file and tidy up the CRS and dimensions.
+
+```{r}
+childcares <- st_read("data/rawdata/ChildCareServices.kml")%>%
+  st_transform(crs = 3414)%>%
+  st_zm(drop = TRUE, what = "ZM")
+```
+
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(childcares, "data/geospatial/childcares.rds")
+```
+
+```{r}
+#| echo: false
+childcares <- read_rds("data/geospatial/childcares.rds")
+```
+The map below shows the distribution of 1,925 childcare centres.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz) +
+  tm_polygons(col = "lightblue", border.col = "white", alpha= 0.6) +
+tm_shape(childcares) +
+  tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
+  tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: data.gov.sg",
+            position = c("right", "bottom")) +
+  tm_title("Childcare Centres in Singapore") +
+  tm_layout(frame = FALSE)
+```
+
+#### Clinics
+
+The code chunk below is used to correctly import the clinics KML file. CHA clinics provide subsidised general practitioner (GP) and dental services across Singapore.
+
+```{r}
+clinics <- st_read("data/rawdata/CHASClinics.kml")%>%
+  st_transform(crs = 3414)%>%
+  st_zm(drop = TRUE, what = "ZM")
+```
+
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(clinics, "data/geospatial/clinics.rds")
+```
+
+```{r}
+#| echo: false
+clinics <- read_rds("data/geospatial/clinics.rds")
+```
+
+
+The map below shows the locations of 1,193 CHAS clinics in Singapore.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz) +
+  tm_polygons(col = "lightblue", border.col = "white", alpha= 0.6) +
+tm_shape(clinics) +
+  tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
+  tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source:data.gov.sg",
+            position = c("right", "bottom")) +
+  tm_title("CHAS Clinics in Singapore") +
+  tm_layout(frame = FALSE)
+```
+
+#### Eldercare Centres
+
+The code chunk below imports the elder care services file in ESRI shapefile format.
+
+```{r}
+eldercares <- st_read(dsn = "data/rawdata", layer = "ELDERCARE")%>%
+  st_transform(crs = 3414)%>%
+  st_zm(drop = TRUE, what = "ZM")
+```
+```{r}
+#| eval: false
+#| echo: false
+write_rds(eldercares, "data/geospatial/eldercares.rds")
+```
+
+```{r}
+#| echo: false
+hawkers <- read_rds("data/geospatial/eldercares.rds")
+```
+There are 133 elder care centres in Singapore as shown in the map below.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz) +
+  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6)+
+tm_shape(eldercares) +
+  tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
+  tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source:data.gov.sg",
+            position = c("right", "bottom")) +
+  tm_title("Eldercare Centres in Singapore") +
+  tm_layout(frame = FALSE)
+```
+
+#### Hawker Centres
+
+The code chunk below loads the hawker centre points kml file to R environment.
+
+```{r}
+hawkers <- st_read("data/rawdata/HawkerCentresKML.kml")%>%
+  st_transform(crs = 3414)%>%
+  st_zm(drop = TRUE, what = "ZM")
+```
+
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(hawkers, "data/geospatial/hawkers.rds")
+```
+
+```{r}
+#| echo: false
+hawkers <- read_rds("data/geospatial/hawkers.rds")
+```
+
+There are 125 hawker centres in Singapore. 
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz) +
+  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+tm_shape(hawkers) +
+  tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
+  tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: data.gov.sg",
+            position = c("right", "bottom")) +
+  tm_title("Hawker Centres in Singapore") +
+  tm_layout(frame= FALSE)
+```
+
+#### kindergartens
+Here, we import the kindergarten dataset in KML format into the R environment. Compared to child care services, which provide full-day care and learning for infants to six-year-olds, kindergartens generally offer part-day education for children aged three to six years (pre-primary education).
+
+```{r}
+kindergartens <- st_read("data/rawdata/Kindergartens.kml")%>%
+  st_transform(crs = 3414)%>%
+  st_zm(drop = TRUE, what = "ZM")
+```
+
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(kindergartens, "data/geospatial/kindergartens.rds")
+```
+
+```{r}
+#| echo: false
+kindergartens <- read_rds("data/geospatial/kindergartens.rds")
+```
+This map displays where 448 kindergartens are located in Singapore.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz) +
+  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+tm_shape(kindergartens) +
+  tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
+  tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: data.gov.sg",
+            position = c("right", "bottom")) +
+  tm_title("Kindergartens in Singapore")+ tm_layout(frame = FALSE)
+```
+
+#### Parks
+Here, we load the KML file containing park locations into R.
+
+```{r}
+parks <- st_read("data/rawdata/parks.geojson")%>%
+  st_transform(crs = 3414)%>%
+  st_zm(drop = TRUE, what = "ZM") 
+```
+
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(parks, "data/geospatial/parks.rds")
+```
+
+```{r}
+#| echo: false
+parks <- read_rds("data/geospatial/parks.rds")
+```
+The map visualises the geographic locations of 441 parks within Singapore.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz) +
+  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+tm_shape(parks) +
+  tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
+  tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source:data.gov.sg",
+            position = c("right", "bottom")) +
+  tm_title("Parks in Singapore") +
+  tm_layout(frame = FALSE)
+```
+
+#### MRT & LRT Station Exits
+We read the station exit KML file into R as a spatial dataset.
+
+```{r}
+mrts <- st_read("data/rawdata/LTAMRTStationExitKML.kml")%>%
+  st_transform(crs = 3414)%>%
+  st_zm(drop = TRUE, what = "ZM")
+```
+
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(mrts, "data/geospatial/mrts.rds")
+```
+
+```{r}
+#| echo: false
+mrts <- read_rds("data/geospatial/mrts.rds")
+```
+The map below represents the spatial distribution of 563 station exit points in Singapore.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz) +
+  tm_polygons(col= "lightblue", border.col ="white", alpha = 0.6) +
+tm_shape(mrts) +
+  tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
+  tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source:data.gov.sg",
+            position = c("right", "bottom")) +
+  tm_title("MRT & LRT Station Exits in Singapore") +
+  tm_layout(frame = FALSE)
+```
+
+#### Supermarkets
+
+The supermarket data in KML format is loaded into R for further processing.
+
+```{r}
+supermarkets <- st_read("data/rawdata/SupermarketsKML.kml")%>%
+  st_transform(crs = 3414)%>%
+  st_zm(drop = TRUE, what = "ZM")
+```
+
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(supermarkets, "data/geospatial/supermarkets.rds")
+```
+
+```{r}
+#| echo: false
+supermarkets <- read_rds("data/geospatial/supermarkets.rds")
+```
+
+The map depicts the spatial distribution of 526 supermarkets across Singapore.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz) +
+  tm_polygons(col= "lightblue", border.col ="white", alpha = 0.6) +
+tm_shape(supermarkets) +
+  tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
+  tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source:data.gov.sg",
+            position = c("right", "bottom")) +
+  tm_title("Supermarkets in Singapore") +
+  tm_layout(frame = FALSE)
+```
+
+### Locational Factors without Geographic Coordinates
+
+
+#### Geocoding Function
+
+The geocoding function below is modified to extract coordinates from the OneMap API based on location names rather than block + street combinations used in earlier steps. Because name-based searches are more sensitive to text variation, additional preprocessing steps to standardise the name fields are necessary before querying the API.
+
+```{r}
+geocode_one <- function(data) {
+  data$LATITUDE <- NA
+  data$LONGITUDE <- NA
+  
+  cat("Geocoding", nrow(data), "data...\n")
+  
+  # Create progress bar
+  pb <- progress_bar$new(
+    format = "[:bar] :percent | ETA: :eta | :current/:total | :name",
+    total = nrow(data),
+    clear = FALSE,
+    width = 80
+  )
+  
+  for (i in 1:nrow(data)) {
+    data_name <- data[i, 1]
+    
+    pb$tick(tokens = list(name = substr(data_name, 1, 20)))
+    
+    temp_output <- get_coords(data_name)
+    
+    data$LATITUDE[i] <- as.numeric(temp_output$results.LATITUDE[1])
+    data$LONGITUDE[i] <- as.numeric(temp_output$results.LONGITUDE[1])
+  }
+  
+  successful <- sum(!is.na(data$LATITUDE) & !is.na(data$LONGITUDE))
+  failed <- nrow(data) - successful
+  
+  cat("\nGeocoding completed:\n")
+  cat("successful:", successful, "/", nrow(data), "\n")
+  cat("failed:", failed, "/", nrow(data), "\n")
+  
+  if (failed > 0) {
+    cat("Failed data:\n")
+    failed_data <- data[is.na(data$LATITUDE) | is.na(data$LONGITUDE), 1]
+    print(failed_data)
+  }
+  
+  return(data)
+}
+
+```
+
+
+```{r}
+get_coords <- function(name) {
+  base_url <- "https://onemap.gov.sg/api/common/elastic/search"
+  query <- list(
+    "searchVal" = name,
+    "returnGeom" = "Y", 
+    "getAddrDetails" = "N",
+    "pageNum" = "1"
+  )
+  
+  tryCatch({
+    Sys.sleep(0.1)
+    
+    res <- GET(base_url, query = query) 
+    if (status_code(res) != 200) {
+      warning(paste("HTTP error for", name, ":", status_code(res)))
+      return(data.frame(results.LATITUDE = NA, results.LONGITUDE = NA))
+    }
+    restext <- content(res, as = "text", encoding = "UTF-8")
+    if (restext == "" || is.na(restext)) {
+      warning(paste("Empty response for", name))
+      return(data.frame(results.LATITUDE = NA, results.LONGITUDE = NA))
+    }
+    
+    output <- fromJSON(restext)
+    if (is.null(output$results) || length(output$results) == 0) {
+      warning(paste("No results found for", name))
+      return(data.frame(results.LATITUDE = NA, results.LONGITUDE = NA))
+    }
+    output <- output$results[1, ] %>%
+      select(LATITUDE, LONGITUDE) %>%
+      rename(results.LATITUDE = LATITUDE, results.LONGITUDE = LONGITUDE)
+    
+    return(output)
+    
+  }, error = function(e) {
+    warning(paste("Error geocoding", name, ":", e$message))
+    return(data.frame(results.LATITUDE = NA, results.LONGITUDE = NA))
+  })
+}
+
+geocode_one <- function(data) {
+  data$LATITUDE <- NA
+  data$LONGITUDE <- NA
+  
+  cat("Geocoding", nrow(data), "data...\n")
+  
+  pb <- progress_bar$new(
+    format = "[:bar] :percent | ETA: :eta | :current/:total | :name",
+    total = nrow(data),
+    clear = FALSE,
+    width = 80
+  )
+  
+  for (i in 1:nrow(data)) {
+    data_name <- data[i, 1]
+    
+    pb$tick(tokens = list(name = substr(data_name, 1, 20)))
+    
+    temp_output <- get_coords(data_name)
+    
+    data$LATITUDE[i] <- as.numeric(temp_output$results.LATITUDE[1])
+    data$LONGITUDE[i] <- as.numeric(temp_output$results.LONGITUDE[1])
+  }
+  
+  successful <- sum(!is.na(data$LATITUDE) & !is.na(data$LONGITUDE))
+  failed <- nrow(data) - successful
+  
+  cat("\nGeocoding completed:\n")
+  cat("successful:", successful, "/", nrow(data), "\n")
+  cat("failed:", failed, "/", nrow(data), "\n")
+  
+  if (failed > 0) {
+    cat("Failed data:\n")
+    failed_data <- data[is.na(data$LATITUDE) | is.na(data$LONGITUDE), 1]
+    print(failed_data)
+  }
+  
+  return(data)
+}
+```
+
+#### Primary Schools
+
+We extracted a list of 179 primary schools from publicly-available `Generalinformationofschools.csv` (data.gov.sg) dataset (version updated on 24 Sep 2025). However comparing with 182 primary schools from the MOE directory, there are three schools missing which are Catholic High School (Primary Section), CHIJ St. Nicholas Girls’ School (Primary Section) and Maris Stella High School (Primary Section). To ensure our coverage is comprehensive, we manually matched and included these three schools in our analysis.
+
+```{r}
+#| eval: false
+prisch<- read_csv("data/rawdata/prischmoe_rename.csv") %>%
+  mutate(name = gsub("St\\.", "SAINT",name))
+
+prisch <- geocode_one(prisch)
+prisch <- st_as_sf(prisch,
+                         coords = c("LONGITUDE", "LATITUDE"),
+                         crs = 4326) %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(prisch, "data/geospatial/prisch.rds")
+```
+
+```{r}
+#| echo: false
+prisch <- read_rds("data/geospatial/prisch.rds")
+```
+
+The preview table shows the first 10 primary school locations. 
+
+```{r}
+kable(head(prisch,10), caption = "Preview of Primary School Locations")
+```
+The map below demonstrates the spatial arrangement of 182 primary schools in Singapore.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz) +
+  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+tm_shape(prisch) +
+  tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
+  tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: MOE",
+            position = c("right", "bottom")) +
+  tm_title("Primary Schools in Singapore") +
+  tm_layout(frame = FALSE)
+```
+#### Good Primary Schools
+
+The good primary schools are identified based on popularity scores obtained from a local education [website](https://www.creativecampus.com.sg/best-primary-schools-in-singapore-2024). We selected the top 20 primary schools with popularity scores of at least 1.7. The popularity score is derived from the Phase 2B registration ratio, calculated as the number of applicants divided by available vacancies.
+These top-ranked schools generally offer enriched curricula and are highly sought after by both students and parents.
+
+
+```{r}
+#| eval: false
+poppris <- read_csv("data/rawdata/top_primary_schools.csv") %>%
+  mutate(School = gsub("ST\\.", "SAINT",School))
+
+poppris <- geocode_one(poppris)
+poppris <- st_as_sf(poppris,
+                    coords = c("LONGITUDE", "LATITUDE"),
+                    crs = 4326) %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(poppris, "data/geospatial/poppris.rds")
+```
+
+```{r}
+#| echo: false
+poppris <- read_rds("data/geospatial/poppris.rds")
+```
+
+The preview table shows the first 10 good primary school locations. 
+
+```{r}
+kable(head(poppris,10), caption = "Preview of Good Primary School Locations")
+```
+The 20 hand-picked primary schools by popularity score are displayed in the map below.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz) +
+  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+tm_shape(poppris) +
+  tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
+  tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: creativecampus.com.sg",
+            position = c("right", "bottom")) +
+  tm_title("Good Primary Schools in Singapore") +
+  tm_layout(frame = FALSE)
+```
+
+
+#### Shopping Malls
+
+Next we import and geocode the extracted data on 90 shopping malls in Singapore, obtained from Wikipedia on 29 October 2025. 
+
+
+```{r}
+#| eval: false
+malls <- read_csv("data/rawdata/malls.csv") 
+
+malls <- geocode_one(malls)
+malls <- st_as_sf(malls,
+                         coords = c("LONGITUDE", "LATITUDE"),
+                         crs = 4326) %>%
+  st_transform(crs = 3414)
+```
+
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(malls, "data/geospatial/malls.rds")
+```
+
+```{r}
+#| echo: false
+malls <- read_rds("data/geospatial/malls.rds")
+```
+
+The preview table shows the first 10 shopping mall locations. 
+
+```{r}
+kable(head(malls,10), caption = "Preview of Shopping Mall Locations")
+```
+
+The map below shows the locations of 90 shopping malls in Singapore.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz) +
+  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+tm_shape(malls) +
+  tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
+  tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: wikipedia",
+            position = c("right", "bottom")) +
+  tm_title("Shopping Malls in Singapore") +
+  tm_layout(frame = FALSE)
+```
+
+#### Hospitals
+
+Next, we import and geocode data on 27 general hospitals in Singapore, obtained from Wikipedia on 29 October 2025. The Institute of Mental Health (IMH) in Hougang is excluded, as it serves as a specialised facility for mental health treatment rather than a general hospital providing services.
+
+
+```{r}
+#| eval: false
+hospitals <- read_csv("data/rawdata/hospitals.csv")
+
+hospitals <- geocode_one(hospitals)
+hospitals <- st_as_sf(hospitals,
+                         coords = c("LONGITUDE", "LATITUDE"),
+                         crs = 4326) %>%
+  st_transform(crs = 3414)
+```
+
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(hospitals, "data/geospatial/hospitals.rds")
+```
+
+```{r}
+#| echo: false
+hospitals <- read_rds("data/geospatial/hospitals.rds")
+```
+
+The preview table shows the first 10 hospital locations. 
+
+```{r}
+kable(head(hospitals,10), caption = "Preview of Hospital Locations")
+```
+The map below illustrates the locations of 27 hospitals in Singapore.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz) +
+  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+tm_shape(hospitals) +
+  tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
+  tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: wikipedia",
+            position = c("right", "bottom")) +
+  tm_title("Hospitals in Singapore") +
+  tm_layout(frame = FALSE)
+```
+
+
+
+#### Sports Facilities
+
+We manually compiled a list of 104 facilities from ActiveSG Circle, consisting of 18 sports halls, 24 swimming pools, 13 stadiums, 28 gyms, and 21 sports centres on 28 Oct 2025. After careful cross-checking, we identified 52 unique sports locations.
+
+The selection criterion was as follows: if an ActiveSG gym is located within a larger sports centre complex, it is counted only once to avoid duplication. Dual-use school facilities are excluded, as they are primarily situated within primary schools and are already represented under the primary school variable.
+
+```{r}
+#| eval: false
+sports <- read_csv("data/rawdata/sports.csv")
+
+sports <- geocode_one(sports)
+sports <- st_as_sf(sports,
+                         coords = c("LONGITUDE", "LATITUDE"),
+                         crs = 4326) %>%
+  st_transform(crs = 3414)
+```
+
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(sports, "data/geospatial/sports.rds")
+```
+
+```{r}
+#| echo: false
+sports <- read_rds("data/geospatial/sports.rds")
+```
+
+The preview table shows the first 10 hospital locations. 
+
+```{r}
+kable(head(sports,10), caption = "Preview of Sports Locations")
+```
+The map below represents the 52 Sports centre/complex in Singapore.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz) +
+  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+tm_shape(sports) +
+  tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
+  tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: wikipedia",
+            position = c("right", "bottom")) +
+  tm_title("Sports Facilities in Singapore") +
+  tm_layout(frame = FALSE)
+```
+
+#### CBD
+
+Central Business District in Singapore is located in Downtown Core of Central Area. We found its coordinates (1.287953, 103.851784) through Google search and save it as `sf` object in projected CRS (SVY21).
+
+```{r}
+cbd <- data.frame(name = "CBD", LATITUDE = 1.287953, LONGITUDE = 103.851784) %>%
+  st_as_sf(coords = c("LONGITUDE","LATITUDE"), crs = 4326) %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+cbd
+```
+
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(cbd, "data/geospatial/cbd.rds")
+```
+
+```{r}
+#| echo: false
+cbd <- read_rds("data/geospatial/cbd.rds")
+```
+
+
+The extracted map shows the Central Region, where the CBD location is marked with a red diamond, and the Downtown Core is highlighted in yellow.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+central_region <- mpsz[mpsz$REGION_N=="CENTRAL REGION", ]
+downtown_core <- mpsz[mpsz$PLN_AREA_N=="DOWNTOWN CORE", ]
+
+tm_shape(central_region) +
+  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+tm_shape(downtown_core) +
+  tm_polygons(col = "orange", alpha = 0.3, border.col = "red",border.lwd = 2) +
+tm_shape(cbd) +
+  tm_dots(col = "red", size = 1.2, shape = 18,border.col = "darkred",border.lwd = 1.5) +
+  tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: Google & data.gov.sg",
+            position = c("left", "bottom")) +
+  tm_title("Singapore Central Business District") +
+   tm_layout(frame = FALSE)
+```
+
+
+
+
+
+
+
+```{r}
+#| echo: false
+HDBresale_sf <- read_rds("data/geospatial/HDBresale_sf.rds")
+```
+
+## Data Wrangling
+
+In this section, we generate the designed independent variables mentioned at the beginning of the study. First, we gather all previously processed datasets saved in the *data/geospatial* folder (in `.rds` format) and compile them into a list named `var_list` for streamlined processing in the subsequent steps.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+# Get all .rds files in the geospatial directory
+rds_files <- list.files("data/geospatial", pattern = "\\.rds$", full.names = TRUE)
+
+# Create empty list
+var_list <- list()
+
+# Load each RDS file
+for (file in rds_files) {
+  # Extract filename without extension for the list name
+  var_name <- gsub("\\.rds$", "", basename(file))  
+  # Load the data and assign to list
+  var_list[[var_name]] <- read_rds(file)
+  
+  cat("Loaded:", var_name, "\n")
+}
+
+cat("Total datasets loaded:", length(var_list), "\n")
+```
+
+
+### Checking of overlapping points
+
+When using a GWR model to build explanatory or predictive models, it is important to first check whether there are any overlapping points in the spatial locations (e.g., HDB blocks or facility points). In this section, we examine overlaps across all datasets: namely `cbd`, `eldercare` , `hawker` , `mrts`, `parks`, `poppri`, `malls`, `hospitals`, `communityclubs`, `sports`, `childcares`, `kindergartens`, `clinics`, `busstops`, `prisch`, and HDB resale data (`HDBresale_sf`).
+
+We must also ensure that any detected overlaps occur because multiple facilities share the same building, rather than due to geocoding errors.
+
+The function below is created to correct such overlapping issues. A helper function is used to detect duplicates in the dataset by applying `st_equals(., .)`, which compares each geometry row by row across the entire dataset. If two geometries are identical, the corresponding row in the overlap column is marked as `TRUE` (mathematically represented as `1`). If the sum of this column is greater than zero, it indicates the **presence** of overlapping points. To resolve this, the `st_jitter()` function from the **sf** package is applied to slightly move the overlapping points apart. The argument `amount = 1` specifies that each overlapping feature should be shifted by approximately one metre.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+fix_overlapping_points <- function(var_list) {
+  cat("Checking for overlapping points in", length(var_list), "datasets...\n")
+
+  
+  for (i in seq_along(var_list)) {
+    dataset_name <- names(var_list)[i]
+    sf_data <- var_list[[i]]
+    
+    # Check for overlapping points
+    overlapping_points <- sf_data %>%
+      mutate(overlap = lengths(st_equals(., .)) > 1)
+    
+    overlap_count <- sum(overlapping_points$overlap)
+    
+    if (overlap_count > 0) {
+      cat(dataset_name, "-", overlap_count, "overlapping points found\n")
+      
+      # Apply jitter 1m
+      sf_data <- sf_data %>%
+        st_jitter(amount = 1)
+      
+      # Update the dataset in the list
+      var_list[[i]] <- sf_data
+      cat("Jitter applied to", dataset_name, "\n")
+    }
+  }
+  
+  cat("Overlap fixing completed!\n")
+  return(var_list)
+}
+```
+
+
+```{r}
+var_list <- fix_overlapping_points(var_list)
+```
+The code chunk below unpacks the `sf` objects into R.
+
+```{r}
+# Unpack all objects into the global environment
+list2env(var_list, envir = .GlobalEnv)
+```
+Then we could run the overlapping check again to make sure there are no overlapping points in the data set.
+
+```{r}
+overlapping_points <- HDBresale_sf %>%
+  mutate(overlap = lengths(st_equals(., .)) >1)
+```
+
+
+### Creating Structural Factors
+
+
+`storey_range` represents the floor range in text format (e.g., “04 TO 06”). We convert this into a discrete numerical value by taking the midpoint (e.g., 5 for “04 TO 06”).
+
+`floor_area_sqm` is the size of the property in square metres.
+
+`flat_model` denotes the layout and design type of the flat. As these evolve over time and have limited predictive value, we exclude this variable from the model.
+
+`lease_commence_date` indicates the year the property obtained its Temporary Occupation Permit (TOP), which is similar in meaning to `remaining_lease`, expressed as text such as “53 years 1 month”. We use the `remaining_lease` field to calculate both the property’s age (in months) and its remaining lease. Given that the standard HDB lease term is 99 years, we first extract the number of years and months from the text, convert it into total months, and then subtract it from 99 years to derive the property’s age at the time of the transaction.
+
+Area of the unit Floor level Remaining lease Age of the unit Main Upgrading Program (MUP) completed (optional)
+
+#### Floor Level
+As mentioned earlier, in the HDBresale dataset, the `storey_range` variable is recorded as text (e.g., “04 TO 06”). The floor level of a property is considered a potentially important independent variable, as higher floors chould provide a quieter environment and more appealing views that can enhance the overall property value. To make this variable suitable for modelling, we convert it into a discrete numerical value by taking the midpoint of each range (e.g., 5 for “04 TO 06”).
+
+```{r}
+sort(unique(HDBresale_sf$storey_range))
+```
+The code chunk below creates a new column, `FLOOR`, and uses `st_extract`() to extract the first and last numeric values from the `storey_range` field. These values are then averaged (divided by two) to obtain the **midpoint** of the storey range.
+
+```{r}
+HDBresale_sf <- HDBresale_sf %>%
+  mutate(
+    FLOOR = (as.numeric(str_extract(storey_range, "^[0-9]+")) +
+                     as.numeric(str_extract(storey_range, "[0-9]+$"))) / 2
+  )
+```
+
+We can now observe that the values in the `FLOOR` column range from 2 to 50, corresponding accurately to the original dataset values, which span from “01 TO 03” to “49 TO 51”.
+```{r}
+summary(HDBresale_sf$FLOOR)
+```
+
+#### Remaining Lease
+
+The age of a property is also an important structural factor that can influence its value. Generally, newer properties are more desirable, as they tend to be in better condition and feature more modern designs compared to older ones. To incorporate this factor into the modelling, we include the property’s age as an explanatory variable.
+
+In Singapore, HDB properties are sold under a lease agreement between the owner and the government, with a standard lease term of 99 years. Within the HDBresale dataset, two columns contain lease-related information: `remaining_lease`, which is expressed as text (e.g., “53 years 1 month”), and `lease_commence_date`, which records the starting year of the lease. The `remaining_lease` variable essentially represents the same information as `lease_commence_date` but in a different format. To make it suitable for analysis, we convert the text values into the total number of months remaining.
+
+
+
+```{r}
+head(HDBresale_sf$remaining_lease,4)
+```
+
+The code chunk below extracts the numeric values before the text “years” and “months” and stores the calculated lease duration (in months) in a new column, `LEASE.` Since there are variations in the `remaining_lease` text format (e.g., no month specified, “1 month”, or multiple months), we include an `if_else()` condition in the code: if the month value is `NA`, it is replaced with `0`; otherwise, the extracted month value is used.
+
+```{r}
+HDBresale_sf <- HDBresale_sf %>% 
+  mutate(
+    lease_years = if_else(
+      is.na(str_extract(remaining_lease, "\\d+(?= years)")), 
+      0, 
+      as.numeric(str_extract(remaining_lease, "\\d+(?= years)"))),
+    lease_months = if_else(
+      is.na(str_extract(remaining_lease, "\\d+(?= month)")), 
+      0, 
+      as.numeric(str_extract(remaining_lease, "\\d+(?= month)"))),
+    LEASE = lease_years * 12 + lease_months)
+```
+
+```{r}
+summary(HDBresale_sf$LEASE)
+```
+
+```{r}
+sum(is.na(HDBresale_sf))
+```
+
+#### Age of the unit in Months
+
+Based on the sales records, the median TOP (Temporary Occupation Permit) year for the flats in our dataset is 2002. The oldest flat was completed in 1967, making it approximately 58 years old as of 2025, while the newest flat is about 4 years old. According to HDB regulations, the general Minimum Occupation Period (MOP) is 5 years, that means owners must reside in the flat for at least five years before they could sell. However, upon reviewing the data and cross-checking some of these transactions online, we observed that several units completed in 2020/2021 have already been transacted. This suggests that there may be certain exceptions to the MOP rule (e.g., special circumstances or other approved cases).
+
+```{r}
+summary(HDBresale_sf$lease_commence_date)
+```
+Following the previous step, we then subtract `LEASE` from 99 years to derive the property’s age in months at the time of the transaction.
+
+```{r}
+HDBresale_sf <- HDBresale_sf %>% 
+  mutate(AGE = 99 * 12 -LEASE)
+```
+
+
+```{r}
+summary(HDBresale_sf$AGE)
+```
+
+
+
+#### Main Upgrading Program (MUP) completed
+As discussed earlier, internal conditions are an important structural factor in property valuation. Given that many flats in our dataset are around 20 years old, proper renovation can significantly enhance property value. Although private renovation history is not available, government-initiated upgrading programmes such as the Main Upgrading Programme (MUP) and Home Improvement Programme (HIP) serve as useful indicators of housing condition.
+
+Flats that have undergone MUP or HIP are assigned a value of 1 in the corresponding variables. We then left-join the self-compiled MUP/HIP dataset with `HDBresale_sf` using the `block`, `street_name`, and `town` as joining keys. We assume that all units within a block participated in the upgrading programme if the block is listed.
+
+```{r}
+HDBresale_sf <- left_join(HDBresale_sf, HIP, by = c('block', 'street_name', 'town'))
+```
+
+```{r}
+length(unique(HDBresale_sf$geometry))
+```
+```{r}
+sum(HDBresale_sf$HIP)
+```
+```{r}
+sum(HDBresale_sf$MUP)
+```
+We find that there are 2,967 HIP-upgraded flats and 257 MUP-upgraded flats in the dataset, representing approximately 37% of all transactions.
+
+```{r}
+(sum(HDBresale_sf$MUP) + sum(HDBresale_sf$HIP)) /length(unique(HDBresale_sf$geometry))
+```
+Note: there are also 30 flats in the dataset that have received both HIP and MUP upgrades.
+
+```{r}
+sum(HDBresale_sf$HIP == 1 & HDBresale_sf$MUP ==1 )
+```
+
+
+### Locational Factors
+
+Location is a critical factor in property value. A well-located property typically provides convenient access to essential services such as healthcare, childcare, schools, groceries, and public transport, as well as community and recreational facilities. Such accessibility not only enhances daily living convenience, but also fosters stronger community engagement and enables easier commuting to the CBD for work.
+
+In this section, we construct two sets of locational variables:
+
+- Proximity-based measures: distance from each flat to key amenities (`cbd`, `eldercares`,`hawkers`, `mrts`, `parks`, `poppris`, `malls`, `hospitals`, `communityclubs`, `sports`)
+
+- Accessibility counts: number of nearby facilities within a specified radius ( `childcares`, `kindergartens`, `clinics`,`busstops` within 350m or `prisch` within 1 km).
+
+#### Proximity
+
+ `st_distance()` is used to compute the great circle distance between HDB resale flats to the above mentioned amenities. Since each set of calculation takes about 2 minutes to complete, we add a process bar in the function to monitor the progress of proximity calculation. 
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+proximity <- function(data, variable, varname) {
+  
+  cat("Calculating proximity for", nrow(data), "locations...\n")
+  
+  # Create progress bar
+  pb <- progress_bar$new(
+    format = "[:bar] :percent | ETA: :eta | :current/:total",
+    total = nrow(data),
+    clear = FALSE,
+    width = 80
+  )
+  
+  # Initialize column
+  data[[varname]] <- NA
+  
+  for (i in 1:nrow(data)) {
+    # Calculate distance from current data point to all variable points
+    dis <- st_distance(data[i, ], variable)
+    # Find minimum distance and store it
+    data[[varname]][i] <- as.numeric(min(dis))
+    
+    # Update progress bar
+    pb$tick(tokens = list(name = varname))
+  }
+  
+  # Calculate success/failure stats
+  successful <- sum(!is.na(data[[varname]]))
+  failed <- sum(is.na(data[[varname]]))
+  
+  cat("\nProximity calculation completed:\n")
+  cat("successful:", successful, "/", nrow(data), "\n")
+  cat("failed:", failed, "/", nrow(data), "\n")
+  
+  if (failed > 0) {
+    cat("Failed rows (indices):\n")
+    failed_indices <- which(is.na(data[[varname]]))
+    print(failed_indices)
+  }
+  
+  return(data)
+}
+```    
+
+##### CBD
+
+```{r}
+#| eval: false
+HDBresale_sf <- proximity(HDBresale_sf, cbd, "DIS_TO_CBD")
+```
+
+##### Eldercare Centres
+
+```{r}
+#| eval: false
+HDBresale_sf <- proximity(HDBresale_sf, eldercares, "DIS_TO_ELDERCARE")
+```
+
+
+##### Hawker Centres
+
+
+```{r}
+#| eval: false
+HDBresale_sf <- proximity(HDBresale_sf, hawkers, "DIS_TO_HAWKER")
+```
+
+
+##### MRTs &LRTs
+
+```{r}
+#| eval: false
+HDBresale_sf <- proximity(HDBresale_sf, mrts, "DIS_TO_MRT")
+```
+
+
+
+##### Good Primary Schools
+
+
+```{r}
+#| eval: false
+HDBresale_sf <- proximity(HDBresale_sf, poppris, "DIS_TO_POPPRIM")
+```
+
+
+##### Shopping Malls
+
+```{r}
+#| eval: false
+HDBresale_sf <- proximity(HDBresale_sf, malls, "DIS_TO_MALL")
+```
+
+
+##### Community Clubs
+
+```{r}
+#| eval: false
+HDBresale_sf <- proximity(HDBresale_sf, communityclubs, "DIS_TO_COMMUNITYCLUB")
+```
+
+
+##### Hospitals
+
+```{r}
+#| eval: false
+HDBresale_sf <- proximity(HDBresale_sf, hospitals, "DIS_TO_HOSPITAL")
+```
+
+
+##### Sports Facilities
+
+
+```{r}
+#| eval: false
+HDBresale_sf <- proximity(HDBresale_sf, sports, "DIS_TO_SPORTS")
+```
+
+
+##### Parks
+
+```{r}
+#| eval: false
+HDBresale_sf <- proximity(HDBresale_sf, parks, "DIS_TO_PARK")
+```
+
+##### Supermarkets
+
+```{r}
+#| eval: false
+HDBresale_sf <- proximity(HDBresale_sf, supermarkets, "DIS_TO_SUPERMARKET")
+```
+
+
+#### Number of Nearby Facilicites
+
+The code chunk below sets up a function to compute the number of nearby facilities within designated buffer distances.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+countnearby <- function(data, variable, varname, distance) {
+  
+  cat("Counting facilicities within", distance,"m for", nrow(data), "locations...\n")
+  
+  # Create progress bar
+  pb <- progress_bar$new(
+    format = "[:bar] :percent | ETA: :eta | :current/:total",
+    total = nrow(data),
+    clear = FALSE,
+    width = 80
+  )
+  
+  # Initialize column
+  data[[varname]] <- NA
+  
+  for (i in 1:nrow(data)) {
+   # Calculate which facilities are within distance for this specific point
+  within_ <- st_is_within_distance(data[i,], variable, dist = distance)
+   # Count the number of facilities within distance
+  data[[varname]][i] <- length(within_[[1]])
+    
+    # Update progress bar
+    pb$tick(tokens = list(name = varname))
+  }
+  
+  # Calculate success/failure stats
+  successful <- sum(!is.na(data[[varname]]))
+  failed <- sum(is.na(data[[varname]]))
+  
+  cat("\nCount completed:\n")
+  cat("successful:", successful, "/", nrow(data), "\n")
+  cat("failed:", failed, "/", nrow(data), "\n")
+  
+  if (failed > 0) {
+    cat("Failed rows (indices):\n")
+    failed_indices <- which(is.na(data[[varname]]))
+    print(failed_indices)
+  }
+  
+  return(data)
+}
+```
+
+-   Number of 
+
+-   Number of 
+
+-   Number of bus stops within 350 metres.
+
+-   Number to CHAS clinics within 350 metres (new).
+
+-   Number of primary schools within 1 kilometre.
+
+
+
+##### Childcare Centres within 350 Metres
+
+```{r}
+#| eval: false
+HDBresale_sf <- countnearby(HDBresale_sf, childcares, "N_CHILDCARE_350M", 350)
+```
+
+##### Kindergartens within 350 Metres
+
+
+```{r}
+#| eval: false
+HDBresale_sf <- countnearby(HDBresale_sf, kindergartens, "N_KINDY_350M", 350)
+```
+
+
+##### CHAS Clinics within 350 Metres
+
+```{r}
+#| eval: false
+HDBresale_sf <- countnearby(HDBresale_sf, clinics, "N_CLINIC_350M", 350)
+```
+
+
+##### Bus Stops within 350 Metres
+
+```{r}
+#| eval: false
+HDBresale_sf <- countnearby(HDBresale_sf, BusStop_in_SG, "N_BUS_350M", 350)
+```
+
+
+##### Primary Schools within 1 Kilometre
+
+```{r}
+#| eval: false
+HDBresale_sf <- countnearby(HDBresale_sf, prisch, "N_PRI_1M", 1000)
+```
+
+
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(HDBresale_sf, "data/rds/HDBresale_sf.rds")
+```
+
+
+```{r}
+#| echo: false
+HDBresale_sf <- read_rds("data/rds/HDBresale_sf.rds")
+```
+
+
+
+```{r}
+sum(is.na(HDBresale_sf))
+```
+
+
+```{r}
+summary(HDBresale_sf)
+```
+```{r}
+colnames(HDBresale_sf)
+```
+
+
+```{r}
+HDBresale_final <- HDBresale_sf %>% select(2,12,11,13,18,19,17,16,7,20:35)
+```
+
+```{r}
+HDBresale_final <- HDBresale_final %>%
+  rename(AREA_SQM = floor_area_sqm) %>%
+  rename_with(toupper)  # Convert all column names to uppercase
+```
+
+
+```{r}
+colnames(HDBresale_final)
+```
+```{r}
+#| eval: false
+#| echo: false
+write_rds(HDBresale_final, "data/rds/HDBresale_final.rds")
+```
+
+
+```{r}
+#| echo: false
+HDBresale <- read_rds("data/rds/HDBresale_final.rds")
+```
+
+
+
+```{r}
+sum(is.na(HDBresale))
+```
+
+## Data Visualisation
+
+### Overall
+
+```{r}
+count <- ggplot(HDBresale_all) +
+  geom_histogram(aes(x=flat_type), stat= "count", color = "black", fill = "lightblue") +
+  labs(title = "Distribution of Flat Types" , x= "Flat Type", y = "Count")
+ggplotly(count)
+```
+
+```{r}
+#  month is character "2025-01"
+summary_data <- HDBresale_all %>%
+  mutate(month = as.Date(paste0(month, "-01"))) %>%  # Convert to proper Date
+  group_by(month, flat_type) %>%
+  summarize(avg_resale_price = mean(resale_price),
+            .groups = 'drop')
+
+summary <-ggplot(summary_data, aes(x = month, y = avg_resale_price, color = flat_type)) +
+  geom_line(size = 1) +
+  geom_point(size = 1.5) +
+    scale_y_continuous(
+    labels = scales::comma_format(),  # Use regular numbers instead of scientific notation
+    breaks = scales::pretty_breaks()  # Better break points
+  ) +
+  labs(title = "Average Resale Price by Flat Type in 2025", 
+       x = "Month", 
+       y = "Average Resale Price",
+       color = "Flat Type") +
+  theme_minimal()
+
+ggplotly(summary)
+```
+
+## Resale Price
+In this section, we create function to draw trellis plots (multiple histograms) for independent variables and arrange them into a grid by using ggarrange() from ggpubr package.
+
+
+```{r}
+plot_histograms <- function(col) {
+  ggplot(HDBresale, aes(x = .data[[col]])) +
+    geom_histogram(bins = 20, color = "black", fill = "lightblue") +
+    ggtitle(paste("Distribution of", col)) +
+    xlab(col) 
+}
+```
+
+The code chunk below creates the histogram for distribution of SELLING_PRICE by using geom_histogram().
+
+
+
+```{r, fig.height=4, fig.width=10}
+plot_histograms("resale_price") %>%
+  ggplotly()
+```
+
+The histogram shows that the distribution of selling prices is right-skewed, meaning that most condominiums were sold at relatively lower price ranges.
+
+A skewed distribution can be normalised using a log transformation.
+
+The code chunk below creates a new variable called LOG_SELLING_PRICE by applying a log transformation to the variable SELLING_PRICE. This transformation is performed using the mutate() from the dplyr package and log() from base R.
+
+```{r}
+HDBresale <- HDBresale %>%
+  mutate(`LOG_SELLING_PRICE` = log(RESALE_PRICE))
+```
+
+
+```{r}
+plot_histograms("LOG_SELLING_PRICE") 
+```
+The distribution becomes less skewed after the transformation.
+
+
+
+## Multiple Histogram Plots Distribution of Variables
+we create function to draw trellis plots (multiple histograms) for independent variables and arrange them into a grid by using ggarrange() from ggpubr package.
+
+
+```{r}
+names(HDBresale)
+structural_cart<- names(HDBresale)[4:6]
+structural_cart
+structural_numeric <- names(HDBresale)[7:9]
+structural_numeric
+locational <- names(HDBresale)[10:25]
+
+```
+
+
+### Structral Factors
+
+```{r, fig.height=4, fig.width=10}
+plots <- lapply(structural_cart, plot_histograms)
+ggarrange(plotlist = plots, ncol = 3, nrow = 1) 
+```
+
+
+```{r, fig.height=4, fig.width=10}
+plots <- lapply(structural_numeric, plot_histograms)
+ggarrange(plotlist = plots, ncol = 3, nrow = 1)  # 2 columns, 2 rows
+```
+
+
+
+
+### Locational Factors
+
+```{r, fig.height=10, fig.width=16}
+          
+plots <- lapply(locational, plot_histograms)
+ggarrange(plotlist = plots, ncol = 4, nrow = 4) 
+```
+
+
+### Drawing Statistical Point Map Using Functions from tmap Package
+
+The code chunk below displays the geospatial distribution of condominium resale prices in Singapore in an interactive point symbol map.
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz) +
+  tm_polygons(fill = "lightblue",
+              border.col = "white", 
+              alpha = 0.6) +
+tm_shape(HDBresale) +    #event points
+  tm_dots(fill = "RESALE_PRICE",
+          fill_alpha = 0.6,
+          size = 0.4,
+          fill.scale = tm_scale_intervals(
+            style = "quantile", n = 5, values = "-brewer.rd_bu")) +
+  tm_view(set_zoom_limits = c(11,14)) +
+  tm_compass(type = "8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: data.gov.sg",
+            position = c("right", "bottom")) +
+  tm_title("HDB Resale Prices in Singapore") +
+  tm_layout(frame = FALSE)
+```
+
+## Hedonic Pricing Modelling Using Functions from Base R
+
+Next we build the hedonic pricing models for condominium reale units using [`lm()`](https://www.rdocumentation.org/packages/stats/versions/3.5.2/topics/lm) of base R.
+
+
+::: callout-note
+-   syntax:
+
+lm(formula, data, subset, weights, na.action, method = "qr", model = TRUE, x = FALSE, y = FALSE, qr = TRUE, singular.ok = TRUE, contrasts = NULL, offset, …)
+:::
+
+
+### Simple Linear Regression Method
+
+First, the code chunk below build a simple linear regression model that predicts **RESALE_PRICE** based on **AREA_SQM**.The **tilde (\~)** is read as “is modelled by” or “as a function of.”
+
+```{r}
+hdb.slr <-lm(formula = RESALE_PRICE ~ DIS_TO_CBD, data = HDBresale)
+```
+
+The code chunk blow prints the model call from R's lm() linear model function and model's coefficients.
+
+```{r}
+hdb.slr
+```
+```{r}
+summary(hdb.slr)
+```
+The code chunk above returns the summary report of the simple regression model.
+
+1.  Residuals rules:
+
+| Residuals Statistic | Interpretation           |
+|---------------------|--------------------------|
+| Median approx 0     | unbiased model overall   |
+| Negative median     | Overestimate on average  |
+| Positive median     | Underestimate on average |
+
+Since the median is negative -41K, the model slightly overestimates the resale prices.
+
+2.  Coefficients:
+
+The linear relationship can be described as:
+
+SELLING_PRICE = 790212.2 + (-1241.0) x AREA_SQM
+
+That means every one sqm increases in area will result in -1241.0 decrease in resale price on average. Since selling price is not below zero in real life, the intercept has no practical meaning. Since p-values of coefficients are much smaller than 0.001,we reject the null hypothesis that both coefficient are statistically significant.
+
+3.  Model fit Statistics
+
+Residual standard error of 942,700 means that the predictions are about \$942,700 away from the actual prices on average. The R-squared 0.4518 means the simple linear model can explain 45% of variance in resale prices. The p-value of F-statistics (\< 0.001) confirms that the simple model is statistically significant.
+
+
+
+The code chunk below reveals the internal structure of the regression model, displaying a compact list of its components, class, and dimensions.
+
+```{r}
+str(hdb.slr)
+```
+
+```{r}
+class(hdb.slr)
+```
+
+We can also use **\$** symbol to access important elements of the model (such as coefficients, effects, fitted.values and residuals) from the list output revealed by the `str()` structure function.
+
+```{r}
+hdb.slr$coefficients
+```
+
+```{r}
+#| eval: false
+hdb.slr$effects
+```
+
+The code chunk below visualises the simple linear model using functions from **ggplot2**. geom_smooth(method = lm) adds a linear regression line to the plot.
+
+```{r}
+ggplot(data = HDBresale,
+       aes (x=`DIS_TO_CBD`, y = `RESALE_PRICE`)) +
+  geom_point()+   # shows the scatter plot of area_sqm and selling price
+  geom_smooth(method = lm)
+```
+
+We observe a few outliers with relatively high selling prices.
+
+### Multiple Linear Regression Method Using Functions from corrplot and Base R
+
+### Computing Correlation Matrix
+
+Before building the multiple linear regression model, we first assess multicollinearity to ensure that the independent variables are not highly correlated with each other. High multicollinearity indicates redundancy among predictors and can distort coefficient estimates, leading to unstable and unreliable model results.
+
+To examine this, we use the [`ggcorrmat()`](https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html)
+ function from the **ggstatsplot** package to visualise the correlation matrix of the independent variables. The dataset used for this analysis excludes the geometry column, as most statistical plotting functions cannot process spatial objects directly. A commonly accepted threshold to indicate problematic multicollinearity is a correlation value above 0.8.
+
+
+
+```{r, fig.width=14, fig.height=10}
+HDBresale_nogeo <- HDBresale %>%
+  st_drop_geometry()
+ggstatsplot::ggcorrmat(HDBresale_nogeo[, 2:24])
+```
+The output shows a triangular matrix of pairwise correlation values between variables.
+
+| Correlation r value | Interpretation         |
+|---------------------|------------------------|
+| (0,1)               | positive relationships |
+| =0                  | no correlation         |
+| (-1,0)              | negative relationships |
+
+The correlation matrix reveals that `AGE` and `LEASE` are perfectly negatively correlated ( r = -1), which is expected since `AGE` was derived from `LEASE` using the 99-year lease rule. To avoid redundancy, only one of these variables should be included in the model. Thus, we retain `AGE` as it is more interpretable. Additionally, several variables show |r| <= 0.3  correlation with resale price,for example, `N_KINDY_350M`, `DIS_TO_SPORTS`, and `DIS_TO_SUPERMARKET`. These variables are excluded from further modelling due to their limited explanatory power.
+
+### Building a hedonic pricing model Using lm() from Base R
+```{r}
+names(HDBresale)
+```
+
+`N_KINDY_350M`, `DIS_TO_SPORTS`, and `DIS_TO_SUPERMARKET`
+
+
+
+```{r}
+start_time <- Sys.time()
+cat("Starting linear regression at:", format(Sys.time(), "%H:%M:%S"), "\n")
+hdb_mlr <- lm(
+  RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
+    DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT
+    + DIS_TO_POPPRIM + DIS_TO_MALL +
+    DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
+    N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1M,
+  data = HDBresale
+)
+# End time and duration
+end_time <- Sys.time()
+duration <- end_time - start_time
+
+cat("Model completed at:", format(end_time, "%Y-%m-%d %H:%M:%S"), "\n")
+cat("Processing time:", round(duration, 2), attr(duration, "units"), "\n")
+```
+
+```{r}
+summary(hdb_mlr)
+```
+
+The code chunk above returns the summary report of the multiple linear regression model.
+
+1.  Residuals:
+
+Since the median is negative -23K, the model slightly overestimates the selling prices but improved from the simple model.
+
+2.  Coefficients:
+
+If the significance level alpha is set at 0.05, variables with p-values higher than 0.05 should be dropped from the model, as they are not statistically significant.Variables to drop are PROX_HAWKER_MARKET, PROX_KINDERGARTEN, PROX_TOP_PRIMARY_SCH and PROX_SUPERMARKET.
+
+The predictors with p-values less than 0.05 are retained, since they show strong evidence of a relationship with the resale prices.
+
+The linear relationship can be described as:
+
+e.g. that every one sqm increases in area will result in \$12,708.32 increases in selling price on average.
+
+The intercept 481,728 represents the baseline selling price when all variables are zero.
+
+3.  Model fit Statistics
+
+Residual standard error of 755,800 means that the predictions are about \$755,800 away from the actual prices on average.
+
+The p-value of F-statistics (\< 0.001) confirms that the new model is statistically significant.
+
+The R-squared value of 0.6518 indicates that the multiple linear regression model explains approximately 65% of the variance in condominium resale prices. Compared to the simple linear model (R2 = 0.45; adjusted R2 = 0.45), the multiple regression model (adjusted R2 = 0.6474) provides a more sophisticated and accurate representation of the factors influencing resale prices.
+
+
+### Preparing Publication Quality Table: gtsummary Method
+
+The code chunk below uses [`tbl_regression()`](https://www.danieldsjoberg.com/gtsummary/reference/tbl_regression.html) from [**gtsummary**](https://www.danieldsjoberg.com/gtsummary/index.html) package to create an elegant and well formatted regression summary table.
+
+More statistical results can be included in the table via [`add_glance_table()`](https://www.danieldsjoberg.com/gtsummary/reference/add_glance.html) or [`add_glance_source_note()`](https://www.danieldsjoberg.com/gtsummary/reference/add_glance.html).
+
+Refer to the [tutorial](https://www.danieldsjoberg.com/gtsummary/articles/tbl_regression.html) for more details.
+
+```{r}
+tbl_regression(hdb_mlr, intercept = TRUE) %>%
+  bold_labels() %>%
+  bold_p(t = 0.05) %>%
+  add_glance_source_note(
+    label = list(sigma~ "\U03C3"),
+    include = c(r.squared, adj.r.squared, AIC, statistic, p.value, sigma)
+  )
+  
+```
+
+R2s have been explained earlier.
+
+AIC stands for Akaike Information Criterion which measures model quality by goodness of fit and complexity. The lower value means better model given same data.
+
+Statistic is F-statistic and its p-value. Sigma is Residual Standard Error.
+
+All these metrics are reported in the model summary output via summary().
+
+### Regression Diagnostics
+
+Regression model’s assumptions are:
+
+-   Linearity: Predictors have linear relation to target
+-   Independence: Errors are independent
+-   Homoscedasticity: Constant variance of residuals, Residual plot
+-   Normality: Errors are normally distributed, QQ plot
+-   No Multicollinearity: Predictors not highly correlated
+
+In this section, we use [**olsrr**](https://olsrr.rsquaredacademy.com/) package to perform the OLS regression diagnostics.
+
+The olsrr package provides following tools for building OLS regression models using R:
+
+-   Comprehensive Regression Output
+-   Variable Selection Procedures
+-   Heteroskedasticity Tests
+-   Collinearity Diagnostics
+-   Model Fit Assessment
+-   Measures of Influence
+-   Residual Diagnostics
+-   Variable Contribution Assessment
+
+:::: panel-tabset
+#### Multicollinearity Test
+
+**Multicollinearity** occurs when independent variables are highly correlated. High multicollinearity inflates the variance of coefficient estimates, leading to unstable and unreliable results, and may cause truly important predictors to appear statistically insignificant.
+
+The code chunk below use [`check_collinearity()`](https://easystats.github.io/performance/reference/check_collinearity.html) from **performance** package to test the Multicollinearity.
+
+```{r}
+check_collinearity(hdb_mlr)
+```
+
+```{r}
+summary(check_collinearity(hdb_mlr))
+```
+
+```{r}
+mlr.vif <- check_collinearity(hdb_mlr)
+plot(mlr.vif) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+| VIF value | Interpretation                                   |
+|-----------|--------------------------------------------------|
+| 1         | No correlation between predictors (ideal)        |
+| 1-5       | Moderate correlation; acceptable in most models. |
+| \>5       | Potential multicollinearity concern              |
+| \>10      | Serious multicollinearity problems               |
+
+We can safely conclude that there are no sign of multicollinearity among the independent variables, since all VIF values are less than 10.
+
+
+
+#### Test for Non-Linearity
+
+The code chunk below test linearity assumption by using [`ols_plot_resid_fit()`](https://olsrr.rsquaredacademy.com/reference/ols_plot_resid_fit.html) from **olsrr** package.
+
+```{r}
+ols_plot_resid_fit(hdb_mlr)
+```
+
+```{r}
+check_model(hdb_mlr,   #performance pacakge
+            check = "linearity")
+```
+
+
+::: callout-note
+According to the [`check_model()` documentation](https://www.rdocumentation.org/packages/performance/versions/0.12.4/topics/check_model), `check` argument could be one or more of "all", "vif", "qq", "normality", "linearity", "ncv", "homogeneity", "outliers", "reqq", "pp_check", "binned_residuals" or "overdispersion"."reqq" is a QQ-plot for random effects and only available for mixed models. "ncv" is an alias for "linearity", and checks for non-constant variance, i.e. for heteroscedasticity, as well as the linear relationship. By default, all possible checks are performed and plotted.
+:::
+
+Since the majority of data points are scattered around the 0 line, relationships between the dependent variable and independent variables seem linear.
+
+#### Test for Normality Assumption
+
+If the model’s residuals (the differences between observed and predicted values) are normally distributed, the normality assumption holds. This is crucial for accurate hypothesis testing and confidence intervals.
+
+The code chunk below uses check_normality() of performance package to perform normality assumption test.
+
+```{r}
+check_normality(hdb_mlr) # performance package
+```
+
+```{r}
+plot(check_normality(hdb_mlr), type ="qq")
+```
+
+QQ plot above below shows that majority of the data points are felt along the zero line.
+
+The code chunk below uses [`check_model()`](https://easystats.github.io/performance/reference/check_model.html) from performance package to test residuals normality.
+
+```{r}
+check_model(hdb_mlr,
+            check= "normality")
+```
+
+The figure reveals that the residual of the multiple linear regression model (i.e. condo.mlr1) is resemble normal distribution.
+
+Alternatively, we could do the same tests using **olsrr** package, using following residual diagnostics: ols_plot_resid_box(), ols_plot_resid_hist(), ols_plot_resid_qq() and ols_test_normality() to check normality of residuals. ols_test_correlation()tests independence (autocorrelation).
+
+```{r}
+ ols_test_normality(hdb_mlr) #olsrr package
+```
+
+```{r}
+ols_plot_resid_hist(hdb_mlr)
+```
+
+```{r}
+ols_plot_resid_qq(hdb_mlr) 
+```
+
+#### Testing for Spatial Autocorrelation
+
+The hedonic model uses geographically referenced data, thus it is essential to check for spatial autocorrelation. Traditional OLS regression assumes independent observations, but spatial data often violates this assumption. Spatial autocorrelation occurs when nearby locations exhibit similar (positive) or dissimilar (negative) values, consistent with Tobler’s First Law of Geography. Ignoring it can lead to biased coefficients, incorrect p-values, and model misspecification. Therefore, testing the model’s residuals with Moran’s I is necessary—significant spatial autocorrelation indicates that the model fails to capture important spatial effects.
+
+```{r}
+ols_test_correlation(hdb_mlr)
+```
+The OLS autocorrelation value of 0.825 suggests strong positive autocorrelation that the residuals are not independent. This violates the OLS assumption of error independence and should be further tested using Moran’s I for spatial dependence. Significant spatial autocorrelation in the residuals means the model is not capturing the full spatial story, some spatial dependence is left unexplained.
+
+We first save the residuals as a data frame.
+
+```{r}
+mlr.output <- as.data.frame(hdb_mlr$residuals)
+```
+
+Next,we join the residuals with condo_resale.sf object.
+
+```{r}
+HDBresale <- cbind(HDBresale, mlr.output) %>%
+  rename(`MLR_RES`= `hdb_mlr.residuals`)
+```
+
+Next, we plot the distribution of residuals using functions from tmap package on an interactive map.
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons(fill_alpha =0.4) +
+  tm_shape(HDBresale) +
+  tm_dots( fill = "MLR_RES",
+           size = 0.4,
+           col = "black",
+           fill.scale = tm_scale(
+             n= 10,
+             value = rev(brewer.pal(11, "RdBu")),
+             style = "quantile",
+             midpoint = NA),
+           fill.legend = tm_legend(title = "Residuals")) +
+  
+  tm_title("LM Residuals (Quantile Classification)") +
+  tm_layout(legdend.outside = TRUE) +
+  tm_view(set_zoom_limits = c(11,14))
+```
+
+Each dot represents a condo resale residual (actual - predicted):
+
+-   Green dots (positive): model underpredicted (actual \> predicted).
+
+-   Purple dots (negative): model overpredicted (actual \< predicted).
+
+If residuals were spatially random, green and purple dots would be evenly scattered across Singapore.But it is not the case here. Further, the coexistence of overestimates and underestimates within the same region indicates that the OLS model cannot fully capture local variations in housing market dynamics.
+
+Next we can confirm with Moran’s I test on residuals.
+
+First, we compute distance-based weight matrix using [`st_dist_band()`](https://sfdep.josiahparry.com/reference/st_dist_band) function of **sfdep.**
+
+```{r}
+HDBresale <- HDBresale %>%
+  mutate(nb = st_dist_band(st_geometry(.), upper = 1500),
+         wt = st_weights(nb, style = "W"))
+```
+
+Then, we use [`global_moran_perm()`](https://sfdep.josiahparry.com/reference/global_moran_perm) of **sfdep** package conduct Moran's I test for residual spatial autocorrelation with Monte Carlo Simulations (500 times).
+
+```{r}
+start_time <- Sys.time()
+cat("Starting Global Moran's I Simulation at:", format(Sys.time(), "%H:%M:%S"), "\n")
+set.seed(1234)
+global_moran_perm(HDBresale$MLR_RES,
+                  nb = HDBresale$nb,
+                  wt = HDBresale$wt,
+                  alternative = "two.sided",
+                  nsim = 499)
+# End time and duration
+end_time <- Sys.time()
+duration <- end_time - start_time
+
+cat("Simulation completed at:", format(end_time, "%Y-%m-%d %H:%M:%S"), "\n")
+cat("Processing time:", round(duration, 2), attr(duration, "units"), "\n")
+```
+
+The Global Moran’s I value of 0.1439 (p \< 0.05) indicates a statistically significant positive spatial autocorrelation, suggesting a mild clustering pattern across the study area.
+::::
+
+
+
+
+
+
+## Building Hedonic Pricing Models Using GWmodel Package
+
+In this section, we build hedonic pricing models using both the fixed and adaptive bandwidth schemes.
+
+### Computing Adaptive Bandwidth
+
+
+The `bw.gwr()` function from the **GWModel** package determines the optimal fixed bandwidth (`**adaptive** = FALSE`) and uses a stopping rule based on either the cross-validation (CV) or AICc (AIC) approach, as specified by the **approach** argument. Here, we use the AIC approach while the alternative method CV tends to produce a smaller bandwidth, which is more suitable for capturing local spatial variation.
+
+
+#### CV
+```{r}
+# Start timing
+start_time <- Sys.time()
+cat("Clculating GWR bandwidth (CV approach)... This may take a while.\n")
+
+# Run the bandwidth selection
+bw_adaptive_cv <- bw.gwr(
+  formula = RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
+    DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT +
+    DIS_TO_POPPRIM + DIS_TO_MALL + DIS_TO_COMMUNITYCLUB + 
+    DIS_TO_HOSPITAL + DIS_TO_PARK + N_CHILDCARE_350M + 
+    N_CLINIC_350M + N_BUS_350M + N_PRI_1M,
+  data = HDBresale,
+  approach = "CV",
+  kernel = "gaussian",
+  adaptive = TRUE,
+  longlat = FALSE
+)
+
+# End timing and display results
+end_time <- Sys.time()
+duration <- end_time - start_time
+
+cat("COMPLETED: GWR Bandwidth Selection\n")
+cat("Optimal bandwidth:", bw_adaptive_cv, "\n")
+cat("Processing time: ", round(duration, 2), attr(duration, "units"), "\n")
+cat("Observations:", nrow(HDBresale), "\n")
+cat("Predictors:", length(all.vars(formula)) - 1, "\n")
+```
+
+
+```{r}
+write_rds(bw_adaptive_cv, "data/model/bw_adaptive_cv.rds")
+```
+
+```{r}
+bw_adaptive_cv <- read_rds("data/model/bw_adaptive_cv.rds")
+
+bw_adaptive_cv
+```
+
+
+#### AIC
+
+
+
+```{r}
+# Start timing
+start_time <- Sys.time()
+cat("Clculating GWR bandwidth (AIC approach)... This may take a while.\n")
+
+bw_adaptive_aic <- bw.gwr(
+  formula = RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
+    DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT
+    + DIS_TO_POPPRIM + DIS_TO_MALL +
+    DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
+    N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1M,
+  data = HDBresale,
+  approach = "AIC",
+  kernel = "gaussian",
+  adaptive = TRUE,
+  longlat = FALSE)
+
+# End timing and display results
+end_time <- Sys.time()
+duration <- end_time - start_time
+
+cat("COMPLETED: GWR Bandwidth Selection\n")
+cat("Optimal bandwidth:", bw_adaptive_aic, "\n")
+cat("Processing time: ", round(duration, 2), attr(duration, "units"), "\n")
+cat("Observations:", nrow(HDBresale), "\n")
+cat("Predictors:", length(all.vars(formula)) - 1, "\n")
+
+```
+
+
+
+```{r}
+write_rds(bw_adaptive_aic, "data/model/bw_adaptive_aic.rds")
+```
+
+```{r}
+bw_adaptive_aic <- read_rds("data/model/bw_adaptive_aic.rds")
+
+bw_adaptive_aic
+```
+
+
+
+###  Constructing the Adaptive Bandwidth GWR Model
+
+Similarly, we build the GWR model using adpative bandwidth and Gaussian Kernel.
+
+
+```{r}
+
+# Start timing
+start_time <- Sys.time()
+cat("Building Adaptive Bandwidth GWRModel... This may take a while.\n")
+
+gwr_adaptive <- gwr.basic(
+  formula = RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
+    DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT
+    + DIS_TO_POPPRIM + DIS_TO_MALL +
+    DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
+    N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1M,
+  data = HDBresale,
+  bw=bw_adaptive_cv,
+  kernel = "gaussian",
+  adaptive = TRUE,
+  longlat = FALSE)
+
+# End timing and display results
+end_time <- Sys.time()
+duration <- end_time - start_time
+
+cat("COMPLETED: Adaptive Bandwidth GWRModel\n")
+cat("Processing time: ", round(duration, 2), attr(duration, "units"), "\n")
+
+
+
+
+```
+
+
+```{r}
+gwr_adaptive
+```
+```{r}
+# Check for extreme MUP coefficients
+mup_coefs <- gwr_adaptive$SDF$MUP
+cat("MUP coefficients summary:\n")
+summary(mup_coefs)
+cat("Number of extreme MUP values:", sum(abs(mup_coefs) > 1e10), "\n")
+
+# Consider removing or transforming MUP if problematic
+```
+
+
+
+
+
+
+
+```{r}
+write_rds(gwr_adaptive, "data/model/gwr_adaptive.rds")
+```
+
+```{r}
+gwr_adaptive <- read_rds("data/model/gwr_adaptive.rds")
+```
+
+
+
+
+## Explantory Modelling: RF method
+
+### Data preparation
+
+Firstly, code chunk below is used to extract the coordinates of training and test data sets
+
+```{r}
+coords <- st_coordinates(HDBresale)
+```
+
+ext, code chunk below is used to drop the geometry column of both training and test data sets.
+
+```{r}
+HDBresale_nogeom <- HDBresale %>%
+  st_drop_geometry()
+```
+
+
+### Calibrating RF model
+
+```{r}
+# Start timing
+start_time <- Sys.time()
+cat("Building RF model... This may take a while.\n")
+set.seed(1234)
+rf <- ranger(formula = RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
+    DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT
+    + DIS_TO_POPPRIM + DIS_TO_MALL +
+    DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
+    N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1M,
+             data=HDBresale_nogeom,importance ="permutation" )
+
+
+# End timing and display results
+end_time <- Sys.time()
+duration <- end_time - start_time
+
+cat("COMPLETED: RF model\n")
+cat("Processing time: ", round(duration, 2), attr(duration, "units"), "\n")
+
+```
+
+```{r}
+rf
+```
+
+
+
+
+```{r}
+write_rds(rf, "data/model/rf.rds")
+```
+
+```{r}
+rf <- read_rds("data/model/rf.rds")
+```
+
+```{r}
+summary(rf)
+```
+```{r}
+importance_pvalues(
+rf,
+method = "altmann",
+num.permutations = 100,
+formula = RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
+    DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT
+    + DIS_TO_POPPRIM + DIS_TO_MALL +
+    DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
+    N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1M,
+             data=HDBresale_nogeom
+
+)
+```
+
+
+```{r}
+explain_forest(rf)
+
+```
+
+```{r}
+class(forest)
+```
+
+## SpatialML method
+
+ 
+```{r}
+start_time <- Sys.time()
+cat("Building GWRF model... This may take a while.\n")
+
+set.seed(1234)
+gwRF <- grf.bw(
+  formula = RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
+    DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT
+    + DIS_TO_POPPRIM + DIS_TO_MALL +
+    DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
+    N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1M,
+                     data=HDBresale_nogeom, 
+                     kernel="adaptive",
+                     coords=coords,  
+                     trees = 100,        # Reduce from 500 to 100-200
+                     nthreads = parallel::detectCores() - 1,  # Use multiple cores
+                     step = 1           # Larger step size in bandwidth search
+)
+
+
+# End timing and display results
+end_time <- Sys.time()
+duration <- end_time - start_time
+
+cat("COMPLETED: GWRF model\n")
+cat("Processing time: ", round(duration, 2), attr(duration, "units"), "\n")
+
+```
+
+
+```{r}
+write_rds(gwRF_bw,
+          "data/model/gwRF_bw.rds")
+```
+
+
+```{r}
+gwRF_bw <-read_rds("data/model/gwRF_bw.rds")
+gwRF_bw
+```
+
+HDB_sample <-mdata
+
+HDB_sample <-mdata %>%
+  sample_n(1500)
+
+## SpatialRF method
+
+```{r}
+predictors <- names(HDBresale)[c(4:7, 9:17,19,21,23:25)]
+predictors
+dependent <- names(HDBresale)[3]
+dependent
+```
+
+```{r}
+set.seed(1234)
+HDB <- HDBresale %>%
+  mutate(x = coords[,1], y = coords[,2]) %>%
+  sample_n(500)
+coords_sample <- st_coordinates(HDB)
+distance.matrix <- as.matrix(dist(coords_sample))
+distance.thresholds <- c(200, 600, 1200, 3000)
+xy <- HDB[, c("x","y")] %>%
+  st_drop_geometry()
+HDB <- HDB %>% st_drop_geometry()
+model.non.spatial <- spatialRF::rf(
+  data = HDB,
+  dependent.variable.name = dependent,
+  predictor.variable.names = predictors,
+  distance.matrix = distance.matrix,
+  distance.thresholds = distance.thresholds,
+  xy = xy, #not needed by rf, but other functions read it from the model
+  seed = 1234,
+  verbose = FALSE
+)
+```
+
+
+```{r}
+write_rds(model.non.spatial, "data/model/model.non.spatial.rds")
+```
+
+```{r}
+model.non.spatial <- read_rds("data/model/model.non.spatial.rds")
+```
+
+
+```{r}
+summary(model.non.spatial)
+```
+```{r}
+kableExtra::kbl(
+ (model.non.spatial$importance$per.variable),
+  format = "html"
+) %>%
+  kableExtra::kable_paper("hover", full_width = F)
+```
+
+
+```{r, fig.height=8, fig.width=10}
+spatialRF::plot_residuals_diagnostics(
+  model.non.spatial,
+  verbose = FALSE
+  )
+```
+
+```{r}
+spatialRF::plot_importance(
+  model.non.spatial,
+  verbose = FALSE
+  )
+```
+
+
+```{r}
+spatialRF::print_performance(model.non.spatial)
+```
+
+
+```{r}
+spatialRF::plot_moran(
+  model.non.spatial, 
+  verbose = FALSE
+  )
+```
+
+```{r}
+
+start_time <- Sys.time()
+ model.spatial <- rf_spatial(
+  model = model.non.spatial,
+  xy = xy, #not needed by rf, but other functions read it from the model
+  seed = 1234,
+  verbose = FALSE,
+  method ="mem.moran.sequential")
+
+# End timing and display results
+end_time <- Sys.time()
+duration <- end_time - start_time
+
+cat("COMPLETED: GWRF model\n")
+cat("Processing time: ", round(duration, 2), attr(duration, "units"), "\n")
+
+
+```
+
+
+```{r}
+spatialRF::plot_moran(
+  model.spatial, 
+  verbose = FALSE
+  )
+```
+
+```{r}
+p1 <- spatialRF::plot_importance(
+  model.non.spatial, 
+  verbose = FALSE) + 
+  ggplot2::ggtitle("Non-spatial model") 
+
+p2 <- spatialRF::plot_importance(
+  model.spatial,
+  verbose = FALSE) + 
+  ggplot2::ggtitle("Spatial model")
+
+p1 | p2 
+```
+
+```{r}
+p <- spatialRF::plot_optimization(model.spatial)
+```
+```{r}
+spatialRF::print_performance(model.spatial)
+```
+
+
+
+## variable importance table
+
+
+```{r}
+library(caret)
+
+# Calculate variable importance
+mlr_varimp <- varImp(hdb_mlr, scale = TRUE)
+
+# Convert to dataframe and plot
+mlr_varimp_df <- mlr_varimp %>%
+  rownames_to_column("Variable") %>%
+  rename(Importance = Overall)
+
+ggplot(mlr_varimp_df, aes(x = reorder(Variable, Importance), y = Importance)) +
+  geom_col(fill = "slateblue", alpha = 0.8) +
+  coord_flip() +
+  labs(title = "[MLR] Variable Importance (caret)",
+       x = "Variables", 
+       y = "Importance Score") +
+  theme_minimal()
+```
+
+
+
+
+```{r}
+rf_varimp_df <- as.data.frame(rf$variable.importance) %>%
+  tibble::rownames_to_column("Variable") %>%
+  rename(Importance = `rf$variable.importance`) %>%
+  arrange(desc(Importance))
+
+ggplot(rf_varimp_df, aes(x = reorder(Variable, Importance), y = Importance)) +
+  geom_col(fill = "coral", alpha = 0.8) +
+  coord_flip() +
+  labs(
+    title = "[RF] Variable Importance (ranger)",
+    x = "Variables",
+    y = "Importance Score"
+  ) +
+  theme_minimal()
+
+```
+
+
+## Plot Modes
+
+The code chunk below lets us switch on demand between interactive and static choropleth maps (via tmap_mode("view") and tmap_mode("plot")).
+
+```{r}
+#| eval: false
+tmap_mode("view")
+```
+
+```{r}
+#| eval: false
+tmap_mode("plot")
+```
+
+## Reference
+
+Lim, A. (2025, February 24). 13+ housing & household statistics in Singapore (2025). SmartWealth Singapore. https://smartwealth.sg/housing-household-statistics-singapore/ Sia, M. (2025, May 26). 5 HDB estates with explosive resale price growth in 2025. Uchify. https://uchify.com/hdb-estates-resale-price-growth-2025/
+
+Lim, J. (2025, October 24). HDB resale price growth in Q3 slows; private home prices driven by new launches. The Straits Times. Retrieved from https://www.straitstimes.com/singapore/hdb-resale-price-growth-in-q3-near-5-year-low-private-home-prices-driven-by-new-launches

@@ -27,7 +27,7 @@ editor: visual
 The study integrates both **aspatial** and **geospatial** datasets to model HDB resale prices in Singapore.
 
 | Dataset | Description | Format |
-|-----------------|---------------------------------------|-----------------|
+|----|----|----|
 | Aspatial dataset | HDB Resale data: a list of HDB resale transacted prices in Singapore from Jan 2017 onwards, downloaded from [Data.gov.sg.](Data.gov.sg) | CSV |
 | Geospatial dataset | *P14_SUBZONE_WEB_PL*: a polygon feature data providing information of URA 2014 Master Plan Planning Subzone boundary data, also downloaded from [Data.gov.sg.](Data.gov.sg) | ESRI shapefile |
 | Locational factors with geographic coordinates | Eldercare centres, Hawker centres ,Parks ,Supermarkets ,CHAS clinics ,Childcare services ,Kindergartens downloaded from [Data.gov.sg](Data.gov.sg) MRT/LRT stations ,Bus stops downloaded from [Datamall.lta.gov.sg](Datamall.lta.gov.sg), | GeoJSON or Shapefile |
@@ -40,7 +40,7 @@ The study integrates both **aspatial** and **geospatial** datasets to model HDB 
 There are 8 packages used in this exercise.
 
 |   | Description |
-|------------------------------------|------------------------------------|
+|----|----|
 | [GWmodel](https://cran.r-project.org/web/packages/GWmodel/index.html) | Calibrates geographical weighted family of models |
 | [rsample](https://rsample.tidymodels.org/) | Provides functions to create different types of resamples and corresponding classes for their analysis. |
 | [sf](https://r-spatial.github.io/sf/) | Handles importing, managing, and processing vector-based geospatial data |
@@ -70,15 +70,14 @@ mdata <- read_rds("data/rawdata/mdata.rds")
 ```
 
 ### Data Sampling
-Calibrating predictive models are computaional intensive, especailly random forest method is used. FOr quick prototyping, 1 10% sample will be selected at random from the data.
-The code chunk below samples 1500 observations. 
+
+Calibrating predictive models are computaional intensive, especailly random forest method is used. FOr quick prototyping, 1 10% sample will be selected at random from the data. The code chunk below samples 1500 observations.
 
 ```{r}
 set.seed(1234)
 HDB_sample <-mdata %>%
   sample_n(1500)
 ```
-
 
 ### Checking of overlapping points
 
@@ -89,7 +88,6 @@ overlapping_points <- HDB_sample %>%
   mutate(overlap = lengths(st_equals(., .)) >1)
 ```
 
-
 ### Spatial Jitter
 
 [`st_jitter()`](https://r-spatial.github.io/sf/reference/st_jitter.html) of **sf** package is used to move the overlapped point features away from each other.
@@ -99,15 +97,12 @@ HDB_sample <- HDB_sample %>%
   st_jitter(amount = 1)
 ```
 
-
 Then we could run the overlapping check again to make sure there are no overlapping points in the data set.
 
 ```{r}
 overlapping_points <- HDB_sample %>%
   mutate(overlap = lengths(st_equals(., .)) >1)
 ```
-
-
 
 ### Data Sampling
 
@@ -144,7 +139,6 @@ corrplot::corrplot(cor(HDB_sample_nogeo[, 2:17]),
 
 There is no sign of multicolinearity since all correlation values are below **0.8**.
 
-
 In order to avoid multicollineariy, we use [`ggcorrmat()`](https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html) of **ggstatsplot** is to plot a correlation matrix to check if there are pairs of highly correlated independent variables.
 
 ```{r, fig.width=14, fig.height=10}
@@ -152,7 +146,6 @@ mdata_nogeo <- mdata %>%
   st_drop_geometry()
 ggstatsplot::ggcorrmat(mdata_nogeo[, 2:17])
 ```
-
 
 ## Retriving the Stored Data
 
@@ -165,8 +158,7 @@ test_data <- read_rds("data/model/test_data.rds")
 
 ## Building a Non-spatial Multiple Linear Regression
 
-A multiple regression model is built as a base line model. 
-
+A multiple regression model is built as a base line model.
 
 ```{r}
 
@@ -183,15 +175,14 @@ summary(price_mlr)
 
 The regression summary report indicates that the model slightly underestimates HDB resale prices, as shown by the residual median of –1,930. However, the R2 value of 0.7373 suggests that the model explains approximately 74% of the variation in HDB resale prices since 2017, which exhibits good predictive performance overall.
 
-
 ### Multicolinearity Check
+
 ```{r}
 vif <- performance::check_collinearity(price_mlr)
 kable(vif, 
       caption = "Variance Inflation Factor (VIF) Results") %>%
   kable_styling(font_size = 18) 
 ```
-
 
 ```{r}
 plot(vif) +
@@ -202,7 +193,6 @@ plot(vif) +
 #| eval: false
 write_rds(price_mlr, "data/model/price_mlr.rds" ) 
 ```
-
 
 ## gwr Predictive Method
 
@@ -239,7 +229,6 @@ write_rds(bw_adaptive, "data/model/bw_adaptive.rds")
 bw_adaptive <- read_rds("data/model/bw_adaptive.rds")
 ```
 
-
 Then we build the GWR-based hedonic pricing model using adaptive bandwidth and Gaussian kernel. Same reason as the previous step, we save a copy of the `gwrm` file.
 
 ```{r}
@@ -274,10 +263,7 @@ gwr_adaptive <- read_rds("data/model/gwr_adaptive.rds")
 gwr_adaptive
 ```
 
-
-
 Please refer to [Hands-on_Ex08](https://isss626-ypan.netlify.app/hands-on_ex/hands-on_ex08/hands-on_ex08)
-
 
 ## Predictive Modelling with MLR
 
@@ -303,14 +289,13 @@ gwr_bw_test_adaptive <- bw.gwr(resale_price ~ floor_area_sqm +
 write_rds(gwr_bw_test_adaptive,
           "data/model/gwr_bw_test.rds")
 ```
+
 ```{r}
 gwr_bw_test_adaptive <- read_rds(
   "data/model/gwr_bw_test.rds")
 ```
 
-
 ### Predicting
-
 
 ```{r}
 #| eval: false
@@ -333,7 +318,6 @@ write_rds(gwr_pred,
           "data/model/gwr_pred.rds")
 ```
 
-
 ```{r}
 gwr_pred<- read_rds("data/model/gwr_pred.rds")
 ```
@@ -342,10 +326,7 @@ gwr_pred<- read_rds("data/model/gwr_pred.rds")
 gwr_pred
 ```
 
-
 ## Predictive Modelling: RF method
-
-
 
 ### Data preparation
 
@@ -357,14 +338,12 @@ coords_train <- st_coordinates(train_data)
 coords_test <- st_coordinates(test_data)
 ```
 
-
 Next, code chunk below is used to drop the geometry column of both training and test data sets.
 
 ```{r}
 train_data_nogeom <- train_data %>%
   st_drop_geometry()
 ```
-
 
 ### Calibrating RF model
 
@@ -380,11 +359,9 @@ rf <- ranger(resale_price ~ floor_area_sqm + storey_order +
 
 ```
 
-
 ```{r}
 rf
 ```
-
 
 ## Predictive Modelling: SpatialML method
 
@@ -409,7 +386,6 @@ gwRF_bw <- grf.bw(formula = resale_price ~ floor_area_sqm +
 )
 ```
 
-
 ```{r}
 #| eval: false
 write_rds(gwRF_bw,
@@ -421,13 +397,10 @@ write_rds(gwRF_bw,
 gwRF_bw <-read_rds("data/model/gwRF_bw.rds")
 ```
 
-
 ```{r}
 #| eval: false
 gwRF_bw
 ```
-
-
 
 ### Calibrating with grf
 
@@ -453,7 +426,6 @@ write_rds(gwRF_adaptive, "data/model/gwRF_adaptive.rds")
 gwRF_adaptive <- read_rds("data/model/gwRF_adaptive.rds")
 ```
 
-
 ## Predicting by using the test data
 
 ### Preparing the test data
@@ -463,7 +435,6 @@ test_data_nogeom <- cbind(
   test_data, coords_test) %>%
   st_drop_geometry()
 ```
-
 
 ### Predicting with the test data
 
@@ -479,17 +450,13 @@ gwRF_pred <- predict.grf(gwRF_adaptive,
 write_rds(gwRF_pred, "data/model/gwRF_pred.rds")
 ```
 
-
 ```{r}
 gwRF_pred <- read_rds("data/model/gwRF_pred.rds")
 ```
 
-
 ```{r}
 summary(gwRF_pred)
 ```
-
-
 
 ### Creating DF
 
@@ -499,7 +466,6 @@ Next, the code chunk below is used to convert the output from `predict.grf()` in
 GRF_pred_df <- as.data.frame(gwRF_pred)
 ```
 
-
 Then, `cbind()` is used to append fields in GRF_pred_df data.frame onto test_data.
 
 ```{r}
@@ -507,9 +473,7 @@ test_data_pred <- cbind(test_data,
                         GRF_pred_df)
 ```
 
-
 ## Visualising the predicted values
-
 
 ```{r}
 ggplot(data = test_data_pred,
@@ -518,11 +482,6 @@ ggplot(data = test_data_pred,
   geom_point() +
   geom_abline(slope = 1, intercept = 0, col = "red", linetype = 1)
 ```
-
-
-
-
-
 
 ## Reference
 

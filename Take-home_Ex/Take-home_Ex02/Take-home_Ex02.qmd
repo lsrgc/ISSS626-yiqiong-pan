@@ -21,12 +21,12 @@ number-depth: 5
 
 editor: visual
 ---
+
 ::: callout-important
 Running the entire script takes approximately 45 minutes from start to finish.
 :::
 
-
-## Overview 
+## Overview
 
 ### Background and Motivation
 
@@ -78,7 +78,7 @@ pacman::p_load(tidyverse, sf, sfdep, tmap, knitr, kableExtra, DT, rvest, sfdep, 
 ## Getting the Data into R environment
 
 | Data Set | Decription | Format |
-|-------------------|-----------------------------------|-------------------|
+|-------------------|----------------------------------|-------------------|
 | MasterPlan2019SubzoneBoundaryNoSeaKML | The lateset Singapore boundary data in 2019, that we explored in Hands-on Ex 1-2 and in-class Ex01. | KML |
 | BusStop | Quarterly updated bus stop locations from [LTADataMall](https://datamall.lta.gov.sg/content/datamall/en/static-data.html). The version is issued in Aug 2025. | SHP |
 | origin_destination_bus_202508 | The Passenger Volume by Origin–Destination Bus Stops dataset was downloaded from LTA DataMall via API.The file contains monthly trip flow counts per bus stop per hour. The version used in this study is August 2025. For reference, see the [LTA DataMall API User Guide](https://datamall.lta.gov.sg/content/dam/datamall/datasets/LTA_DataMall_API_User_Guide.pdf). | CSV |
@@ -263,6 +263,10 @@ Next, we double-check that the points have been correctly filtered to include on
 ```{r}
 nrow(BusStop_in_SG) -length(unique(BusStop_SG$BUS_STOP_N))  # total rows - unique bus stops
 ```
+```{r}
+write_rds(BusStop_in_SG,"data/rds/BusStop_in_SG.rds")
+```
+
 
 Here we also plot the bus stop map.
 
@@ -378,10 +382,10 @@ The code chunk below shows the distribution of the hexagon layer that four hexgo
 tm_shape(hexagon) +
   tm_fill("HEX_ID")
 ```
+
 ```{r}
 write_rds(hexagon, "data/rds/hexagon.rds")
 ```
-
 
 ### Importing the Attribute Data: Bus Trips
 
@@ -2925,9 +2929,6 @@ Meanwhile, **cold spots** dominate the **edges** (e.g., Tuas, Lim Chu Kang, Mura
 tmap_arrange(lisa_map_wkd, hcsa_map_wkd, asp=1, ncol=2)
 ```
 
-
-
-
 ## Emerging Hot Spots Analysis (EHSA)
 
 **Emerging Hot Spots Analysis** [(EHSA)](https://sfdep.josiahparry.com/articles/understanding-emerging-hotspots) identifies how statistically significant clusters of high values (hot spots) and low values (cold spots) in spatial data evolving over time. Using statistics like **Getis–Ord Gi**, EHSA tests whether these patterns are meaningful or due to random chance. In addition, EHSA integrates time-series trend test **Mann–Kendall test** (MK), to evaluate the presence of **monotonic** temporal trends. [EHSA](https://pro.arcgis.com/en/pro-app/latest/tool-reference/space-time-pattern-mining/learnmoreemerging.htm) further refines these categories into 17 distinct spatio-temporal types (8 pairs).
@@ -2941,7 +2942,7 @@ H1: a monotonic trend exists (consistently increases or decreases).
 In Kendall’s test, value τ (tau) ranges from −1 to +1 (direction = sign; strength = magnitude) and sl is the p-value.
 
 | EHSA Pattern | Definition |
-|-----------------------|------------------------------------------------|
+|------------------------|------------------------------------------------|
 | No pattern detected | applies if Insignificant. |
 | New Hot/Cold Spot | First time a significant hot/cold pot appears, and it’s recent. |
 | Consecutive Hot/Cold Spot | Hot/Cold Spot in each of the last time steps. |
@@ -3735,10 +3736,9 @@ for(i in 1:nrow(locations_pm)) {
 
 Furthermore, during the weekday afternoon peak, we could not reject the null hypothesis that the EHSA-classified significant hexagons do not demonstrate a monotonic trend (upward, flat, or downward) under the Mann–Kendall test at the hourly level.
 
-
 #### Weekend/Holiday Peak
 
-The table below lists the top significant features identified in each EHSA classification during the weekend peak. 
+The table below lists the top significant features identified in each EHSA classification during the weekend peak.
 
 ```{r}
 #| code-fold: true
@@ -3934,16 +3934,14 @@ cityhall %>%
 ```
 :::
 
-
-
 ## Experimental EHSA for the entire operating hours on weekdays and weekends
 
 This section extends the previous EHSA conducted for weekday morning, afternoon, and weekday/holiday peak periods. The operating hours for bus service generally range from 5am to 12.30am the following day. Here, we aim to piece together the EHSA results and experiment with an analysis covering the entire operating hours on both weekdays and weekends/holiday.
 
 ### Creating Space-time Cube
 
-The code chunk below reloads the weekday and weekend `sf` objects that we generated and saved when creating the space–time cube. We then select the required time steps from 5 am to 12 am and relabel them as 1 to 20 so the functions recognise the time series in order.
-#### Weekday
+The code chunk below reloads the weekday and weekend `sf` objects that we generated and saved when creating the space–time cube. We then select the required time steps from 5 am to 12 am and relabel them as 1 to 20 so the functions recognise the time series in order. \#### Weekday
+
 ```{r}
 #| eval: false
 mpsz<- read_rds("data/rds/mpsz.rds")
@@ -3952,7 +3950,6 @@ peak_hex_with_subzone <- read_rds("data/rds/peak_hex_with_subzone.rds")
 weekday4st <- read_rds("data/rds/weekday4st.rds")
 weekend4st <- read_rds("data/rds/weekend4st.rds")
 ```
-
 
 ```{r}
 workday4st <-weekday4st %>% filter(HOUR_OF_DAY %in% c(5:23, 0))
@@ -3968,7 +3965,6 @@ workday_st <-spacetime(workday_st,hexagon,.loc_col= "HEX_ID", .time_col = "HOUR_
 is_spacetime_cube(workday_st)
 write_rds(workday_st, "data/rds/workday_st.rds")
 ```
-
 
 #### Weekend/Holiday
 
@@ -3987,17 +3983,13 @@ is_spacetime_cube(restday_st)
 write_rds(restday_st, "data/rds/restday_st.rds")
 ```
 
-
-
-
 ### Deriving the spatial weights
 
-The same procedures used in the EHSA for each peak period are repeated here, keeping the k-NN parameter at 6 for consistency and comparison. 
+The same procedures used in the EHSA for each peak period are repeated here, keeping the k-NN parameter at 6 for consistency and comparison.
 
 We first use `activate("geometry")` from **dplyr** to activate the geometry context and then apply `mutate()` of **dplyr** to create two new columns, `nb` and `wt` to store the neighbour list and corresponding weights. Afterward, we switch back to the data context and propagate the neighbourhood structure across all time slices using `set_nbs()` and `set_wts()`. It is important to keep the order and not to rearrange the observations after using `set_nbs()` or `set_wts()`.
 
 ::: panel-tabset
-
 #### Weekday
 
 ```{r}
@@ -4035,7 +4027,6 @@ wm_rest <- restday_st %>%
 
 wm_rest$nb
 ```
-
 :::
 
 ### Computing Local Gi\* Statistics
@@ -4043,7 +4034,6 @@ wm_rest$nb
 Local Gi\* (Getis–Ord) identifies statistically significant hot and cold spots by comparing neighbourhood values to the global total, producing Z-scores and p-values. In this section, we perform Gi analysis using [`local_gstar_perm()`](https://sfdep.josiahparry.com/reference/local_gstar) from the **sfdep** package. The code chunk below uses groupb_by() to calculate the Gi\* by hour for each hex location, and flatten out Gi\* statisitc matrix as `gi_star` column and attach to the sf dataset. The permutation test simulates 100 times by specified `nsim=99`.
 
 ::: panel-tabset
-
 #### Weekday
 
 ```{r}
@@ -4231,7 +4221,6 @@ emerging_w <- ehsa_w %>%
 kable(head(emerging_w, 10))
 ```
 
-
 #### Weekend/Holiday
 
 The code chunk below lists the Mann-Kendall results for each hexagon per hour.
@@ -4260,8 +4249,6 @@ kable(head(emerging_r, 10))
 
 Next we will perform EHSA analysis by using [`emerging_hotspot_analysis()`](https://sfdep.josiahparry.com/reference/emerging_hotspot_analysis.html) of **sfdep** package.
 
-
-
 Different from EHSA previously, we set the number of time lags **k = 4**, comparing each period (t) with its 4 previous periods (t–1, t–2, t–3, t–4), since a longer lag helps capture smoother temporal patterns.
 
 Note that we explicitly assign the neighbourhood and weight columns to the arguments `nb_col` and `wt_col` in the [`emerging_hotspot_analysis()`](https://sfdep.josiahparry.com/reference/emerging_hotspot_analysis.html) function to ensure that the k-NN distance-based weights matrix will be correctly applied. By default, the weights matrix is contiguity-based. However, as explained earlier, our analysis focuses on the k-NN method.
@@ -4284,8 +4271,6 @@ ehsa_sim_w <- emerging_hotspot_analysis(
   wt_col ="wt")
 write_rds(ehsa_sim_w, "data/rds/ehsa_sim_w.rds")
 ```
-
-
 
 #### Weekend/Holiday
 
@@ -4320,8 +4305,6 @@ ggplot(data = subset(ehsa_sim_w, p_value < 0.05), # we see the auto-classificati
        aes(x = classification)) +
   geom_bar(fill = "skyblue")
 ```
-
-
 
 #### Weekend/Holiday
 
@@ -4438,7 +4421,6 @@ ehsa_map_w
 
 During weekdays, the complete EHSA results reveal many emerging hotspot patterns in areas such as Rochor, Tampines, Queenstown, Clementi, Marina Centre, Bukit Timah, Bedok, Ang Mo Kio, and Woodlands. These are mostly heartland regions and central business districts where bus trip origins are high. The emerging cold spots are mainly observed in Tuas and Pioneer.
 
-
 #### Weekend/Holiday
 
 During weekends and holidays, we also observe many emerging hotspots in areas such as Jurong and Geylang, while emerging cold spots are clustered mainly on the eastern side of the island. Holand Rd Bukit Timah, which was previously a hotspot, turned into sporadic coldspot during this period.
@@ -4471,7 +4453,6 @@ In the next, a MK trend line will be generated for each HEX_ID in the top perfor
 #### Weekday
 
 The table below lists the top significant features identified in each EHSA classification during the weekend peak.
-
 
 ```{r}
 #| code-fold: true
@@ -4534,17 +4515,15 @@ for(i in 1:nrow(locations_w)) {
 } 
 ```
 
-
 Here we observe that the hexagons at 774 (Tampines East) and 295 (Holland Road), classified as intensifying hotspots and oscillating hotspots respectively, have Mann–Kendall test p-values greater than 0.05, indicating that they are not statistically significant. Therefore, we exclude these cases from further discussion.
 
-The Marina Centre H0545 sporadic hotspot began at a very low point, with Gi* values exceeding 2 (indicating significance) after label 7 (11 am). The trend then fluctuated slightly and increased again after label 15 (7 pm), dropping only slightly after label 18 (around 10 pm) while still maintaining a signficant Gi* value above 3. A similar pattern is observed in the inner-city areas of Little India and Rochor.
+The Marina Centre H0545 sporadic hotspot began at a very low point, with Gi\* values exceeding 2 (indicating significance) after label 7 (11 am). The trend then fluctuated slightly and increased again after label 15 (7 pm), dropping only slightly after label 18 (around 10 pm) while still maintaining a signficant Gi\* value above 3. A similar pattern is observed in the inner-city areas of Little India and Rochor.
 
 In contrast, the persistent hotspot at Kebun Bahr / Ang Mo Kio shows a strong start at label 1 (5 am), rising sharply to label 4 (9 am), followed by a temporary decline before reaching a second peak around label 9 (1 pm), after which it gradually decreases.
 
-
 #### Weekend/Holiday
 
-The table below lists the top significant features identified in each EHSA classification during the weekend peak. 
+The table below lists the top significant features identified in each EHSA classification during the weekend peak.
 
 ```{r}
 #| code-fold: true
@@ -4603,15 +4582,8 @@ for(i in 1:nrow(locations_r)) {
 
 Here we observe that the hexagon at 636 (Aljunied), classified as no pattern detected, has a Mann–Kendall test p-value greater than 0.05, indicating that it is not statistically significant. Also Murai 71, classified as an intensifying hotspot in the Murai Western Water Catchment, could be a classification, as it is located within a water catchment zone. Therefore, we exclude these cases from further discussion.
 
-The sporadic hotspot at Kian Teck (Jurong West) shows a weekend or holiday peak around label 3 (approximately 6–7 am), regaining statistical significance again at label 12 (around 3 pm). The phenomenon is even more evident in the consecutive hotspot at Jurong West Central, which serves as a major transit and community hub. Its trend line starts with a Gi* value of about 1.7 at label 1 (5 am), peaks at label 3 (7 am), drops slightly around label 6 (9 am), and then gradually climbs again towards the end of service hours. After label 7 (10 am), Gi* values remain consistently above 2, confirming its classification as a consecutive hotspot.
-
-
+The sporadic hotspot at Kian Teck (Jurong West) shows a weekend or holiday peak around label 3 (approximately 6–7 am), regaining statistical significance again at label 12 (around 3 pm). The phenomenon is even more evident in the consecutive hotspot at Jurong West Central, which serves as a major transit and community hub. Its trend line starts with a Gi\* value of about 1.7 at label 1 (5 am), peaks at label 3 (7 am), drops slightly around label 6 (9 am), and then gradually climbs again towards the end of service hours. After label 7 (10 am), Gi\* values remain consistently above 2, confirming its classification as a consecutive hotspot.
 :::
-
-
-
-
-
 
 ## Summary
 
@@ -4619,7 +4591,7 @@ In this study, we examine urban mobility patterns in Singapore’s bus services.
 
 Through the global measures, both the Global Moran’s I and Geary’s C confirm statistically significant clustering in trip-origin volumes. Using local measures such as LISA and Gi\*, we identified spatial hot and cold spots as well as outliers. Most hotspots occur in heartland areas during weekday mornings, extending toward both heartland and central zones in the afternoon and weekend/holiday periods. Cold spots appear mainly along the western, northern, and eastern coastal edges. Spatial outliers from LISA often occur adjacent to areas of the opposite category, such as near Jurong or Changi.
 
-From the EHSA results, we gain deeper insights into the temporal behaviour of hotspots and cold spots. While the significant areas generally correspond to those identified in the LISA and Gi* analyses, EHSA further reveals their fluctuations, persistence, and inconsistent temporal patterns in relation to the Mann–Kendall trend lines. In outer-city areas, we observe a strong early-morning decline in the trend lines, suggesting that the actual weekday morning peak may occur earlier than the 6 am window. During weekdays, the afternoon peak gradually shifts from residential heartlands toward the central area. Additionally, outer-city towns exhibit a strong upward Mann–Kendall trend during weekend mornings, whereas the city centre shows a downward trend after the peak in weekend afternoons.
+From the EHSA results, we gain deeper insights into the temporal behaviour of hotspots and cold spots. While the significant areas generally correspond to those identified in the LISA and Gi\* analyses, EHSA further reveals their fluctuations, persistence, and inconsistent temporal patterns in relation to the Mann–Kendall trend lines. In outer-city areas, we observe a strong early-morning decline in the trend lines, suggesting that the actual weekday morning peak may occur earlier than the 6 am window. During weekdays, the afternoon peak gradually shifts from residential heartlands toward the central area. Additionally, outer-city towns exhibit a strong upward Mann–Kendall trend during weekend mornings, whereas the city centre shows a downward trend after the peak in weekend afternoons.
 
 ## Limitation and Further Work
 
