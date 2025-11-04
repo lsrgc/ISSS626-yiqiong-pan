@@ -96,6 +96,7 @@ The code chunk below uses `st_read()` of **sf** package to import the three ERSI
 ```{r}
 mpsz <- st_read(dsn = "data/geospatial", layer = "MP14_SUBZONE_NO_SEA_PL")
 ```
+
 ```{r}
 hexagons <- st_read(dsn = "data/geospatial", layer = "hexagons") 
 ```
@@ -103,8 +104,8 @@ hexagons <- st_read(dsn = "data/geospatial", layer = "hexagons")
 ```{r}
 eldercare <- st_read(dsn = "data/geospatial", layer = "ELDERCARE") 
 ```
-The import reports reveal the geometry type of each file, and improtant information like dimension and projected CRS. We notice `mpsz` file does not have proper "SVY21/ Singapore TM". 
 
+The import reports reveal the geometry type of each file, and improtant information like dimension and projected CRS. We notice `mpsz` file does not have proper "SVY21/ Singapore TM".
 
 ### Updating CRS Information
 
@@ -116,10 +117,12 @@ eldercare <- st_transform(eldercare, 3414)
 hexagons <- st_transform(hexagons, 3414)
 ```
 
-Then we can verify the update via calling `st_crs()` of **sf** package. The EPSG has been updated accordingly. 
+Then we can verify the update via calling `st_crs()` of **sf** package. The EPSG has been updated accordingly.
+
 ```{r}
 st_crs(mpsz)
 ```
+
 Next we quickly plot two maps for hexagons and eldercare centers in Singapore.
 
 ```{r}
@@ -135,8 +138,6 @@ tm_shape(hexagons) +
               border.col = "darkblue") +
   tm_title("Hexagonal Grid")
 ```
-
-
 
 ### Cleaning and Updating Attribute fields of the Geospatial Data
 
@@ -156,7 +157,6 @@ hexagons <- hexagons %>%
   mutate(demand = 100)
 ```
 
-
 ## Apsaital Data Handling and Wrangling
 
 ### Importing Distance Matrix
@@ -166,7 +166,6 @@ The code chunk below uses `read_cvs()` of **readr** package to import the matrix
 ```{r}
 ODMatrix <- read_csv("data/aspatial/OD_Matrix.csv", skip = 0)
 ```
-
 
 ### Tidying Distance Matrix
 
@@ -193,35 +192,33 @@ Next, we rescale the distance values from metres to kilometres. `as.matrix()` is
 distmat_km <- as.matrix(distmat/1000)
 ```
 
-
 ## ac() in the SpatialAcc Package
 
 ac() computes spatial accessibility of demand locations (e.g., residential areas) to service locations (e.g., eldercare centres). It implements several well-known measures:
 
-- "Hansen":Hansen gravity-type accessibility
+-   "Hansen":Hansen gravity-type accessibility
 
-- "KD2SFCA": Kernel/Downgraded 2SFCA (distance-decay)
+-   "KD2SFCA": Kernel/Downgraded 2SFCA (distance-decay)
 
-- "SAM": Spatial Accessibility Measure
+-   "SAM": Spatial Accessibility Measure
 
 **Usage**:
 
-- ac(p, n, D, d0, power=2, family="SAM")
-
+-   ac(p, n, D, d0, power=2, family="SAM")
 
 **Arguments**:
 
-- p: numeric vector of demand at each origin (e.g., number of senior residents per hexagon).
+-   p: numeric vector of demand at each origin (e.g., number of senior residents per hexagon).
 
-- n: numeric vector of supply at each destination (e.g., number of beds per eldercare centre).
+-   n: numeric vector of supply at each destination (e.g., number of beds per eldercare centre).
 
-- D: distance or time matrix separating origins (rows) from destinations (columns). Prefer road-network distance or travel time.
+-   D: distance or time matrix separating origins (rows) from destinations (columns). Prefer road-network distance or travel time.
 
-- d0: catchment threshold (distance/time) defining which OD pairs “count”.
+-   d0: catchment threshold (distance/time) defining which OD pairs “count”.
 
-- power: distance-decay exponent (commonly 2 in gravity models).
+-   power: distance-decay exponent (commonly 2 in gravity models).
 
-- family: which accessibility method to compute: "SAM", "2SFCA", "KD2SFCA", or "Hansen" (default "SAM").
+-   family: which accessibility method to compute: "SAM", "2SFCA", "KD2SFCA", or "Hansen" (default "SAM").
 
 All four methods are **gravity-based** accessibility measures where accessibility **improves** with greater service capacity and proximity, and **decreases** with distance and population demand due to competition for limited resources.
 
@@ -229,12 +226,9 @@ All four methods are **gravity-based** accessibility measures where accessibilit
 
 A numeric vector of accessibility scores for each origin (length = length(p)).
 
-
 ## Modelling and Visualising Accessibility using Hansen Method
 
 The code chunk below uses `ac()` to compute the Hansen’s accessibility and saves the output in a data frame by using data.frame().
-
-
 
 ```{r}
 acc_Hansen <- data.frame(ac(hexagons$demand,
@@ -244,7 +238,6 @@ acc_Hansen <- data.frame(ac(hexagons$demand,
                             family = "Hansen"))
 ```
 
-
 Let's have a quick review on the Hansen accessibility measure, after rename the column name to `accHansen`.
 
 ```{r}
@@ -252,11 +245,11 @@ colnames(acc_Hansen) <- "accHansen"
 ```
 
 We convert the data table into tibble format by using the code chunk below.
+
 ```{r}
 acc_Hansen <- acc_Hansen %>%
   as_tibble()
 ```
-
 
 ```{r}
 knitr::kable(head(acc_Hansen, 10), 
@@ -270,7 +263,6 @@ Lastly, we join the `acc_Hansen` `tibble` with the `hexagon` `sf` data frame usi
 hexagon_Hansen <- bind_cols(hexagons, acc_Hansen)
 ```
 
-
 ```{r}
 knitr::kable(head(hexagon_Hansen,10),
              align = "c",
@@ -283,15 +275,11 @@ knitr::kable(head(hexagon_Hansen,10),
 
 First, we extract the extent of the hexagon sf layer using `st_bbox()` of sf package.
 
-
 ```{r}
 mapex <- st_bbox(hexagons)
 ```
 
-
-
 Next, we create a choropleth map with the **tmap** package to visualise eldercare service accessibility across Singapore.
-
 
 ```{r}
 tm_shape(hexagon_Hansen,
@@ -316,7 +304,6 @@ The map indicates that accessibility is highest in areas with clusters of elderc
 
 ### Statistical Graphic Visualisation
 
-
 Next, we create a choropleth map with the **tmap** package to visualise eldercare service accessibility across Singapore.
 
 In this section, we compare the distribution of Hansen accessiblity scores across URA Planning regions. To do so, we first append the main dataset `mpsz` to the `hexagon_Hansen` `sf` data frame using `st_join()`.
@@ -326,6 +313,7 @@ hexagon_Hansen <- st_join(hexagon_Hansen, mpsz, join= st_intersects)
 ```
 
 Then we use `ggplot()`, `geom_boxplot()` and `stat_summary()` , to create boxplots for each region and display the mean accessibility value.
+
 ```{r}
 ggplot(data=hexagon_Hansen, 
        aes(y = log(accHansen), x= REGION_N)) +
@@ -333,7 +321,7 @@ ggplot(data=hexagon_Hansen,
   stat_summary(fun="mean", colour ="red", size=0.5)
 ```
 
-The boxplots of Hansen’s accessibility show that the Central Region has the highest average level of accessibility, followed by the North-East Region. In contrast, the West Region records the lowest average accessibility. The East Region displays the largest variability, as indicated by its long lower whiskers, suggesting uneven access to eldercare services across the region, possibly influenced by extensive non-residential areas, the airport. 
+The boxplots of Hansen’s accessibility show that the Central Region has the highest average level of accessibility, followed by the North-East Region. In contrast, the West Region records the lowest average accessibility. The East Region displays the largest variability, as indicated by its long lower whiskers, suggesting uneven access to eldercare services across the region, possibly influenced by extensive non-residential areas, the airport.
 
 The average Hansen accessibility scores rank the regions from highest to lowest as follows: Central, North-East, North, East, and West.
 
@@ -356,13 +344,14 @@ acc_KD2SFCA <- as_tibble(acc_KD2SFCA)
 hexagon_KD2SFCA <- bind_cols(hexagons, acc_KD2SFCA)
 ```
 
-The d0 = 5 parameter in the ac() function represents the bandwidth or search radius in kilometers. 
+The d0 = 5 parameter in the ac() function represents the bandwidth or search radius in kilometers.
 
 5 means the maximum distance within which eldercare facilities can serve the people in the hexagon area.
 
 If beyond 5km, accessibility becomes zero.
 
-The code chunk below displays the data frame `hexagon_KD2SFCA` that shows the eldercare service accessibility per hexagon. 
+The code chunk below displays the data frame `hexagon_KD2SFCA` that shows the eldercare service accessibility per hexagon.
+
 ```{r}
 knitr::kable(head(hexagon_KD2SFCA, 10),
             format = "pandoc")
@@ -371,6 +360,7 @@ knitr::kable(head(hexagon_KD2SFCA, 10),
 17.7.2 Visualising KD2SFCA’s Accessibility
 
 We reuse the hexagon extent and create a high cartographic quality map for accessibility to eldercare centres in Singapore.
+
 ```{r}
 tm_shape(hexagon_KD2SFCA,
          bbox = mapex) + 
@@ -400,18 +390,16 @@ In this section, we compare the distribution of KD2SFCA accessiblity scores acro
 hexagon_KD2SFCA <- st_join(hexagon_KD2SFCA, mpsz, join = st_intersects)
 ```
 
-
-
 Then we use `ggplot()`, `geom_boxplot()` and `stat_summary()` , to create boxplots for each region and display the mean accessibility value.
+
 ```{r}
 ggplot(data=hexagon_KD2SFCA, 
        aes(y = log(accKD2SFCA), x= REGION_N)) +
   geom_boxplot() +
   stat_summary(fun="mean", colour ="red", size=0.5)
 ```
+
 The boxplot for the KD2SFCA method shows that the average accessibility scores, from highest to lowest, are ranked as follows: Central, North-East, West, East, and North.
-
-
 
 ## Modelling and Visualising Accessibility using Spatial Accessibility Measure (SAM) Method
 
@@ -437,13 +425,12 @@ knitr::kable(head(hexagon_SAM, 10),
             format = "markdown")
 ```
 
-###  Visualising SAM’s Accessibility
+### Visualising SAM’s Accessibility
 
-Similarly we plot the choropleth map for SAM's accessibility. 
+Similarly we plot the choropleth map for SAM's accessibility.
 
-```{r}
-ttm()
-```
+
+
 ```{r}
 tm_shape(hexagon_SAM,
          bbox = mapex) + 
@@ -463,10 +450,6 @@ tm_shape(eldercare) +
   tm_grid(alpha = 0.2)
 ```
 
-```{r}
-tmap_mode("plot")
-```
-
 
 The SAM map displays a spatial pattern very similar to the Hansen results. However, the SAM values are much more interpretable, instead of many zero values and long decimal numbers, the scores range from approximately 0.1 to 740, making the scale more user-friendly.
 
@@ -478,8 +461,8 @@ In this section, we compare the distribution of SAM accessiblity scores across U
 hexagon_SAM <- st_join(hexagon_SAM, mpsz, join = st_intersects)
 ```
 
-
 Then we use `ggplot()`, `geom_boxplot()` and `stat_summary()` , to create boxplots for each region and display the mean accessibility value.
+
 ```{r}
 ggplot(data=hexagon_SAM, 
        aes(y = log(accSAM), x= REGION_N)) +
@@ -487,12 +470,9 @@ ggplot(data=hexagon_SAM,
   stat_summary(fun="mean", colour ="red", size=0.5)
 ```
 
-SAM accessibility ranking (from highest to lowest) (consistent with Hansen):
-Central > North-East > North > East > West
+SAM accessibility ranking (from highest to lowest) (consistent with Hansen): Central \> North-East \> North \> East \> West
 
 The Central Region contains two notable outliers, Crawford and Lavender from Kallang subzone, with SAM accessibility scores of approximately 740, far exceeding values observed elsewhere.
-
-
 
 ## Reference
 
