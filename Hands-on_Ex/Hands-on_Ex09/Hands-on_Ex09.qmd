@@ -470,7 +470,7 @@ ggplot(data=hexagon_SAM,
   stat_summary(fun="mean", colour ="red", size=0.5)
 ```
 
-SAM accessibility ranking (from highest to lowest) (consistent with Hansen): Central \> North-East \> North \> East \> West
+SAM accessibility ranking (from highest to lowest) (consistent with Hansen): Central,North-East, North, East and West.
 
 The Central Region contains two notable outliers, Crawford and Lavender from Kallang subzone, with SAM accessibility scores of approximately 740, far exceeding values observed elsewhere.
 
