@@ -429,9 +429,8 @@ knitr::kable(head(hexagon_SAM, 10),
 
 Similarly we plot the choropleth map for SAM's accessibility.
 
-
-
 ```{r}
+#| eval: false
 tm_shape(hexagon_SAM,
          bbox = mapex) + 
   tm_polygons(fill = "accSAM", 
@@ -450,8 +449,9 @@ tm_shape(eldercare) +
   tm_grid(alpha = 0.2)
 ```
 
+![](img/sammap.png)
 
-The SAM map displays a spatial pattern very similar to the Hansen results. However, the SAM values are much more interpretable, instead of many zero values and long decimal numbers, the scores range from approximately 0.1 to 740, making the scale more user-friendly.
+![]()The SAM map displays a spatial pattern very similar to the Hansen results. However, the SAM values are much more interpretable, instead of many zero values and long decimal numbers, the scores range from approximately 0.1 to 740, making the scale more user-friendly.
 
 ### Statistical Graphic Visualisation
 
@@ -464,13 +464,14 @@ hexagon_SAM <- st_join(hexagon_SAM, mpsz, join = st_intersects)
 Then we use `ggplot()`, `geom_boxplot()` and `stat_summary()` , to create boxplots for each region and display the mean accessibility value.
 
 ```{r}
+#| eval: false
 ggplot(data=hexagon_SAM, 
        aes(y = log(accSAM), x= REGION_N)) +
   geom_boxplot() +
   stat_summary(fun="mean", colour ="red", size=0.5)
 ```
 
-SAM accessibility ranking (from highest to lowest) (consistent with Hansen): Central,North-East, North, East and West.
+![](img/sambp.png)SAM accessibility ranking (from highest to lowest) (consistent with Hansen): Central,North-East, North, East and West.
 
 The Central Region contains two notable outliers, Crawford and Lavender from Kallang subzone, with SAM accessibility scores of approximately 740, far exceeding values observed elsewhere.
 
