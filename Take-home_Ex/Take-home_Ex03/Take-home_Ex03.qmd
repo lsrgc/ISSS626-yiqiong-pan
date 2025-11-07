@@ -3392,7 +3392,7 @@ The log-GWR model achieves an R^2^ of 0.96, indicating that it could explain 96 
 
 We also experimented with the SpatialSF Random Forest method, which produces a slightly higher R^2^ but limited explanatory insight compared to the GWR framework.
 
-However, several limitations remain in the modelling process, even though the overall model fit (R^2^) is very high. In this study, we primarily used the `gwr.basic()` function, which does not include the `f123.test` that are commonly used to evaluate whether GWR provides a significantly better fit than a global regression model. These tests were omitted mainly due to computational cost considerations. Although the `gwr.robust()` function can provide p-values for hypothesis testing and handle outliers more effectively by smoothing coefficient estimates, its results shows similar R\^2 values and comparable AICc improvements. Therefore, the `gwr.basic()` results were retained for consistency in this study.
+However, several limitations remain in the modelling process, even though the overall model fit (R^2^) is very high. In this study, we primarily used the `gwr.basic()` function, which does not include the `f123.test` that are commonly used to evaluate whether GWR provides a significantly better fit than a global regression model. These tests were omitted mainly due to computational cost considerations. Although the `gwr.robust()` function can provide p-values for hypothesis testing and handle outliers more effectively by smoothing coefficient estimates, its results shows similar R^2^ values and comparable AICc improvements. Therefore, the `gwr.basic()` results were retained for consistency in this study.
 
 Additionally, the hedonic model itself does not capture external market factors such as tax policies, housing regulations, or private property market dynamics, all of which may influence HDB resale prices. Furthermore, ongoing urban redevelopment and new town expansions may account for the lower local R^2^ values observed in several North-East and East regions. Finally, the model assumes a linear relationship between explanatory variables and prices. Future research could address these gaps by adopting non-linear or hybrid spatial models, for example, machine learning or spatial econometric approaches to better capture the complex, non-linear behaviours of housing markets and their spatial dependencies.
 
@@ -3400,9 +3400,12 @@ Overall, the findings provide valuable insights into current HDB resale price de
 
 ## Reference
 
-Lim, A. (2025, February 24). 13+ housing & household statistics in Singapore (2025). SmartWealth Singapore. https://smartwealth.sg/housing-household-statistics-singapore/ Sia, M. 5 HDB estates with explosive resale price growth in 2025. Uchify. https://uchify.com/hdb-estates-resale-price-growth-2025/
+Lim, A. (2025, February 24). 13+ housing & household statistics in Singapore (2025). SmartWealth Singapore. https://smartwealth.sg/housing-household-statistics-singapore/ 
+Sia, M. 5 HDB estates with explosive resale price growth in 2025. Uchify. https://uchify.com/hdb-estates-resale-price-growth-2025/
 
-Lim, J. (2025, October 24). HDB resale price growth in Q3 slows; private home prices driven by new launches. The Straits Times. Retrieved from https://www.straitstimes.com/singapore/hdb-resale-price-growth-in-q3-near-5-year-low-private-home-prices-driven-by-new-launches Brunsdon, C., Fotheringham, A. S., & Charlton, M. E. (1996). Geographically Weighted Regression: A Method for Exploring Spatial Nonstationarity. Geographical Analysis, 28(4), 281–298.
+Lim, J. (2025, October 24). HDB resale price growth in Q3 slows; private home prices driven by new launches. The Straits Times. Retrieved from https://www.straitstimes.com/singapore/hdb-resale-price-growth-in-q3-near-5-year-low-private-home-prices-driven-by-new-launches 
+
+Brunsdon, C., Fotheringham, A. S., & Charlton, M. E. (1996). Geographically Weighted Regression: A Method for Exploring Spatial Nonstationarity. Geographical Analysis, 28(4), 281–298.
 
 Mennis, J. (2006). Mapping the Results of Geographically Weighted Regression. The Cartographic Journal, 43(2), 171–179.
 
@@ -3420,4 +3423,4 @@ Mennis, Jeremy (2006) “Mapping the Results of Geographically Weighted Regressi
 
 Stephen A. Matthews ; Tse-Chuan Yang (2012) “Mapping the results of local statistics: Using geographically weighted regression”, Demographic Research, Vol.26, p.151-166.
 
-Blas Benito. (2025). spatialRF (v3.0.0) \[Computer software\]. GitHub. https://github.com/BlasBenito/spatialRF
+Blas Benito. (2025). spatialRF. GitHub. https://github.com/BlasBenito/spatialRF
