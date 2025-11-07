@@ -17,7 +17,7 @@ format:
     code-link: true
 
 number-sections: true
-number-depth: 5
+number-depth: 6
 
 editor: visual
 ---
@@ -36,9 +36,17 @@ In recent years, strong demand for housing upgrades and a limited supply of rela
 
 Given these evolving market dynamics, this study aims to develop a hedonic pricing model for HDB resale prices in Singapore using Geographically Weighted Models to more effectively capture spatial variations and identify the key factors influencing housing values across the island.
 
+## Literature Review
+
+Early housing studies relied on global regression models, assuming that the relationship between housing prices and their determinants was spatially uniform. Using this classical approach, Xu (2017) applied a hedonic pricing model to Singapore’s HDB resale market from 2000 to 2016, identifying the importance of structural and locational factors such as flat size, age, and proximity to MRT stations in explaining price variation. Similarly, Chia, Li, and Tang (2017) developed a dynamic general equilibrium model linking Singapore’s public and private housing markets, finding that economic fundamentals, especially demographics and income growth, accounted for nearly 50% of public and over 80% of private housing price increases. These non-spatial approaches, while informative, assumed constant parameter effects across space and could not capture spatial non-stationarity inherent in housing markets.
+
+To address these limitations, Brunsdon, Fotheringham, and Charlton (1996) introduced Geographically Weighted Regression (GWR), a spatially local extension of ordinary least squares that allows regression coefficients to vary by location. This innovation made it possible to identify local variations in housing price determinants across geographic space. More recent research has extended spatial modelling to Singapore’s housing market. Wang et al. (2022) incorporated taxi travel time as a spatial weighting mechanism within a GWR framework, demonstrating superior performance over conventional Euclidean-distance models in capturing spatial price variation. Meanwhile, policy studies such as Phang (2015) contextualised these empirical advances by tracing the evolution of Singapore’s state-led housing policies, linking economic transitions and planning strategies to housing affordability and ownership stability.
+
+Together, these studies illustrate a clear methodological progression, from global, non-spatial hedonic models to local, spatially adaptive approaches that better capture heterogeneity in housing market behaviour. Building upon this foundation, this study applies a log-transformed GWR model to analyse HDB 4-room resale prices (Jan–Sep 2025), combining structural and locational attributes to explain spatial variations across Singapore’s public housing landscape.
+
 ## Independent Variables for the Hedonic Pricing Model
 
-This study focuses on four room HDB flats, as they represent the most frequently transacted flat type in Singapore. Developing a hedonic pricing model requires careful selection of both intrinsic and environmental factors that influence resale prices. By incorporating these factors, the model aims to better capture spatial variations and identify the key determinants of housing values across Singapore.
+Developing a hedonic pricing model requires careful selection of both intrinsic and environmental factors that influence resale prices. By incorporating these factors, the model aims to better capture spatial variations and identify the key determinants of housing values across Singapore.
 
 The independent variables considered in this study include both structural and locational attributes. Additional relevant factors that may enhance the model’s accuracy are also included.
 
@@ -87,8 +95,6 @@ The independent variables considered in this study include both structural and l
 -   Number to CHAS clinics within 350 metres (new).
 
 -   Number of primary schools within 1 kilometre.
-
-
 
 ## Getting Started
 
@@ -146,9 +152,11 @@ The study integrates both **aspatial** and **geospatial** datasets to model HDB 
 
 ### Installing and Loading R packages
 
+::: panel-tabset
+
 #### Package Description
 
-There are **10** packages used in this exercise.
+This analysis utilises **23** R packages in total.
 
 +-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Package                                                                                               | Description                                                                                                                                                                                                                                  |
@@ -193,19 +201,33 @@ There are **10** packages used in this exercise.
 +-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | [ggstatsplot](https://indrajeetpatil.github.io/ggstatsplot/)                                          | An extension of the ggplot2 package that allows statistical test results to be displayed within the plots, making the visualisations more informative and data-driven                                                                        |
 +-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [spatialRF](https://cran.r-project.org/web/packages/spatialRF/index.html)                             | Spatial features selection for Random Forest spatial regression.                                                                                                                                                                             |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [gt](https://gt.rstudio.com/)                                                                         | Creates polished, customisable tables for reporting and visualisation                                                                                                                                                                        |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [randomForestExplainer](https://cran.r-project.org/web/packages/randomForestExplainer/index.html)     | Interpreting Random Forests through variable Importance                                                                                                                                                                                      |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
 #### The Code
 
+The following code installs and initialises the necessary R packages for this analysis.
+
 ```{r}
-pacman::p_load(olsrr, GWmodel, corrplot, sf, tidyverse, tmap, ggpubr, gtsummary, performance, RColorBrewer, sfdep, httr, jsonlite, knitr, kableExtra, DT, progress, rvest, plotly, ggstatsplot, ranger, SpatialML, spatialRF, randomForestExplainer)
+pacman::p_load(olsrr, GWmodel, corrplot, sf, tidyverse, tmap, ggpubr, gtsummary, performance, RColorBrewer, sfdep, httr, jsonlite, knitr, kableExtra, DT, progress, rvest, plotly, ggstatsplot,spatialRF, gt, randomForestExplainer)
 ```
+:::
 
 ## Importing Data into R Environment
 
 ### HDB Resale Dataset
 
+HDB resale information is publicly available through the Singapore Government’s open data portal. Detailed transaction records are accessible dating back to the 1990s. For this study, we utlise the dataset “Resale flat prices based on registration date from Jan-2017 onwards”, which provides resale transactions from January 2017 to the present.
+
 #### Import and Extraction
 
-We first import the dataset `HDBresale.csv`, which was downloaded from [data.gov.sg](data.gov.sg) on 25 October 2025 . The original dataset contains resale transactions from January 2017. For this study, we focus on 4-room transactions between January 2025 and September 2025 (inclusive). After filtering, we obtained 8,679 transaction records from 4,800 HDB blocks. We treat all 4-room transactions during the past nine months as potential comparable sales. Using the adaptive bandwidth approach, GWR dynamically determines the number of nearby transactions to include when estimating local coefficients. This ensures that each transaction’s model is calibrated with spatially relevant comparable sales while accounting for variations in housing density across regions.
+We first import the dataset `HDBresale.csv`, downloaded from [data.gov.sg](data.gov.sg) on 25 October 2025. For this study, we focus specifically on **4-room** transactions between **January 2025 and September 2025 (inclusive)**. After filtering, we obtain **8,679** transactions from **4,148** HDB blocks. These 4-room transactions over the last nine months are treated as potential comparable sales for analysis.
+
+The code chunk below extracts transactions within this study period.
 
 ```{r}
 HDBresale_all <- read_csv(
@@ -213,44 +235,56 @@ HDBresale_all <- read_csv(
   filter(month >= "2025-01" & month < "2025-10")
 ```
 
-Here is a quick overview of the 11 columns in the HDB resale dataset.
-
-`month` indicates the transaction date in the format *YYYY/MM*.
-
-`town` refers to the planning area.
-
-`flat_type` includes categories such as 2-room, 3-room, 4-room, etc., and we will extract only 4-room transactions for this study.
-
-`block` and `street_name` describe the property’s location, which can be used to retrieve geometric information (X and Y coordinates) from **OneMap**.
-
-`storey_range` represents the floor range in text format (e.g., “04 TO 06”). We convert this into a discrete numerical value by taking the midpoint (e.g., 5 for “04 TO 06”).
-
-`floor_area_sqm` is the size of the property in square metres.
-
-`flat_model` denotes the layout and design type of the flat. As these evolve over time and have limited predictive value, we exclude this variable from the model.
-
-`lease_commence_date` indicates the year the property obtained its Temporary Occupation Permit (TOP), which is similar in meaning to `remaining_lease`, expressed as text such as “53 years 1 month”. We use the `remaining_lease` field to calculate both the property’s age (in months) and its remaining lease. Given that the standard HDB lease term is 99 years, we first extract the number of years and months from the text, convert it into total months, and then subtract it from 99 years to derive the property’s age at the time of the transaction.
-
-Finally, `resale_price` is our **target variable**.
+The code chunk below provides an overview of the columns in the dataset.
 
 ```{r}
 glimpse(HDBresale_all)
 ```
+
+The dataset consists of 11 columns in total, which are:
+
+-   `month` indicates the transaction date in the format *YYYY/MM*.
+
+-   `town` refers to the planning area.
+
+-   `flat_type` includes categories such as 2-room, 3-room, 4-room, etc., and we will extract only 4-room transactions for this study.
+
+-   `block` and `street_name` describe the property’s location, which can be used to retrieve geometric information (X and Y coordinates) from **OneMap**.
+
+-   `storey_range` represents the floor range in text format (e.g., “04 TO 06”).
+
+-   `floor_area_sqm` is the size of the property in square metres.
+
+-   `flat_model` denotes the layout and design type of the flat. As these evolve over time and have limited explanatory value, we exclude this variable from the model.
+
+-   `lease_commence_date` indicates the year the property obtained its Temporary Occupation Permit (TOP), which is similar in meaning to `remaining_lease`, expressed as text such as “53 years 1 month”.
+
+-   Finally, `resale_price` is our **target variable**.
+
+From the statistic report below, we observe 20,076 transactions across all flat types for the period from January 2025 to September 2025. The median resale price is approximately \$650,000, with a range of \$250,000 to \$1.65 million. The median year of TOP year is 1998, making the flats around 27 years old on average. The median floor area is 93 sqm.
+
+```{r}
+summary(HDBresale_all)
+```
+
+The following code filters the dataset to include only **4-room** flat transactions.
 
 ```{r}
 HDBresale <- HDBresale_all %>%
   filter(flat_type == "4 ROOM")
 ```
 
-Here, we create a preview table of the extracted transactions.
+In this step, we present a preview table of the filtered 4-room transactions. Since GWR modelling requires spatial coordinates, we must ensure each transaction includes its geographic information. Therefore, we assign latitude and longitude values to each property in the next.
 
 ```{r}
-kable(head(HDBresale,10), caption = "Preview of 4-Room HDB Resale Transactions")
+kable(head(HDBresale,10), caption = "Preview of 4-Room HDB Resale Transactions", align = "c")
 ```
 
-#### Geocoding
+#### Geocoding HDB Properties
 
-Next, the `block` and `streetname` attributes are used to retrieve the geographic coordinates from the OneMap API. Prior to this, abbreviations "ST." are standardised to "SAINT" in the `streetname` field to avoid potential mismatches or errors during the coordinate retrieval process. `gsub(a, b, col)` from base R is used to replace all of the occurrences of `a` to `b` in the `col`.
+In this section, The `block` and `streetname` attributes are used to retrieve the geographic coordinates from the OneMap API. Prior to this, abbreviations "ST." are standardised to "SAINT" in the `streetname` field to avoid potential mismatches or errors during the coordinate retrieval process.
+
+The code chunk below uses `gsub(a, b, col)` from base R to replace all of the occurrences of `ST.` to `SAINT` in the column `street_name`.
 
 ```{r}
 #| eval: false
@@ -259,7 +293,7 @@ HDBresale$street_name <- gsub(
   HDBresale$street_name)
 ```
 
-Then we create a function called `geocode`, which uses the `GET()` function from the **httr** package to make HTTP requests to the OneMap API. and `fromJSON()` from **jsonlite** package to parse the returned JSON data.
+Next the function called `geocode` is created, which uses the `GET()` function from the **httr** package to send HTTP requests to the OneMap API, and `fromJSON()` from **jsonlite** package to parse the returned JSON data.
 
 ```{r}
 #| eval: false
@@ -300,7 +334,7 @@ for (i in 1:nrow(HDBresale)) {
 }
 ```
 
-As a data validation step, we perform a sanity check by filtering the dataset to detect any missing or zero values in the `LATITUDE` and `LONGITUDE` fields. After ensuring data completeness, the `HDBresale` tibble is converted into an `sf` object to enable spatial analysis.
+As the retrieved LATITUDE and LONGITUDE values are in EPSG:4326 (WGS84), we reproject them to EPSG:3414, a Singapore-specific projected coordinate reference system that enables accurate distance calculations. Following the transformation, the `HDBresale` tibble is converted to an `sf` object and stored for further analysis.
 
 ```{r}
 #| eval: false
@@ -316,7 +350,7 @@ write_rds(HDBresale_sf, "data/geospatial/HDBresale_sf.rds")
 HDBresale_sf <- read_rds("data/geospatial/HDBresale_sf.rds")
 ```
 
-A total of 8,679 4-room resale transactions were recorded between January 2025 and September 2025. The median resale price was approximately \$630,000, ranging from \$300,000 to \$1.518 million.
+The code below conducts a validation check and generates summary statistics for the filtered 4-room dataset. Between January 2025 and September 2025, 8,679 4-room HDB resale transactions were observed. The median resale price is \$630,000 (range: \$300,000–\$1.518 million). The median age of the flats is about 22 years, and the mean floor area is 93 sqm. Four-room flats represent the majority of the HDB resale market in Singapore, which is why they are selected as the focus of this study.
 
 ```{r}
 unique(HDBresale_sf$month)
@@ -330,27 +364,26 @@ unique(HDBresale_sf$flat_type)
 nrow(HDBresale_sf)
 ```
 
-The code chunk below reveals the summary statistics for each field. 
 ```{r}
 summary(HDBresale_sf)
 ```
 
-### Importing Singpore Master Plan Subzone 2019
+### Singpore Master Plan Subzone 2019
 
-We reused the previously created dataset from *Take-Home Exercise 02* which is Master Plan 2019 Subzone Boundary (No Sea) in KML format. The detailed processing steps can be found in [here](https://isss626-ypan.netlify.app/take-home_ex/take-home_ex02/take-home_ex02#importing-the-geospatial-ploygon-data-master-plan-2019-subzone).
+The Singapore Master Plan Subzone 2019 dataset is required for spatial visualisation and analysis in this study. We reuse the Master Plan 2019 Subzone Boundary (No Sea) layer created in *Take-Home Exercise 02*. The detailed processing steps for importing and preparing this dataset can be found [here](https://isss626-ypan.netlify.app/take-home_ex/take-home_ex02/take-home_ex02#importing-the-geospatial-ploygon-data-master-plan-2019-subzone).
 
 ```{r}
 #Load pre-processed data
 mpsz <- read_rds("data/rds/mpsz.rds")
 ```
 
-The `mpsz `sf` data frame contains the attributes `REGION_N`, `PLN_AREA_N`, `SUBZONE_N`, and the corresponding `geometry` information, represented in the projected coordinate reference system SVY21 (EPSG:3414) with XY dimensions.
+The mpsz sf data frame contains the administrative attributes `REGION_N`, `PLN_AREA_N`, and `SUBZONE_N`, along with the corresponding `geometry` column, which stores **MULTIPOLYGON** features. The dataset is projected in the Singapore SVY21 coordinate reference system (EPSG:3414) using XY coordinates.
 
 ```{r}
 mpsz
 ```
 
-Here we have a quick look at the imported map.
+We generate a quick visual preview of the imported subzone map to confirm that the spatial layer has been loaded and displayed correctly.
 
 ```{r}
 #| code-fold: true
@@ -370,16 +403,15 @@ tm_shape(mpsz) +
 
 ### Structural Factor MUP/HIP
 
-The internal condition of a flat is one of the key factors influencing its valuation. Although it is difficult to obtain detailed renovation histories for individual units, we use the HDB upgrading programmes, the Main Upgrading Programme (MUP) and the Home Improvement Programme (HIP), as proxies to incorporate flat condition into the model.
+The internal condition of a flat is one of the key factors influencing its valuation. While detailed renovation histories at the unit level are not publicly available, we incorporate flat condition into the model using HDB’s upgrading programmes, specifically, the Main Upgrading Programme (MUP) and the Home Improvement Programme (HIP), as proxy indicators.
 
+The **MUP**, introduced in the 1990s, focused on upgrading older HDB blocks, flats, and neighbourhood facilities. It was progressively phased out and replaced by the **HIP** in 2007, with all MUP projects completed by 2012. The **HIP** continues to provide essential upgrading works to flats that are approximately 30 years old. Under both schemes, the government subsidises the majority of upgrading costs, with flat owners contributing roughly 5%.
 
-The Main Upgrading Programme (MUP) was introduced in the 1990s to improve existing HDB flats, blocks, and neighbourhoods. The programme was gradually phased out and replaced by the Home Improvement Programme (HIP) in 2007, with all MUP projects completed by 2012.
+Other initiatives, such as the Neighbourhood Renewal Programme (NRP) and the Lift Upgrading Programme (LUP), have operated alongside HIP. Most blocks that underwent HIP also benefited from either LUP or NRP. However, for simplicity and relevance to internal flat condition, this study focuses only on **MUP** and **HIP**.
 
-The HIP continues to provide essential renovations to individual flats that are about 30 years old. Under both programmes, the government bears the majority of the cost, with flat owners responsible for only about 5% of the total expenses.
+Since no consolidated dataset is publicly available, we manually compiled the MUP and HIP status for each block. We began by identifying the HDB blocks present in the nine-month resale transaction dataset, and then verified their corresponding upgrading status using the HDB online [portal](https://services2.hdb.gov.sg/webapp/BB33RESLSTATUS/BB33SEnquiry).
 
-Other improvement initiatives, such as the Neighbourhood Renewal Programme (NRP) and the Lift Upgrading Programme (LUP), have operated in parallel with HIP. Most blocks that have undergone HIP have also been included in either LUP or NRP. In this study, however, we focus solely on MUP and HIP.
-
-Since there is no direct dataset available for download from official sources, it required additional effort to manually extract the MUP and HIP information for each block. We first identified the blocks appearing in the nine-month resale records and then searched for their corresponding upgrade information on the HDB [portal](https://services2.hdb.gov.sg/webapp/BB33RESLSTATUS/BB33SEnquiry).
+The code chunk below selects the unique HDB blocks that appear in the resale transaction dataset.
 
 ```{r}
 unique_blocks <- HDBresale_sf %>%
@@ -387,37 +419,42 @@ unique_blocks <- HDBresale_sf %>%
 nrow(unique_blocks)
 ```
 
+The following code outputs a preview of the unique HDB blocks extracted from the dataset and saves them to a CSV file for manual processing.
+
 ```{r}
 kable(head(unique_blocks, 10), caption = "Preview of HDB Blocks")
 ```
 
 ```{r}
-#|eval: false
+#| eval: false
 write_csv(unique_blocks, "data/rawdata/unique_blocks.csv")
 ```
 
-Here, we import the self-sourced HIP/MUP status for a total of 4,148 HDB blocks in our dataset.
+We prepared a HIP/MUP status dataset for 4,148 HDB blocks in our study. In the preview table, the HIP and MUP indicators are coded as 1 for blocks that have undergone the respective upgrading programme and 0 for those that have not.
 
 ```{r}
 HIP <- read_csv("data/rawdata/HIP_MUP.csv")
 kable(head(HIP, 10), caption = "Preivew of HIP/MUP History for HDB Blocks")
 nrow(HIP)
 ```
-There are 1832 HIPed blocks and 124 MUPed blocks in the sale records.
+
+In total, the resale records include 1,832 blocks that have undergone HIP and 124 blocks that have undergone MUP.
 
 ```{r}
 sum(HIP$HIP)
 sum(HIP$MUP)
 ```
 
-
 ### Locational Factors with Geographic Coordinates
 
+Accessibility to key services and facilities plays a significant role in residential location decisions. Households typically favour properties with convenient access to schools, public transport, healthcare services, and everyday retail amenities. In the this section, we import a series of locational factor datasets, which already includes geographic coordinates.
+
+::: panel-tabset
 #### Bus Stops
 
-We reused the previously created dataset for bus stops from *Take-home Exercise 02*, which contains bus stop locations across Singapore in ESRI shapefile format issued on Aug 2025 by Land Transport Authority (LTA). The detailed processing steps can be found in this [exercise](https://isss626-ypan.netlify.app/take-home_ex/take-home_ex02/take-home_ex02#importing-the-attribute-data-bus-trips).
+We reuse the bus stop dataset created in *Take-home Exercise 02*, which contains the official Land Transport Authority (LTA) bus stop locations (ESRI shapefile, issued August 2025). The detailed preprocessing workflow is documented in this [exercise](https://isss626-ypan.netlify.app/take-home_ex/take-home_ex02/take-home_ex02#importing-the-attribute-data-bus-trips).
 
-It is worth noting that, during preprocessing, we excluded five bus stops located outside Singapore (mainly transit hubs in Johor Bahru, Malaysia) and eighteen duplicated bus stops, which were likely due to temporary measures such as road maintenance or refurbishment.
+During preprocessing, we removed **five** bus stops located outside Singapore (primarily transit points in Johor Bahru, Malaysia) and **eighteen** duplicate bus stops, which were likely associated with temporary operational setups such as road works or infrastructure upgrades.
 
 ```{r}
 #Load pre-processed data
@@ -425,12 +462,13 @@ BusStop_in_SG <- read_rds("data/geospatial/BusStop_in_SG.rds")
 BusStop_in_SG
 ```
 
-The map below visualises the distribution of 5149 bus stops in Singapore. 
+The map below visualises the spatial distribution of 5149 bus stops accross Singapore.
+
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
 tm_shape(mpsz) +
-  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+  tm_polygons(col = "gray50", border.col = "white", alpha = 0.6) +
 tm_shape(BusStop_in_SG) +
   tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
   tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
@@ -444,9 +482,9 @@ tm_shape(BusStop_in_SG) +
 
 #### Community Clubs
 
-We import the Community Clubs KML file, which represents 125 community clubs across Singapore. Since the dataset’s geometry dimensions were in XYZ and the CRS was WGS 84, we update the code to correctly assign the projected CRS (EPSG: 3414) using `st_transform()` from **sf** package. The redundant Z dimension was removed with `st_zm()` from **sf** package.
+The Community Clubs dataset, provided in KML format and containing **125** community club locations, is imported into the R environment. As the geometry was encoded in WGS 84 (XYZ), we reproject the data to the Singapore SVY21 system (EPSG: 3414) using `st_transform()` and remove the Z component using `st_zm()`. This ensures suitability for spatial analysis and distance computation.
 
-The same process will be applied to all other KML and GeoJSON files to ensure consistent and correct spatial projection across datasets.
+The same procedure is applied to all other KML and GeoJSON layers to ensure consistent and accurate spatial projection across datasets.
 
 ```{r}
 communityclubs <- st_read("data/rawdata/CommunityClubs.kml")%>%
@@ -465,13 +503,13 @@ write_rds(communityclubs, "data/geospatial/communityclubs.rds")
 communityclubs <- read_rds("data/geospatial/communityclubs.rds")
 ```
 
+The map below illustrates the distribution of community clubs across Singapore.
 
-The map below illustrates the distribution of community clubs in Singapore. 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
 tm_shape(mpsz) +
-  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+  tm_polygons(col = "gray50", border.col = "white", alpha = 0.6) +
 tm_shape(communityclubs) +
   tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
   tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
@@ -484,14 +522,14 @@ tm_shape(communityclubs) +
 ```
 
 #### Childcare Centres
-Here we import the Childcare kml file and tidy up the CRS and dimensions.
+
+Here we import the Childcare kml file and tidy up by standardising the CRS and geometry dimensions.
 
 ```{r}
 childcares <- st_read("data/rawdata/ChildCareServices.kml")%>%
   st_transform(crs = 3414)%>%
   st_zm(drop = TRUE, what = "ZM")
 ```
-
 
 ```{r}
 #| eval: false
@@ -503,13 +541,14 @@ write_rds(childcares, "data/geospatial/childcares.rds")
 #| echo: false
 childcares <- read_rds("data/geospatial/childcares.rds")
 ```
-The map below shows the distribution of 1,925 childcare centres.
+
+The map below shows the geographic distribution of 1,925 childcare centres.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
 tm_shape(mpsz) +
-  tm_polygons(col = "lightblue", border.col = "white", alpha= 0.6) +
+  tm_polygons(col = "gray50", border.col = "white", alpha= 0.6) +
 tm_shape(childcares) +
   tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
   tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
@@ -531,7 +570,6 @@ clinics <- st_read("data/rawdata/CHASClinics.kml")%>%
   st_zm(drop = TRUE, what = "ZM")
 ```
 
-
 ```{r}
 #| eval: false
 #| echo: false
@@ -543,14 +581,13 @@ write_rds(clinics, "data/geospatial/clinics.rds")
 clinics <- read_rds("data/geospatial/clinics.rds")
 ```
 
-
 The map below shows the locations of 1,193 CHAS clinics in Singapore.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
 tm_shape(mpsz) +
-  tm_polygons(col = "lightblue", border.col = "white", alpha= 0.6) +
+  tm_polygons(col = "gray50", border.col = "white", alpha= 0.6) +
 tm_shape(clinics) +
   tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
   tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
@@ -571,6 +608,7 @@ eldercares <- st_read(dsn = "data/rawdata", layer = "ELDERCARE")%>%
   st_transform(crs = 3414)%>%
   st_zm(drop = TRUE, what = "ZM")
 ```
+
 ```{r}
 #| eval: false
 #| echo: false
@@ -581,13 +619,14 @@ write_rds(eldercares, "data/geospatial/eldercares.rds")
 #| echo: false
 hawkers <- read_rds("data/geospatial/eldercares.rds")
 ```
+
 There are 133 elder care centres in Singapore as shown in the map below.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
 tm_shape(mpsz) +
-  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6)+
+  tm_polygons(col = "gray50", border.col = "white", alpha = 0.6)+
 tm_shape(eldercares) +
   tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
   tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
@@ -601,14 +640,13 @@ tm_shape(eldercares) +
 
 #### Hawker Centres
 
-The code chunk below loads the hawker centre points kml file to R environment.
+The following code imports the Hawker Centres KML dataset and performs the necessary preprocessing steps within the R environment.
 
 ```{r}
 hawkers <- st_read("data/rawdata/HawkerCentresKML.kml")%>%
   st_transform(crs = 3414)%>%
   st_zm(drop = TRUE, what = "ZM")
 ```
-
 
 ```{r}
 #| eval: false
@@ -621,12 +659,13 @@ write_rds(hawkers, "data/geospatial/hawkers.rds")
 hawkers <- read_rds("data/geospatial/hawkers.rds")
 ```
 
-There are 125 hawker centres in Singapore. 
+There are 125 hawker centres in Singapore.
+
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
 tm_shape(mpsz) +
-  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+  tm_polygons(col = "gray50", border.col = "white", alpha = 0.6) +
 tm_shape(hawkers) +
   tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
   tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
@@ -639,14 +678,14 @@ tm_shape(hawkers) +
 ```
 
 #### kindergartens
-Here, we import the kindergarten dataset in KML format into the R environment. Compared to child care services, which provide full-day care and learning for infants to six-year-olds, kindergartens generally offer part-day education for children aged three to six years (pre-primary education).
+
+In this step, we import the kindergarten dataset (KML format) into the R environment. While child care centres provide full-day care and early childhood services for infants up to six years of age, kindergartens generally operate shorter-hour programmes focused on early education for children aged three to six.
 
 ```{r}
 kindergartens <- st_read("data/rawdata/Kindergartens.kml")%>%
   st_transform(crs = 3414)%>%
   st_zm(drop = TRUE, what = "ZM")
 ```
-
 
 ```{r}
 #| eval: false
@@ -658,13 +697,14 @@ write_rds(kindergartens, "data/geospatial/kindergartens.rds")
 #| echo: false
 kindergartens <- read_rds("data/geospatial/kindergartens.rds")
 ```
-This map displays where 448 kindergartens are located in Singapore.
+
+This map displays where 448 kindergartens are located across Singapore.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
 tm_shape(mpsz) +
-  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+  tm_polygons(col = "gray50", border.col = "white", alpha = 0.6) +
 tm_shape(kindergartens) +
   tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
   tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
@@ -676,14 +716,14 @@ tm_shape(kindergartens) +
 ```
 
 #### Parks
-Here, we load the KML file containing park locations into R.
+
+Here, we load and process the KML file containing park locations into R.
 
 ```{r}
 parks <- st_read("data/rawdata/parks.geojson")%>%
   st_transform(crs = 3414)%>%
   st_zm(drop = TRUE, what = "ZM") 
 ```
-
 
 ```{r}
 #| eval: false
@@ -695,13 +735,14 @@ write_rds(parks, "data/geospatial/parks.rds")
 #| echo: false
 parks <- read_rds("data/geospatial/parks.rds")
 ```
+
 The map visualises the geographic locations of 441 parks within Singapore.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
 tm_shape(mpsz) +
-  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+  tm_polygons(col = "gray50", border.col = "white", alpha = 0.6) +
 tm_shape(parks) +
   tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
   tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
@@ -714,14 +755,14 @@ tm_shape(parks) +
 ```
 
 #### MRT & LRT Station Exits
-We read the station exit KML file into R as a spatial dataset.
+
+We read and process the station exit KML file into R as a spatial dataset.
 
 ```{r}
 mrts <- st_read("data/rawdata/LTAMRTStationExitKML.kml")%>%
   st_transform(crs = 3414)%>%
   st_zm(drop = TRUE, what = "ZM")
 ```
-
 
 ```{r}
 #| eval: false
@@ -733,13 +774,14 @@ write_rds(mrts, "data/geospatial/mrts.rds")
 #| echo: false
 mrts <- read_rds("data/geospatial/mrts.rds")
 ```
+
 The map below represents the spatial distribution of 563 station exit points in Singapore.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
 tm_shape(mpsz) +
-  tm_polygons(col= "lightblue", border.col ="white", alpha = 0.6) +
+  tm_polygons(col= "gray50", border.col ="white", alpha = 0.6) +
 tm_shape(mrts) +
   tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
   tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
@@ -761,7 +803,6 @@ supermarkets <- st_read("data/rawdata/SupermarketsKML.kml")%>%
   st_zm(drop = TRUE, what = "ZM")
 ```
 
-
 ```{r}
 #| eval: false
 #| echo: false
@@ -779,7 +820,7 @@ The map depicts the spatial distribution of 526 supermarkets across Singapore.
 #| code-fold: true
 #| code-summary: "CODE"
 tm_shape(mpsz) +
-  tm_polygons(col= "lightblue", border.col ="white", alpha = 0.6) +
+  tm_polygons(col= "gray50", border.col ="white", alpha = 0.6) +
 tm_shape(supermarkets) +
   tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
   tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
@@ -790,15 +831,19 @@ tm_shape(supermarkets) +
   tm_title("Supermarkets in Singapore") +
   tm_layout(frame = FALSE)
 ```
+:::
 
 ### Locational Factors without Geographic Coordinates
 
+In this section, we import the location-based datasets obtained from official government sources and Wikipedia. Since these datasets do not provide geographic coordinates, we perform geocoding to assign spatial coordinates to each location.
 
 #### Geocoding Function
 
-The geocoding function below is modified to extract coordinates from the OneMap API based on location names rather than block + street combinations used in earlier steps. Because name-based searches are more sensitive to text variation, additional preprocessing steps to standardise the name fields are necessary before querying the API.
+The geocoding function below is modified to extract coordinates from the OneMap API using location names, rather than the block-and-street inputs used earlier. Because name-based searches are more sensitive to text variations, additional preprocessing steps are performed to standardise location names before querying the API. As geocoding can be time-consuming, a progress bar is included in the function to monitor progress and estimated completion time (ETA). A demonstration of this procedure can be found in the **Good Primary Schools** section.
 
 ```{r}
+#| code-fold: true
+#| code-summary: "CODE"
 geocode_one <- function(data) {
   data$LATITUDE <- NA
   data$LONGITUDE <- NA
@@ -842,36 +887,47 @@ geocode_one <- function(data) {
 
 ```
 
-
 ```{r}
+#| code-fold: true
+#| code-summary: "CODE"
 get_coords <- function(name) {
   base_url <- "https://onemap.gov.sg/api/common/elastic/search"
   query <- list(
     "searchVal" = name,
-    "returnGeom" = "Y", 
+    "returnGeom" = "Y",
     "getAddrDetails" = "N",
     "pageNum" = "1"
   )
   
   tryCatch({
+    # Add delay to avoid rate limiting
     Sys.sleep(0.1)
     
-    res <- GET(base_url, query = query) 
+    res <- GET(base_url, query = query)
+    
+    # Check if request was successful
     if (status_code(res) != 200) {
       warning(paste("HTTP error for", name, ":", status_code(res)))
       return(data.frame(results.LATITUDE = NA, results.LONGITUDE = NA))
     }
+    
     restext <- content(res, as = "text", encoding = "UTF-8")
+    
+    # Check if response is valid JSON
     if (restext == "" || is.na(restext)) {
       warning(paste("Empty response for", name))
       return(data.frame(results.LATITUDE = NA, results.LONGITUDE = NA))
     }
     
     output <- fromJSON(restext)
+    
+    # Check if results are found
     if (is.null(output$results) || length(output$results) == 0) {
       warning(paste("No results found for", name))
       return(data.frame(results.LATITUDE = NA, results.LONGITUDE = NA))
     }
+    
+    # Extract coordinates from first result
     output <- output$results[1, ] %>%
       select(LATITUDE, LONGITUDE) %>%
       rename(results.LATITUDE = LATITUDE, results.LONGITUDE = LONGITUDE)
@@ -883,51 +939,14 @@ get_coords <- function(name) {
     return(data.frame(results.LATITUDE = NA, results.LONGITUDE = NA))
   })
 }
-
-geocode_one <- function(data) {
-  data$LATITUDE <- NA
-  data$LONGITUDE <- NA
-  
-  cat("Geocoding", nrow(data), "data...\n")
-  
-  pb <- progress_bar$new(
-    format = "[:bar] :percent | ETA: :eta | :current/:total | :name",
-    total = nrow(data),
-    clear = FALSE,
-    width = 80
-  )
-  
-  for (i in 1:nrow(data)) {
-    data_name <- data[i, 1]
-    
-    pb$tick(tokens = list(name = substr(data_name, 1, 20)))
-    
-    temp_output <- get_coords(data_name)
-    
-    data$LATITUDE[i] <- as.numeric(temp_output$results.LATITUDE[1])
-    data$LONGITUDE[i] <- as.numeric(temp_output$results.LONGITUDE[1])
-  }
-  
-  successful <- sum(!is.na(data$LATITUDE) & !is.na(data$LONGITUDE))
-  failed <- nrow(data) - successful
-  
-  cat("\nGeocoding completed:\n")
-  cat("successful:", successful, "/", nrow(data), "\n")
-  cat("failed:", failed, "/", nrow(data), "\n")
-  
-  if (failed > 0) {
-    cat("Failed data:\n")
-    failed_data <- data[is.na(data$LATITUDE) | is.na(data$LONGITUDE), 1]
-    print(failed_data)
-  }
-  
-  return(data)
-}
 ```
 
+::: panel-tabset
 #### Primary Schools
 
-We extracted a list of 179 primary schools from publicly-available `Generalinformationofschools.csv` (data.gov.sg) dataset (version updated on 24 Sep 2025). However comparing with 182 primary schools from the MOE directory, there are three schools missing which are Catholic High School (Primary Section), CHIJ St. Nicholas Girls’ School (Primary Section) and Maris Stella High School (Primary Section). To ensure our coverage is comprehensive, we manually matched and included these three schools in our analysis.
+Easy access to We extracted a list of 179 primary schools from publicly-available `Generalinformationofschools.csv` (data.gov.sg) dataset (version updated on 24 Sep 2025). However, the Ministry of Education (MOE) directory lists 182 primary schools, indicating that three schools were missing: Catholic High School (Primary Section), CHIJ St. Nicholas Girls’ School (Primary Section), and Maris Stella High School (Primary Section). To ensure full coverage, we manually identified and added these three schools to our dataset.
+
+The following code standardises primary school names, geocodes each school using the `geocode_one` function to obtain latitude and longitude, and subsequently transforms the coordinates into a projected CRS to enable precise distance measurement.
 
 ```{r}
 #| eval: false
@@ -952,18 +971,19 @@ write_rds(prisch, "data/geospatial/prisch.rds")
 prisch <- read_rds("data/geospatial/prisch.rds")
 ```
 
-The preview table shows the first 10 primary school locations. 
+The following table presents the first 10 primary school records, including their geocoded locations.
 
 ```{r}
 kable(head(prisch,10), caption = "Preview of Primary School Locations")
 ```
-The map below demonstrates the spatial arrangement of 182 primary schools in Singapore.
+
+The map below demonstrates the spatial arrangement of 182 primary schools across Singapore.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
 tm_shape(mpsz) +
-  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+  tm_polygons(col = "gray50", border.col = "white", alpha = 0.6) +
 tm_shape(prisch) +
   tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
   tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
@@ -974,14 +994,18 @@ tm_shape(prisch) +
   tm_title("Primary Schools in Singapore") +
   tm_layout(frame = FALSE)
 ```
+
 #### Good Primary Schools
 
-The good primary schools are identified based on popularity scores obtained from a local education [website](https://www.creativecampus.com.sg/best-primary-schools-in-singapore-2024). We selected the top 20 primary schools with popularity scores of at least 1.7. The popularity score is derived from the Phase 2B registration ratio, calculated as the number of applicants divided by available vacancies.
-These top-ranked schools generally offer enriched curricula and are highly sought after by both students and parents.
+Access to good primary schools is an important consideration for many families when purchasing a home. In Singapore, education is highly valued, living within the catchment area of a strong school can therefore be an advantage for families planning their children’s long-term development.
 
+However Singapore does not publish an official ranking of primary schools to avoid unhealthy competition. As a result, parents often rely on alternative indicators. One commonly referenced metric is the popularity score, derived from the Phase 2B registration ratio (i.e., number of applicants divided by the number of available places), which serves as a proxy for school demand and perceived quality.
+
+For this study, we identify the top 20 primary schools using popularity scores sourced from a local education resource [Creative Campus](https://www.creativecampus.com.sg/best-primary-schools-in-singapore-2024). Only schools with a popularity score of 1.7 or higher were included. These schools are widely regarded as offering enriched learning environments and are highly sought after by parents and students.
+
+The following code applies the same procedure as before: importing the dataset, geocoding the locations, transforming the coordinates to the designated projected CRS, and storing the output as an `sf` object.
 
 ```{r}
-#| eval: false
 poppris <- read_csv("data/rawdata/top_primary_schools.csv") %>%
   mutate(School = gsub("ST\\.", "SAINT",School))
 
@@ -1003,18 +1027,19 @@ write_rds(poppris, "data/geospatial/poppris.rds")
 poppris <- read_rds("data/geospatial/poppris.rds")
 ```
 
-The preview table shows the first 10 good primary school locations. 
+The following table presents the first 10 records of the identified top primary schools, including their geocoded locations.
 
 ```{r}
 kable(head(poppris,10), caption = "Preview of Good Primary School Locations")
 ```
-The 20 hand-picked primary schools by popularity score are displayed in the map below.
+
+The 20 primary schools by popularity score are displayed in the map below.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
 tm_shape(mpsz) +
-  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+  tm_polygons(col = "gray50", border.col = "white", alpha = 0.6) +
 tm_shape(poppris) +
   tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
   tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
@@ -1026,11 +1051,9 @@ tm_shape(poppris) +
   tm_layout(frame = FALSE)
 ```
 
-
 #### Shopping Malls
 
-Next we import and geocode the extracted data on 90 shopping malls in Singapore, obtained from Wikipedia on 29 October 2025. 
-
+Next, we import and process the dataset of 90 shopping malls in Singapore, which was sourced from Wikipedia on 29 October 2025.
 
 ```{r}
 #| eval: false
@@ -1043,7 +1066,6 @@ malls <- st_as_sf(malls,
   st_transform(crs = 3414)
 ```
 
-
 ```{r}
 #| eval: false
 #| echo: false
@@ -1055,19 +1077,19 @@ write_rds(malls, "data/geospatial/malls.rds")
 malls <- read_rds("data/geospatial/malls.rds")
 ```
 
-The preview table shows the first 10 shopping mall locations. 
+The preview table shows the first 10 shopping malls and their locations.
 
 ```{r}
 kable(head(malls,10), caption = "Preview of Shopping Mall Locations")
 ```
 
-The map below shows the locations of 90 shopping malls in Singapore.
+The map below shows the spatial locations of 90 shopping malls across Singapore.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
 tm_shape(mpsz) +
-  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+  tm_polygons(col = "gray50", border.col = "white", alpha = 0.6) +
 tm_shape(malls) +
   tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
   tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
@@ -1081,8 +1103,7 @@ tm_shape(malls) +
 
 #### Hospitals
 
-Next, we import and geocode data on 27 general hospitals in Singapore, obtained from Wikipedia on 29 October 2025. The Institute of Mental Health (IMH) in Hougang is excluded, as it serves as a specialised facility for mental health treatment rather than a general hospital providing services.
-
+Next, we import and process data on 27 general hospitals in Singapore, obtained from Wikipedia on 29 October 2025. The Institute of Mental Health (IMH) in Hougang is excluded, as it serves as a specialised facility for mental health treatment rather than a general hospital providing general healthcare services.
 
 ```{r}
 #| eval: false
@@ -1095,7 +1116,6 @@ hospitals <- st_as_sf(hospitals,
   st_transform(crs = 3414)
 ```
 
-
 ```{r}
 #| eval: false
 #| echo: false
@@ -1107,18 +1127,19 @@ write_rds(hospitals, "data/geospatial/hospitals.rds")
 hospitals <- read_rds("data/geospatial/hospitals.rds")
 ```
 
-The preview table shows the first 10 hospital locations. 
+The preview table shows the first 10 hospital locations.
 
 ```{r}
 kable(head(hospitals,10), caption = "Preview of Hospital Locations")
 ```
-The map below illustrates the locations of 27 hospitals in Singapore.
+
+The map below illustrates the locations of 27 hospitals across Singapore.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
 tm_shape(mpsz) +
-  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+  tm_polygons(col = "gray50", border.col = "white", alpha = 0.6) +
 tm_shape(hospitals) +
   tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
   tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
@@ -1130,13 +1151,25 @@ tm_shape(hospitals) +
   tm_layout(frame = FALSE)
 ```
 
-
-
 #### Sports Facilities
 
-We manually compiled a list of 104 facilities from ActiveSG Circle, consisting of 18 sports halls, 24 swimming pools, 13 stadiums, 28 gyms, and 21 sports centres on 28 Oct 2025. After careful cross-checking, we identified 52 unique sports locations.
+Regular exercise contributes to both physical and mental well-being. In Singapore, the government provides extensive, affordable sports facilities through ActiveSG, making recreational sports accessible to the public. Dual-use school facilities are excluded from this study, as they are primarily located within primary schools and are already captured under the primary school variable.
 
-The selection criterion was as follows: if an ActiveSG gym is located within a larger sports centre complex, it is counted only once to avoid duplication. Dual-use school facilities are excluded, as they are primarily situated within primary schools and are already represented under the primary school variable.
+We manually compiled a list of 104 facilities from the ActiveSG Circle website (accessed 28 October 2025), including:
+
+-   18 sports halls
+
+-   24 swimming pools
+
+-   13 stadiums
+
+-   28 gyms
+
+-   21 sports centres
+
+After careful cross-checking and consolidation, we identified **52** unique sports locations. Facilities housed within the same complex were counted only once; for example, an ActiveSG gym located inside a larger sports centre was considered part of the same location to avoid duplication.
+
+The code chunk below imports and processes the sports facilities dataset.
 
 ```{r}
 #| eval: false
@@ -1149,7 +1182,6 @@ sports <- st_as_sf(sports,
   st_transform(crs = 3414)
 ```
 
-
 ```{r}
 #| eval: false
 #| echo: false
@@ -1161,18 +1193,19 @@ write_rds(sports, "data/geospatial/sports.rds")
 sports <- read_rds("data/geospatial/sports.rds")
 ```
 
-The preview table shows the first 10 hospital locations. 
+The preview table shows the first 10 hospital locations.
 
 ```{r}
 kable(head(sports,10), caption = "Preview of Sports Locations")
 ```
+
 The map below represents the 52 Sports centre/complex in Singapore.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
 tm_shape(mpsz) +
-  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+  tm_polygons(col = "gray50", border.col = "white", alpha = 0.6) +
 tm_shape(sports) +
   tm_dots(fill = "red", size = 0.3, shape =17, lwd = 2) +
   tm_compass(type="8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
@@ -1186,7 +1219,7 @@ tm_shape(sports) +
 
 #### CBD
 
-Central Business District in Singapore is located in Downtown Core of Central Area. We found its coordinates (1.287953, 103.851784) through Google search and save it as `sf` object in projected CRS (SVY21).
+Easy access to the Central Business District (CBD) is an important consideration when choosing where to live, as many residents commute to the city centre for work and services. In Singapore, the CBD is located within the Downtown Core planning area of the Central Region. We obtained the CBD coordinates (1.287953, 103.851784) from Google and stored the location as an `sf` point object in the projected SVY21 coordinate system (EPSG:3414).
 
 ```{r}
 cbd <- data.frame(name = "CBD", LATITUDE = 1.287953, LONGITUDE = 103.851784) %>%
@@ -1197,7 +1230,6 @@ cbd <- data.frame(name = "CBD", LATITUDE = 1.287953, LONGITUDE = 103.851784) %>%
 ```{r}
 cbd
 ```
-
 
 ```{r}
 #| eval: false
@@ -1210,7 +1242,6 @@ write_rds(cbd, "data/geospatial/cbd.rds")
 cbd <- read_rds("data/geospatial/cbd.rds")
 ```
 
-
 The extracted map shows the Central Region, where the CBD location is marked with a red diamond, and the Downtown Core is highlighted in yellow.
 
 ```{r}
@@ -1220,7 +1251,7 @@ central_region <- mpsz[mpsz$REGION_N=="CENTRAL REGION", ]
 downtown_core <- mpsz[mpsz$PLN_AREA_N=="DOWNTOWN CORE", ]
 
 tm_shape(central_region) +
-  tm_polygons(col = "lightblue", border.col = "white", alpha = 0.6) +
+  tm_polygons(col = "gray50", border.col = "white", alpha = 0.6) +
 tm_shape(downtown_core) +
   tm_polygons(col = "orange", alpha = 0.3, border.col = "red",border.lwd = 2) +
 tm_shape(cbd) +
@@ -1234,51 +1265,21 @@ tm_shape(cbd) +
    tm_layout(frame = FALSE)
 ```
 
-
-
-
-
-
-
 ```{r}
 #| echo: false
 HDBresale_sf <- read_rds("data/geospatial/HDBresale_sf.rds")
 ```
+:::
 
 ## Data Wrangling
 
-In this section, we generate the designed independent variables mentioned at the beginning of the study. First, we gather all previously processed datasets saved in the *data/geospatial* folder (in `.rds` format) and compile them into a list named `var_list` for streamlined processing in the subsequent steps.
+In this section, we further prepare the independent variables defined earlier in the study.
 
-```{r}
-#| code-fold: true
-#| code-summary: "CODE"
-# Get all .rds files in the geospatial directory
-rds_files <- list.files("data/geospatial", pattern = "\\.rds$", full.names = TRUE)
+### Checking of Overlapping Points
 
-# Create empty list
-var_list <- list()
+Before fitting the GWR model, it is necessary to ensure that no unintended point-overlap occurs among the spatial datasets (e.g., HDB locations or public amenities). Overlapping coordinates may indicate geocoding inaccuracies or duplicated facility records, which could distort local parameter estimates. Accordingly, we assess point overlap across all spatial layers:`cbd`, `eldercare` , `hawker` , `mrts`, `parks`, `poppri`, `malls`, `hospitals`, `communityclubs`, `sports`, `childcares`, `kindergartens`, `clinics`, `busstops`, `prisch`, and HDB resale data (`HDBresale_sf`).
 
-# Load each RDS file
-for (file in rds_files) {
-  # Extract filename without extension for the list name
-  var_name <- gsub("\\.rds$", "", basename(file))  
-  # Load the data and assign to list
-  var_list[[var_name]] <- read_rds(file)
-  
-  cat("Loaded:", var_name, "\n")
-}
-
-cat("Total datasets loaded:", length(var_list), "\n")
-```
-
-
-### Checking of overlapping points
-
-When using a GWR model to build explanatory or predictive models, it is important to first check whether there are any overlapping points in the spatial locations (e.g., HDB blocks or facility points). In this section, we examine overlaps across all datasets: namely `cbd`, `eldercare` , `hawker` , `mrts`, `parks`, `poppri`, `malls`, `hospitals`, `communityclubs`, `sports`, `childcares`, `kindergartens`, `clinics`, `busstops`, `prisch`, and HDB resale data (`HDBresale_sf`).
-
-We must also ensure that any detected overlaps occur because multiple facilities share the same building, rather than due to geocoding errors.
-
-The function below is created to correct such overlapping issues. A helper function is used to detect duplicates in the dataset by applying `st_equals(., .)`, which compares each geometry row by row across the entire dataset. If two geometries are identical, the corresponding row in the overlap column is marked as `TRUE` (mathematically represented as `1`). If the sum of this column is greater than zero, it indicates the **presence** of overlapping points. To resolve this, the `st_jitter()` function from the **sf** package is applied to slightly move the overlapping points apart. The argument `amount = 1` specifies that each overlapping feature should be shifted by approximately one metre.
+We differentiate genuine co-located features from unintended duplicates.Then a helper function below employs `st_equals()` to detect identical geometries; the presence of `TRUE` (or `1`) values indicates overlapping points. When overlaps are identified, `st_jitter(amount = 1)` is applied to nudge points by one metre, ensuring spatial separation while maintaining positional accuracy.
 
 ```{r}
 #| code-fold: true
@@ -1315,44 +1316,69 @@ fix_overlapping_points <- function(var_list) {
 }
 ```
 
+The following code loads all previously processed spatial datasets stored in the *data/geospatial* folder (in `.rds` format) and compile them into a list named `var_list` to streamline subsequent processing steps.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+# Get all .rds files in the geospatial directory
+rds_files <- list.files("data/geospatial", pattern = "\\.rds$", full.names = TRUE)
+
+# Create empty list
+var_list <- list()
+
+# Load each RDS file
+for (file in rds_files) {
+  # Extract filename without extension for the list name
+  var_name <- gsub("\\.rds$", "", basename(file))  
+  # Load the data and assign to list
+  var_list[[var_name]] <- read_rds(file)
+  
+  cat("Loaded:", var_name, "\n")
+}
+
+cat("Total datasets loaded:", length(var_list), "\n")
+```
+
+We then apply the `fix_overlapping_points` function to slightly separate points that share the same location.
 
 ```{r}
 var_list <- fix_overlapping_points(var_list)
 ```
-The code chunk below unpacks the `sf` objects into R.
+
+The following code unpacks the processed `sf` objects into the R environment.
 
 ```{r}
 # Unpack all objects into the global environment
 list2env(var_list, envir = .GlobalEnv)
 ```
-Then we could run the overlapping check again to make sure there are no overlapping points in the data set.
+
+In addition, we re-examine the `HDBresale_sf` dataset to confirm that no overlapping coordinates exist, as the overlap count returned zero.
 
 ```{r}
 overlapping_points <- HDBresale_sf %>%
   mutate(overlap = lengths(st_equals(., .)) >1)
+sum(overlapping_points$overlap)
 ```
-
 
 ### Creating Structural Factors
 
+In this section, we reconstruct key attributes from `HDBresale_sf` to derive structural factors that could potentially affect resale prices. The processed variables are `storey_range` and `remaining_lease`.
 
-`storey_range` represents the floor range in text format (e.g., “04 TO 06”). We convert this into a discrete numerical value by taking the midpoint (e.g., 5 for “04 TO 06”).
+In addition, the completion status of the Upgrading Programme (`MUP/HIP`) is included in the model specification.
 
-`floor_area_sqm` is the size of the property in square metres.
-
-`flat_model` denotes the layout and design type of the flat. As these evolve over time and have limited predictive value, we exclude this variable from the model.
-
-`lease_commence_date` indicates the year the property obtained its Temporary Occupation Permit (TOP), which is similar in meaning to `remaining_lease`, expressed as text such as “53 years 1 month”. We use the `remaining_lease` field to calculate both the property’s age (in months) and its remaining lease. Given that the standard HDB lease term is 99 years, we first extract the number of years and months from the text, convert it into total months, and then subtract it from 99 years to derive the property’s age at the time of the transaction.
-
-Area of the unit Floor level Remaining lease Age of the unit Main Upgrading Program (MUP) completed (optional)
-
+::: panel-tabset
 #### Floor Level
-As mentioned earlier, in the HDBresale dataset, the `storey_range` variable is recorded as text (e.g., “04 TO 06”). The floor level of a property is considered a potentially important independent variable, as higher floors chould provide a quieter environment and more appealing views that can enhance the overall property value. To make this variable suitable for modelling, we convert it into a discrete numerical value by taking the midpoint of each range (e.g., 5 for “04 TO 06”).
+
+As previously noted, the `storey_range` field in the HDBresale dataset is stored as a text string (e.g., “04 TO 06”). Floor height is considered a relevant explanatory variable, as higher floors may contribute to price premiums due to reduced noise exposure and improved views. To use this variable for modelling, we transform each range into a numeric value by computing its midpoint (e.g., “04 TO 06” to 5).
+
+The following code displays the original text strings in the dataset. The `storey_range` values span from "01 TO 03" to "49 TO 51".
 
 ```{r}
 sort(unique(HDBresale_sf$storey_range))
 ```
-The code chunk below creates a new column, `FLOOR`, and uses `st_extract`() to extract the first and last numeric values from the `storey_range` field. These values are then averaged (divided by two) to obtain the **midpoint** of the storey range.
+
+The code below creates a new column, `FLOOR`, and uses `st_extract`() to extract the first and last numeric values from the `storey_range` field. These values are then averaged (divided by two) to obtain the **midpoint** of the storey range.
 
 ```{r}
 HDBresale_sf <- HDBresale_sf %>%
@@ -1362,18 +1388,17 @@ HDBresale_sf <- HDBresale_sf %>%
   )
 ```
 
-We can now observe that the values in the `FLOOR` column range from 2 to 50, corresponding accurately to the original dataset values, which span from “01 TO 03” to “49 TO 51”.
+Following the transformation, the `FLOOR` variable ranges from 2 to 50, accurately reflecting the storey range in the original dataset (from “01 TO 03” to “49 TO 51”).
+
 ```{r}
 summary(HDBresale_sf$FLOOR)
 ```
 
 #### Remaining Lease
 
-The age of a property is also an important structural factor that can influence its value. Generally, newer properties are more desirable, as they tend to be in better condition and feature more modern designs compared to older ones. To incorporate this factor into the modelling, we include the property’s age as an explanatory variable.
+The age of a property is another important structural factor that may influence its value. Newer flats are often more desirable as they tend to be in better physical condition and have more modern layouts. To account for this, we include property age as an explanatory variable in our model.
 
-In Singapore, HDB properties are sold under a lease agreement between the owner and the government, with a standard lease term of 99 years. Within the HDBresale dataset, two columns contain lease-related information: `remaining_lease`, which is expressed as text (e.g., “53 years 1 month”), and `lease_commence_date`, which records the starting year of the lease. The `remaining_lease` variable essentially represents the same information as `lease_commence_date` but in a different format. To make it suitable for analysis, we convert the text values into the total number of months remaining.
-
-
+In Singapore, HDB flats are sold on a 99-year leasehold basis. Within the HDBresale dataset, lease information is provided in two formats: `remaining_lease`, which appears as text (e.g., “53 years 1 month”), and `lease_commence_date`, which specifies the lease start year. As these variables represent equivalent information, we convert `remaining_lease` into a numeric measure by calculating the total number of months remaining.
 
 ```{r}
 head(HDBresale_sf$remaining_lease,4)
@@ -1395,21 +1420,20 @@ HDBresale_sf <- HDBresale_sf %>%
     LEASE = lease_years * 12 + lease_months)
 ```
 
+The following code The output below verifies that the transformed lease variable spans from 485 months to 1,144 months, consistent with the expected lease durations in the dataset.
+
 ```{r}
 summary(HDBresale_sf$LEASE)
 ```
 
-```{r}
-sum(is.na(HDBresale_sf))
-```
-
 #### Age of the unit in Months
 
-Based on the sales records, the median TOP (Temporary Occupation Permit) year for the flats in our dataset is 2002. The oldest flat was completed in 1967, making it approximately 58 years old as of 2025, while the newest flat is about 4 years old. According to HDB regulations, the general Minimum Occupation Period (MOP) is 5 years, that means owners must reside in the flat for at least five years before they could sell. However, upon reviewing the data and cross-checking some of these transactions online, we observed that several units completed in 2020/2021 have already been transacted. This suggests that there may be certain exceptions to the MOP rule (e.g., special circumstances or other approved cases).
+The sales records indicate that the median TOP year for flats in the dataset is 2002. The earliest completion year observed is 1967 (approximately 58 years old as of 2025), whereas the most recent completions are around 4 years old. Under HDB regulations, most owners must fulfil a Minimum Occupation Period (MOP) of 5 years before they can sell their flats. However, upon reviewing the data and cross-checking certain transactions, we observed that several units completed in 2020/2021 have already been resold. This implies that exceptions to the MOP rule may exist, such as special approval cases or specific scheme-based exemptions.
 
 ```{r}
 summary(HDBresale_sf$lease_commence_date)
 ```
+
 Following the previous step, we then subtract `LEASE` from 99 years to derive the property’s age in months at the time of the transaction.
 
 ```{r}
@@ -1417,17 +1441,17 @@ HDBresale_sf <- HDBresale_sf %>%
   mutate(AGE = 99 * 12 -LEASE)
 ```
 
+The output below shows that the property age ranges from 44 months to 703 months, which is consistent with the values in the original dataset.
 
 ```{r}
 summary(HDBresale_sf$AGE)
 ```
 
-
-
 #### Main Upgrading Program (MUP) completed
-As discussed earlier, internal conditions are an important structural factor in property valuation. Given that many flats in our dataset are around 20 years old, proper renovation can significantly enhance property value. Although private renovation history is not available, government-initiated upgrading programmes such as the Main Upgrading Programme (MUP) and Home Improvement Programme (HIP) serve as useful indicators of housing condition.
 
-Flats that have undergone MUP or HIP are assigned a value of 1 in the corresponding variables. We then left-join the self-compiled MUP/HIP dataset with `HDBresale_sf` using the `block`, `street_name`, and `town` as joining keys. We assume that all units within a block participated in the upgrading programme if the block is listed.
+As discussed earlier, internal conditions are an important structural factor in property valuation. For many flats in our dataset,typically around 20 years old, renovation can meaningfully enhance market value. While private renovation details are not available, government upgrading programmes such as the Main Upgrading Programme (MUP) and Home Improvement Programme (HIP) provide useful proxies for housing condition.
+
+Flats that have undergone MUP or HIP are assigned a value of `1` in the corresponding variables. We then perform a left-join between the MUP/HIP dataset and `HDBresale_sf` using the `block`, `street_name`, and `town` as the joining keys. We assume that all units within a block benefited from the upgrading works if the block appears in the programme list. However, because MUP was fully completed by 2012, its effect on today’s resale prices may have weakened.
 
 ```{r}
 HDBresale_sf <- left_join(HDBresale_sf, HIP, by = c('block', 'street_name', 'town'))
@@ -1436,39 +1460,44 @@ HDBresale_sf <- left_join(HDBresale_sf, HIP, by = c('block', 'street_name', 'tow
 ```{r}
 length(unique(HDBresale_sf$geometry))
 ```
+
 ```{r}
 sum(HDBresale_sf$HIP)
 ```
+
 ```{r}
 sum(HDBresale_sf$MUP)
 ```
-We find that there are 2,967 HIP-upgraded flats and 257 MUP-upgraded flats in the dataset, representing approximately 37% of all transactions.
+
+Our results show that 2,967 flats in the dataset have undergone HIP and 257 flats have undergone MUP, accounting for approximately 37% of the total resale transactions.
 
 ```{r}
 (sum(HDBresale_sf$MUP) + sum(HDBresale_sf$HIP)) /length(unique(HDBresale_sf$geometry))
 ```
+
 Note: there are also 30 flats in the dataset that have received both HIP and MUP upgrades.
 
 ```{r}
 sum(HDBresale_sf$HIP == 1 & HDBresale_sf$MUP ==1 )
 ```
-
+:::
 
 ### Locational Factors
 
-Location is a critical factor in property value. A well-located property typically provides convenient access to essential services such as healthcare, childcare, schools, groceries, and public transport, as well as community and recreational facilities. Such accessibility not only enhances daily living convenience, but also fosters stronger community engagement and enables easier commuting to the CBD for work.
+Location strongly influences property value. Homes close to schools, transport, healthcare, shopping, and recreation offer greater convenience, community access, and easier CBD commuting.
 
 In this section, we construct two sets of locational variables:
 
-- Proximity-based measures: distance from each flat to key amenities (`cbd`, `eldercares`,`hawkers`, `mrts`, `parks`, `poppris`, `malls`, `hospitals`, `communityclubs`, `sports`)
+-   Proximity-based measures: distance from each flat to key amenities (`cbd`, `eldercares`,`hawkers`, `mrts`, `parks`, `poppris`, `malls`, `hospitals`, `communityclubs`, `sports`)
 
-- Accessibility counts: number of nearby facilities within a specified radius ( `childcares`, `kindergartens`, `clinics`,`busstops` within 350m or `prisch` within 1 km).
+-   Accessibility counts: number of nearby facilities within a specified radius ( `childcares`, `kindergartens`, `clinics`,`busstops` within 350m or `prisch` within 1 km).
 
 #### Proximity
 
- `st_distance()` is used to compute the great circle distance between HDB resale flats to the above mentioned amenities. Since each set of calculation takes about 2 minutes to complete, we add a process bar in the function to monitor the progress of proximity calculation. 
+We use `st_distance()` to compute the distance between each HDB resale flat and the amenities listed above. Given that each computation requires roughly two minutes, a progress bar is incorporated into the function to track execution progress.
 
 ```{r}
+#| eval: false
 #| code-fold: true
 #| code-summary: "CODE"
 proximity <- function(data, variable, varname) {
@@ -1512,8 +1541,9 @@ proximity <- function(data, variable, varname) {
   
   return(data)
 }
-```    
+```
 
+::: panel-tabset
 ##### CBD
 
 ```{r}
@@ -1528,15 +1558,12 @@ HDBresale_sf <- proximity(HDBresale_sf, cbd, "DIS_TO_CBD")
 HDBresale_sf <- proximity(HDBresale_sf, eldercares, "DIS_TO_ELDERCARE")
 ```
 
-
 ##### Hawker Centres
-
 
 ```{r}
 #| eval: false
 HDBresale_sf <- proximity(HDBresale_sf, hawkers, "DIS_TO_HAWKER")
 ```
-
 
 ##### MRTs &LRTs
 
@@ -1545,16 +1572,12 @@ HDBresale_sf <- proximity(HDBresale_sf, hawkers, "DIS_TO_HAWKER")
 HDBresale_sf <- proximity(HDBresale_sf, mrts, "DIS_TO_MRT")
 ```
 
-
-
 ##### Good Primary Schools
-
 
 ```{r}
 #| eval: false
 HDBresale_sf <- proximity(HDBresale_sf, poppris, "DIS_TO_POPPRIM")
 ```
-
 
 ##### Shopping Malls
 
@@ -1563,14 +1586,12 @@ HDBresale_sf <- proximity(HDBresale_sf, poppris, "DIS_TO_POPPRIM")
 HDBresale_sf <- proximity(HDBresale_sf, malls, "DIS_TO_MALL")
 ```
 
-
 ##### Community Clubs
 
 ```{r}
 #| eval: false
 HDBresale_sf <- proximity(HDBresale_sf, communityclubs, "DIS_TO_COMMUNITYCLUB")
 ```
-
 
 ##### Hospitals
 
@@ -1579,15 +1600,12 @@ HDBresale_sf <- proximity(HDBresale_sf, communityclubs, "DIS_TO_COMMUNITYCLUB")
 HDBresale_sf <- proximity(HDBresale_sf, hospitals, "DIS_TO_HOSPITAL")
 ```
 
-
 ##### Sports Facilities
-
 
 ```{r}
 #| eval: false
 HDBresale_sf <- proximity(HDBresale_sf, sports, "DIS_TO_SPORTS")
 ```
-
 
 ##### Parks
 
@@ -1602,13 +1620,14 @@ HDBresale_sf <- proximity(HDBresale_sf, parks, "DIS_TO_PARK")
 #| eval: false
 HDBresale_sf <- proximity(HDBresale_sf, supermarkets, "DIS_TO_SUPERMARKET")
 ```
-
+:::
 
 #### Number of Nearby Facilicites
 
-The code chunk below sets up a function to compute the number of nearby facilities within designated buffer distances.
+The following code constructs a function that counts the number of facilities located within predefined buffer radii from each HDB flat. To track execution progress, a progress bar is incorporated into the procedure. Each computation takes approximately three minutes to complete.
 
 ```{r}
+#| eval: false
 #| code-fold: true
 #| code-summary: "CODE"
 countnearby <- function(data, variable, varname, distance) {
@@ -1654,18 +1673,7 @@ countnearby <- function(data, variable, varname, distance) {
 }
 ```
 
--   Number of 
-
--   Number of 
-
--   Number of bus stops within 350 metres.
-
--   Number to CHAS clinics within 350 metres (new).
-
--   Number of primary schools within 1 kilometre.
-
-
-
+::: panel-tabset
 ##### Childcare Centres within 350 Metres
 
 ```{r}
@@ -1675,12 +1683,10 @@ HDBresale_sf <- countnearby(HDBresale_sf, childcares, "N_CHILDCARE_350M", 350)
 
 ##### Kindergartens within 350 Metres
 
-
 ```{r}
 #| eval: false
 HDBresale_sf <- countnearby(HDBresale_sf, kindergartens, "N_KINDY_350M", 350)
 ```
-
 
 ##### CHAS Clinics within 350 Metres
 
@@ -1689,7 +1695,6 @@ HDBresale_sf <- countnearby(HDBresale_sf, kindergartens, "N_KINDY_350M", 350)
 HDBresale_sf <- countnearby(HDBresale_sf, clinics, "N_CLINIC_350M", 350)
 ```
 
-
 ##### Bus Stops within 350 Metres
 
 ```{r}
@@ -1697,15 +1702,12 @@ HDBresale_sf <- countnearby(HDBresale_sf, clinics, "N_CLINIC_350M", 350)
 HDBresale_sf <- countnearby(HDBresale_sf, BusStop_in_SG, "N_BUS_350M", 350)
 ```
 
-
 ##### Primary Schools within 1 Kilometre
 
 ```{r}
 #| eval: false
-HDBresale_sf <- countnearby(HDBresale_sf, prisch, "N_PRI_1M", 1000)
+HDBresale_sf <- countnearby(HDBresale_sf, prisch, "N_PRI_1KM", 1000)
 ```
-
-
 
 ```{r}
 #| eval: false
@@ -1713,30 +1715,35 @@ HDBresale_sf <- countnearby(HDBresale_sf, prisch, "N_PRI_1M", 1000)
 write_rds(HDBresale_sf, "data/rds/HDBresale_sf.rds")
 ```
 
-
 ```{r}
 #| echo: false
 HDBresale_sf <- read_rds("data/rds/HDBresale_sf.rds")
 ```
+:::
 
+#### Pre-modelling Data Checks
 
+In this step, we verify that the prepared `HDBresale_sf` dataset contains no missing values, and we perform variable renaming and selection to retain only the fields required for modelling. The processed dataset is then saved and renamed as `HDBresale` for efficient coding and analysis.
+
+First the code chunk below shows there is no missing value in the `HDBresale_sf` dataset.
 
 ```{r}
 sum(is.na(HDBresale_sf))
 ```
 
+Columns such as `flat_type`, `block`, `street_name`, and `storey_range` etc are either pre-processed or redundant. Therefore, we prepare a dataset that contains only the variables required for modelling.
 
-```{r}
-summary(HDBresale_sf)
-```
 ```{r}
 colnames(HDBresale_sf)
 ```
 
+Here we select the required columns by using the `select()` function.
 
 ```{r}
 HDBresale_final <- HDBresale_sf %>% select(2,12,11,13,18,19,17,16,7,20:35)
 ```
+
+For consistency, we convert all selected column names to uppercase to distinguish them from the original dataset.
 
 ```{r}
 HDBresale_final <- HDBresale_final %>%
@@ -1744,66 +1751,77 @@ HDBresale_final <- HDBresale_final %>%
   rename_with(toupper)  # Convert all column names to uppercase
 ```
 
+The dataset consists of 25 columns. The variable `RESALE_PRICE` serves as the dependent variable, while the remaining variables from the fourth column onwards are the independent variables used for explanatory modelling.
 
 ```{r}
 colnames(HDBresale_final)
 ```
+
+The dataset is saved and renamed as `HDBresale`, and a validation check confirms that no missing values are present in the loaded dataset.
+
 ```{r}
 #| eval: false
 #| echo: false
 write_rds(HDBresale_final, "data/rds/HDBresale_final.rds")
 ```
 
-
 ```{r}
-#| echo: false
 HDBresale <- read_rds("data/rds/HDBresale_final.rds")
 ```
-
-
 
 ```{r}
 sum(is.na(HDBresale))
 ```
 
+We quickly generate summary statistics for each column.
+
+```{r}
+summary(HDBresale)
+```
+
 ## Data Visualisation
 
-### Overall
+With the data prepared and the majority of independent variables processed, a preliminary visual check is essential before progressing to modelling. This section presents plots generated using the **ggplot** package to examine the distribution of each variable.
+
+### HDB Resale Overview: January to September 2025
+
+From January 2025 to September 2025, 3-room, 4-room, and 5-room flats were the top three transacted flat types. Among them, 4-room units recorded the highest number of transactions (8,679), likely due to their adequate supply and practical size (approximately 90–100 sqm), which suits families with one to two children, a typical demographic profile in Singapore.
 
 ```{r}
 count <- ggplot(HDBresale_all) +
   geom_histogram(aes(x=flat_type), stat= "count", color = "black", fill = "lightblue") +
   labs(title = "Distribution of Flat Types" , x= "Flat Type", y = "Count")
-ggplotly(count)
+count
 ```
 
+The code below generates a series of interactive boxplots of average monthly resale prices by flat type. As expected, 4-room flats fall near the middle of the price range across all HDB flat types.
+
 ```{r}
-#  month is character "2025-01"
 summary_data <- HDBresale_all %>%
   mutate(month = as.Date(paste0(month, "-01"))) %>%  # Convert to proper Date
   group_by(month, flat_type) %>%
   summarize(avg_resale_price = mean(resale_price),
             .groups = 'drop')
 
-summary <-ggplot(summary_data, aes(x = month, y = avg_resale_price, color = flat_type)) +
-  geom_line(size = 1) +
-  geom_point(size = 1.5) +
-    scale_y_continuous(
-    labels = scales::comma_format(),  # Use regular numbers instead of scientific notation
-    breaks = scales::pretty_breaks()  # Better break points
+summary_boxplot <- ggplot(summary_data, aes(x = flat_type, y = avg_resale_price, fill = flat_type)) +
+  geom_boxplot(alpha = 0.7) +
+  scale_y_continuous(
+    labels = scales::comma_format(),
+    breaks = scales::pretty_breaks()
   ) +
-  labs(title = "Average Resale Price by Flat Type in 2025", 
-       x = "Month", 
+  labs(title = "Distribution of Average Resale Prices by Flat Type in 2025", 
+       x = "Flat Type", 
        y = "Average Resale Price",
-       color = "Flat Type") +
-  theme_minimal()
+       fill = "Flat Type") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))  # Rotate x-axis labels
 
-ggplotly(summary)
+ggplotly(summary_boxplot)
 ```
 
-## Resale Price
-In this section, we create function to draw trellis plots (multiple histograms) for independent variables and arrange them into a grid by using ggarrange() from ggpubr package.
+### HDB Resale 4-ROOM Flats: January to September 2025
 
+This section explores the distributional characteristics of the 4-room flat dataset. A helper function is implemented to produce histograms for all variables, and the plots are arranged into grids using `ggarrange()` from the **ggpubr** package when necessary.
 
 ```{r}
 plot_histograms <- function(col) {
@@ -1814,90 +1832,60 @@ plot_histograms <- function(col) {
 }
 ```
 
-The code chunk below creates the histogram for distribution of SELLING_PRICE by using geom_histogram().
+#### Resale Price
 
+##### Distribution Analysis
 
+The code chunk below creates the histogram for distribution of `RESALE_PRICE` by using the helper function `plot_histogram()`.
 
 ```{r, fig.height=4, fig.width=10}
-plot_histograms("resale_price") %>%
+plot_histograms("RESALE_PRICE") %>%
   ggplotly()
 ```
 
-The histogram shows that the distribution of selling prices is right-skewed, meaning that most condominiums were sold at relatively lower price ranges.
+The histogram indicates that the distribution of resale prices for 4-room flats is **right-skewed**, meaning most units are sold within the lower price range, with fewer high-value transactions at the upper end.
 
-A skewed distribution can be normalised using a log transformation.
+A common way to address right-skewed data is to apply a **log** transformation, which helps normalise the distribution. The code chunk below demonstrates this by creating a new variable, `LOG_RESALE_PRICE`, using `mutate()` from the **dplyr** package and `log()` from **base R**.
 
-The code chunk below creates a new variable called LOG_SELLING_PRICE by applying a log transformation to the variable SELLING_PRICE. This transformation is performed using the mutate() from the dplyr package and log() from base R.
+Although a log transformation is not compulsory, it can improve model robustness by reducing skewness and stabilising variance. In the log-transformed model, coefficients are interpreted in percentage terms: for example, a one-unit increase in a explanatory variable corresponds to the percentage change in resale price. Thus, a one-square-metre increase in floor area would be interpreted as resulting in an approximate x% change in resale price, holding all other variables constant.
 
 ```{r}
 HDBresale <- HDBresale %>%
-  mutate(`LOG_SELLING_PRICE` = log(RESALE_PRICE))
+  mutate(`LOG_RESALE_PRICE` = log(RESALE_PRICE))
 ```
-
 
 ```{r}
-plot_histograms("LOG_SELLING_PRICE") 
+plot_histograms("LOG_RESALE_PRICE") 
 ```
+
+```{r}
+#| echo: false
+#| eval: false
+write_rds(HDBresale, "data/rds/HDBresalelg.rds")
+```
+
+```{r}
+#| echo: false
+HDBresale <-read_rds("data/rds/HDBresalelg.rds")
+```
+
 The distribution becomes less skewed after the transformation.
 
+##### Spatial Visualisation
 
-
-## Multiple Histogram Plots Distribution of Variables
-we create function to draw trellis plots (multiple histograms) for independent variables and arrange them into a grid by using ggarrange() from ggpubr package.
-
-
-```{r}
-names(HDBresale)
-structural_cart<- names(HDBresale)[4:6]
-structural_cart
-structural_numeric <- names(HDBresale)[7:9]
-structural_numeric
-locational <- names(HDBresale)[10:25]
-
-```
-
-
-### Structral Factors
-
-```{r, fig.height=4, fig.width=10}
-plots <- lapply(structural_cart, plot_histograms)
-ggarrange(plotlist = plots, ncol = 3, nrow = 1) 
-```
-
-
-```{r, fig.height=4, fig.width=10}
-plots <- lapply(structural_numeric, plot_histograms)
-ggarrange(plotlist = plots, ncol = 3, nrow = 1)  # 2 columns, 2 rows
-```
-
-
-
-
-### Locational Factors
-
-```{r, fig.height=10, fig.width=16}
-          
-plots <- lapply(locational, plot_histograms)
-ggarrange(plotlist = plots, ncol = 4, nrow = 4) 
-```
-
-
-### Drawing Statistical Point Map Using Functions from tmap Package
-
-The code chunk below displays the geospatial distribution of condominium resale prices in Singapore in an interactive point symbol map.
-
+The following code generates a map illustrating the spatial distribution of HDB resale prices in Singapore using functions from **tmap** package.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
-tm_shape(mpsz) +
-  tm_polygons(fill = "lightblue",
+rp<- tm_shape(mpsz) +
+  tm_polygons(fill = "gray50",
               border.col = "white", 
               alpha = 0.6) +
 tm_shape(HDBresale) +    #event points
   tm_dots(fill = "RESALE_PRICE",
           fill_alpha = 0.6,
-          size = 0.4,
+          size = 0.2,
           fill.scale = tm_scale_intervals(
             style = "quantile", n = 5, values = "-brewer.rd_bu")) +
   tm_view(set_zoom_limits = c(11,14)) +
@@ -1908,111 +1896,107 @@ tm_shape(HDBresale) +    #event points
             position = c("right", "bottom")) +
   tm_title("HDB Resale Prices in Singapore") +
   tm_layout(frame = FALSE)
+rp
 ```
 
-## Hedonic Pricing Modelling Using Functions from Base R
+#### Multiple Histogram Plots: Distribution of Independent Variables
 
-Next we build the hedonic pricing models for condominium reale units using [`lm()`](https://www.rdocumentation.org/packages/stats/versions/3.5.2/topics/lm) of base R.
+We utilise the helper function to draw trellis plots (multiple histograms) for the independent variables and arrange them into a grid.
 
-
-::: callout-note
--   syntax:
-
-lm(formula, data, subset, weights, na.action, method = "qr", model = TRUE, x = FALSE, y = FALSE, qr = TRUE, singular.ok = TRUE, contrasts = NULL, offset, …)
-:::
-
-
-### Simple Linear Regression Method
-
-First, the code chunk below build a simple linear regression model that predicts **RESALE_PRICE** based on **AREA_SQM**.The **tilde (\~)** is read as “is modelled by” or “as a function of.”
+The code below organises the explanatory variables into lists by their characteristics, structural and locational, to streamline plotting.
 
 ```{r}
-hdb.slr <-lm(formula = RESALE_PRICE ~ DIS_TO_CBD, data = HDBresale)
+names(HDBresale)
+structural<- names(HDBresale)[4:9]
+structural
+locational <- names(HDBresale)[10:25]
+locational
 ```
 
-The code chunk blow prints the model call from R's lm() linear model function and model's coefficients.
+##### Structral Factors
 
-```{r}
-hdb.slr
-```
-```{r}
-summary(hdb.slr)
-```
-The code chunk above returns the summary report of the simple regression model.
+The code below produces bar charts showing the distribution of structural factors. We observe that the majority of resale flats are located below the 20th storey. Very few blocks received MUP, while about one-third underwent HIP. It is high chance that MUP will not contribute much explanatory power.
 
-1.  Residuals rules:
-
-| Residuals Statistic | Interpretation           |
-|---------------------|--------------------------|
-| Median approx 0     | unbiased model overall   |
-| Negative median     | Overestimate on average  |
-| Positive median     | Underestimate on average |
-
-Since the median is negative -41K, the model slightly overestimates the resale prices.
-
-2.  Coefficients:
-
-The linear relationship can be described as:
-
-SELLING_PRICE = 790212.2 + (-1241.0) x AREA_SQM
-
-That means every one sqm increases in area will result in -1241.0 decrease in resale price on average. Since selling price is not below zero in real life, the intercept has no practical meaning. Since p-values of coefficients are much smaller than 0.001,we reject the null hypothesis that both coefficient are statistically significant.
-
-3.  Model fit Statistics
-
-Residual standard error of 942,700 means that the predictions are about \$942,700 away from the actual prices on average. The R-squared 0.4518 means the simple linear model can explain 45% of variance in resale prices. The p-value of F-statistics (\< 0.001) confirms that the simple model is statistically significant.
-
-
-
-The code chunk below reveals the internal structure of the regression model, displaying a compact list of its components, class, and dimensions.
-
-```{r}
-str(hdb.slr)
+```{r, fig.height=4, fig.width=10}
+plots <- lapply(structural, plot_histograms)
+ggarrange(plotlist = plots, ncol = 3, nrow = 2) 
 ```
 
-```{r}
-class(hdb.slr)
+The distributions of `AGE` and `LEASE` mirror each other, as one is derived from the other. Since they are highly correlated, only one should be retained in the model to avoid multicollinearity, that is validated through statistical diagnostics later. The `AREA_SQM` distribution also shows that most 4-room flats are approximately 90 sqm in size.
+
+##### Locational Factors
+
+The histograms below illustrate the spatial accessibility characteristics of a typical 4-room HDB resale flat. Most units are located within 15 km of the CBD, although the distribution is left-skewed, indicating that only a smaller proportion of flats are very close to the CBD.
+
+-   Eldercare centres: mostly within 800 m
+
+-   Hawker centres: within 500 m
+
+-   MRT stations: typically within 500 m
+
+-   Top primary schools: within 2 km
+
+-   Shopping malls: generally within 1 km
+
+-   Community clubs: around 500 m
+
+-   Hospitals: within 2 km
+
+-   Sports complexes: often within 1 km
+
+-   Parks: mostly within 800 m
+
+-   Supermarkets: usually within 300 m
+
+-   Buffer-based amenity counts also highlight high urban accessibility:
+
+-   Childcare centres (350 m): typically 4–5
+
+-   Kindergartens (350 m): usually 1–2
+
+-   Clinics (350 m): commonly \~3
+
+-   Bus stops (350 m): typically 7–8
+
+-   Primary schools (1 km): generally 2–3
+
+Overall it indicates a generally thoughtful planning pattern across residential areas, with many flats having reasonable access to essential amenities.
+
+```{r, fig.height=10, fig.width=16}
+          
+plots <- lapply(locational, plot_histograms)
+ggarrange(plotlist = plots, ncol = 4, nrow = 4) 
 ```
 
-We can also use **\$** symbol to access important elements of the model (such as coefficients, effects, fitted.values and residuals) from the list output revealed by the `str()` structure function.
+## Hedonic Pricing Modelling
 
-```{r}
-hdb.slr$coefficients
-```
+In this section, we develop the following modelling approaches. First, we build a Multiple Linear Regression (MLR) model using the `lm()` function in **base R**, followed by a Geographically Weighted Regression (GWR) model using the **GWmodel** package to account for potential spatial variation in coefficients. These models form the core of our explanatory framework, as they provide interpretable parameter estimates and statistical significance measures.
 
-```{r}
-#| eval: false
-hdb.slr$effects
-```
+To complement the explanatory models and capture potential non-linear relationships, we also introduce a Random Forest model. The non-spatial and spatial Random Forest is implemented using **SpatialRF** package. Random Forest aggregates multiple decision trees and does not require prior feature transformation, making it well suited for modelling complex interactions.
 
-The code chunk below visualises the simple linear model using functions from **ggplot2**. geom_smooth(method = lm) adds a linear regression line to the plot.
+Our primary objective is explanatory modelling, therefore, MLR and GWR serve as the main analytical tools. The Random Forest models are included not as causal inference methods, but to validate variable importance patterns, ensuring robustness in the interpretation of key determinants of HDB resale prices.
 
-```{r}
-ggplot(data = HDBresale,
-       aes (x=`DIS_TO_CBD`, y = `RESALE_PRICE`)) +
-  geom_point()+   # shows the scatter plot of area_sqm and selling price
-  geom_smooth(method = lm)
-```
+### Multiple Linear Regression
 
-We observe a few outliers with relatively high selling prices.
+In this section, we first conduct multicollinearity tests to identify and remove highly correlated explanatory variable. Once the final variable set is determined, we fit the model and evaluate its robustness by verifying adherence to standard regression assumptions.
 
-### Multiple Linear Regression Method Using Functions from corrplot and Base R
+The general form of a Multiple Linear Regression (MLR) model is shown below. MLR expresses the dependent variable as a linear combination of multiple independent variables, plus an error term to account for unexplained variation.
 
-### Computing Correlation Matrix
+$$Y = \beta_0 + \beta_1X_1 + \beta_2X_2 + \cdots + \beta_kX_k + \varepsilon$$
 
-Before building the multiple linear regression model, we first assess multicollinearity to ensure that the independent variables are not highly correlated with each other. High multicollinearity indicates redundancy among predictors and can distort coefficient estimates, leading to unstable and unreliable model results.
+#### Computing Correlation Matrix
 
-To examine this, we use the [`ggcorrmat()`](https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html)
- function from the **ggstatsplot** package to visualise the correlation matrix of the independent variables. The dataset used for this analysis excludes the geometry column, as most statistical plotting functions cannot process spatial objects directly. A commonly accepted threshold to indicate problematic multicollinearity is a correlation value above 0.8.
+Before building the multiple linear regression model, we assess multicollinearity to ensure that the independent variables are not highly correlated with one another. High multicollinearity suggests redundancy among predictors and can distort coefficient estimates, resulting in unstable and unreliable model outcomes.
 
-
+To examine this, we use the [`ggcorrmat()`](https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html) function from the **ggstatsplot** package to visualise the correlation matrix of the variables. The geometry column is excluded from this analysis, as most statistical plotting functions do not operate on spatial objects. A commonly accepted rule of thumb is that correlation values above 0.8 indicate potential multicollinearity concerns.
 
 ```{r, fig.width=14, fig.height=10}
 HDBresale_nogeo <- HDBresale %>%
   st_drop_geometry()
-ggstatsplot::ggcorrmat(HDBresale_nogeo[, 2:24])
+ggstatsplot::ggcorrmat(HDBresale_nogeo[, 2:25])
 ```
-The output shows a triangular matrix of pairwise correlation values between variables.
+
+The output above shows a triangular matrix of pairwise correlation values between variables.
 
 | Correlation r value | Interpretation         |
 |---------------------|------------------------|
@@ -2020,28 +2004,29 @@ The output shows a triangular matrix of pairwise correlation values between vari
 | =0                  | no correlation         |
 | (-1,0)              | negative relationships |
 
-The correlation matrix reveals that `AGE` and `LEASE` are perfectly negatively correlated ( r = -1), which is expected since `AGE` was derived from `LEASE` using the 99-year lease rule. To avoid redundancy, only one of these variables should be included in the model. Thus, we retain `AGE` as it is more interpretable. Additionally, several variables show |r| <= 0.3  correlation with resale price,for example, `N_KINDY_350M`, `DIS_TO_SPORTS`, and `DIS_TO_SUPERMARKET`. These variables are excluded from further modelling due to their limited explanatory power.
+The correlation matrix shows that `AGE` and `LEASE` are perfectly negatively correlated (r = –1), which is expected as `AGE` was derived directly from `LEASE` using the 99-year lease rule. To avoid redundancy, only one of these variables should be included in the model. We retain `AGE`, as it is more intuitive and interpretable.
 
-### Building a hedonic pricing model Using lm() from Base R
+In addition, several variables display extremely weak correlation with resale price (\|r\| ≤ 0.02), such as `N_KINDY_350M`, `DIS_TO_SPORTS`, and `DIS_TO_SUPERMARKET`. Although these variables exhibit minimal pairwise correlation with resale price, they are still included in the regression model. Their inclusion increases model performance (higher R^2^ and lower AIC), suggesting suppressor effects that they enhance explanatory power by accounting for variance not captured by other variables.
+
+#### Building Baseline MLR model
+
+Next we build the hedonic pricing models for HDB `RESALE_PRICE` using [`lm()`](https://www.rdocumentation.org/packages/stats/versions/3.5.2/topics/lm) of **base R**.
+
+The following code estimates the multiple linear regression model with the selected explanatory variables: `FLOOR`, `HIP`, `MUP`, `AGE`, `AREA_SQM`, `DIS_TO_CBD`, `DIS_TO_ELDERCARE`, `DIS_TO_HAWKER`, `DIS_TO_MRT`, `DIS_TO_POPPRIM`, `DIS_TO_MALL`, `DIS_TO_COMMUNITYCLUB`, `DIS_TO_HOSPITAL`, `DIS_TO_PARK`, `N_CHILDCARE_350M`, `N_CLINIC_350M`, `N_BUS_350M`, `N_PRI_1M`, `N_KINDY_350M`, `DIS_TO_SPORTS`, and `DIS_TO_SUPERMARKET`.
+
 ```{r}
-names(HDBresale)
-```
-
-`N_KINDY_350M`, `DIS_TO_SPORTS`, and `DIS_TO_SUPERMARKET`
-
-
-
-```{r}
+#| code-fold: true
+#| code-summary: "CODE"
 start_time <- Sys.time()
-cat("Starting linear regression at:", format(Sys.time(), "%H:%M:%S"), "\n")
+cat("Starting multiple linear regression at:", format(Sys.time(), "%H:%M:%S"), "\n")
 hdb_mlr <- lm(
   RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
     DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT
     + DIS_TO_POPPRIM + DIS_TO_MALL +
     DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
-    N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1M,
-  data = HDBresale
-)
+    N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1KM + N_KINDY_350M + DIS_TO_SPORTS +DIS_TO_SUPERMARKET,
+  data = HDBresale)
+
 # End time and duration
 end_time <- Sys.time()
 duration <- end_time - start_time
@@ -2051,206 +2036,250 @@ cat("Processing time:", round(duration, 2), attr(duration, "units"), "\n")
 ```
 
 ```{r}
-summary(hdb_mlr)
+#| eval: false
+#| echo: false
+write_rds(hdb_mlr, "data/model/hdb_mlr.rds")
 ```
 
-The code chunk above returns the summary report of the multiple linear regression model.
+```{r}
+#| echo: false
+hdb_mlr <-read_rds("data/model/hdb_mlr.rds")
+```
 
-1.  Residuals:
+In this section, we present the summary report of the `hdb_mlr` model, which provides the statistical results of the multiple linear regression analysis. Before interpreting the coefficients, we first assess the statistical validity of the model and the significance of the individual explanatory variables.
 
-Since the median is negative -23K, the model slightly overestimates the selling prices but improved from the simple model.
+Two null hypotheses are evaluated:
 
-2.  Coefficients:
+-   H~0~ (overall model): The regression model is not statistically significant.
 
-If the significance level alpha is set at 0.05, variables with p-values higher than 0.05 should be dropped from the model, as they are not statistically significant.Variables to drop are PROX_HAWKER_MARKET, PROX_KINDERGARTEN, PROX_TOP_PRIMARY_SCH and PROX_SUPERMARKET.
+-   H~0~ (individual coefficients): Each regression coefficient equals zero (i.e., the explanatory variable has no effect).
 
-The predictors with p-values less than 0.05 are retained, since they show strong evidence of a relationship with the resale prices.
+if a p-value of 0.05 or less, we reject the null hypothesis at the 95% confidence level. As shown in the regression table, all p-values are below this threshold, confirming that both the overall model and all explanatory variables are statistically significant.
 
-The linear relationship can be described as:
-
-e.g. that every one sqm increases in area will result in \$12,708.32 increases in selling price on average.
-
-The intercept 481,728 represents the baseline selling price when all variables are zero.
-
-3.  Model fit Statistics
-
-Residual standard error of 755,800 means that the predictions are about \$755,800 away from the actual prices on average.
-
-The p-value of F-statistics (\< 0.001) confirms that the new model is statistically significant.
-
-The R-squared value of 0.6518 indicates that the multiple linear regression model explains approximately 65% of the variance in condominium resale prices. Compared to the simple linear model (R2 = 0.45; adjusted R2 = 0.45), the multiple regression model (adjusted R2 = 0.6474) provides a more sophisticated and accurate representation of the factors influencing resale prices.
-
-
-### Preparing Publication Quality Table: gtsummary Method
-
-The code chunk below uses [`tbl_regression()`](https://www.danieldsjoberg.com/gtsummary/reference/tbl_regression.html) from [**gtsummary**](https://www.danieldsjoberg.com/gtsummary/index.html) package to create an elegant and well formatted regression summary table.
-
-More statistical results can be included in the table via [`add_glance_table()`](https://www.danieldsjoberg.com/gtsummary/reference/add_glance.html) or [`add_glance_source_note()`](https://www.danieldsjoberg.com/gtsummary/reference/add_glance.html).
-
-Refer to the [tutorial](https://www.danieldsjoberg.com/gtsummary/articles/tbl_regression.html) for more details.
+Although some independent variables exhibit weak pairwise correlation with the target variable, sensitivity testing below shows that the model performs best when these variables are retained (see comparison table below). This provides evidence of suppressor effects, where certain explanatory variables enhance model performance only in the presence of others.
 
 ```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+results_table <- data.frame(
+  Model = c("Baseline", "Model 2", "Model 3", "Model 4"),
+  Removed_variable = c("None", "SUPERMARKET", "SUPERMARKET + SPORTS", "SUPERMARKET + SPORTS + KINDY"),
+  R2 = c(0.815, 0.814, 0.812, 0.811),
+  Adj_R2 = c(0.815, 0.814, 0.811, 0.810),
+  AIC = c(218087, 218134, 218243, 218285),
+  sigma = c(69131, 69323, 69764, 69933),
+  Interpretation = c("Best performance", "Tiny performance drop", "Worse", "Worst")
+)
+
+kable(results_table, caption = "Table: Model Performance Comparison with Sequential Removal of Weak Variables", format = "html", align = "c")
+```
+
+The code below generates a well-formatted regression summary table using [`tbl_regression()`](https://www.danieldsjoberg.com/gtsummary/reference/tbl_regression.html) from [**gtsummary**](https://www.danieldsjoberg.com/gtsummary/index.html) package. Additional model evaluation metrics are included using [`add_glance_table()`](https://www.danieldsjoberg.com/gtsummary/reference/add_glance.html).
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
 tbl_regression(hdb_mlr, intercept = TRUE) %>%
   bold_labels() %>%
   bold_p(t = 0.05) %>%
   add_glance_source_note(
     label = list(sigma~ "\U03C3"),
     include = c(r.squared, adj.r.squared, AIC, statistic, p.value, sigma)
-  )
+  ) %>%
+  modify_caption("Table: Baseline Model Statistical Summary")
   
 ```
 
-R2s have been explained earlier.
+The model achieves an R^2^ of 0.815 and an Adjusted R^2^ of 0.815, indicating that approximately 81.5% of the variation in 4-room HDB resale prices is explained by the selected variables.
 
-AIC stands for Akaike Information Criterion which measures model quality by goodness of fit and complexity. The lower value means better model given same data.
+Based on the estimated coefficients, the Multiple Linear Regression (MLR) model for HDB resale price can be expressed as follows:
 
-Statistic is F-statistic and its p-value. Sigma is Residual Standard Error.
+ResalePrice = 634,871 + 5,982×FLOOR + 10,235×HIP - 48,303×MUP - 507×AGE + 4,583×AREA_SQM - 19.88×DIS_TO_CBD - 15.23×DIS_TO_ELDERCARE - 15.81×DIS_TO_HAWKER - 52.77×DIS_TO_MRT - 9.56×DIS_TO_POPPRIM - 17.35×DIS_TO_MALL - 15.60×DIS_TO_COMMUNITYCLUB + 9.91×DIS_TO_HOSPITAL - 9.12×DIS_TO_PARK - 2,594×N_CHILDCARE_350M + 6,432×N_CLINIC_350M + 1,265×N_BUS_350M - 11,340×N_PRI_1M + 6,321×N_KINDY_350M + 14.41×DIS_TO_SPORTS + 32.50×DIS_TO_SUPERMARKET
 
-All these metrics are reported in the model summary output via summary().
+The MLR model indicates that both structural attributes (floor, size, age) and locational factors (proximity to MRT, CBD, amenities) are strong determinants of 4-room HDB resale prices. While most amenity-related effects are small in dollar term, upgrading programmes (HIP/MUP) and access to transport and education facilities play important roles in shaping valuation. For instance, when all other variables are held constant, the presence of HIP is associated with an average increase of approximately \$10,235 in HDB resale price.
 
-### Regression Diagnostics
+#### Building Log-MLR Model
 
-Regression model’s assumptions are:
+The following code fits a log-linear MLR model, where the dependent variable is the log-transformed resale price (`LOG_RESALE_PRICE`). The same explanatory variables used in the base model is retained for consistency.
 
--   Linearity: Predictors have linear relation to target
--   Independence: Errors are independent
--   Homoscedasticity: Constant variance of residuals, Residual plot
--   Normality: Errors are normally distributed, QQ plot
--   No Multicollinearity: Predictors not highly correlated
+The formula is as follows:
 
-In this section, we use [**olsrr**](https://olsrr.rsquaredacademy.com/) package to perform the OLS regression diagnostics.
+$$\log(Y_i) = \beta_0 + \beta_1X_{1i} + \beta_2X_{2i} + \cdots + \beta_kX_{ki} + \varepsilon_i$$
 
-The olsrr package provides following tools for building OLS regression models using R:
+Where:
 
--   Comprehensive Regression Output
--   Variable Selection Procedures
--   Heteroskedasticity Tests
--   Collinearity Diagnostics
--   Model Fit Assessment
--   Measures of Influence
--   Residual Diagnostics
--   Variable Contribution Assessment
+-   $Y_i$ = Resale price of HDB flat $i$
 
-:::: panel-tabset
-#### Multicollinearity Test
+-   $\log(Y_i)$ = Natural logarithm of resale price
 
-**Multicollinearity** occurs when independent variables are highly correlated. High multicollinearity inflates the variance of coefficient estimates, leading to unstable and unreliable results, and may cause truly important predictors to appear statistically insignificant.
+-   $\beta_0$ = Global intercept (average log price when all independent variables = 0)
 
-The code chunk below use [`check_collinearity()`](https://easystats.github.io/performance/reference/check_collinearity.html) from **performance** package to test the Multicollinearity.
+-   $\beta_j$ = Global coefficient for independent variables $j$ ($j = 1, 2, \dots, k$)
+
+-   $X_{ji}$ = Value of independent variables $j$ for observation $i$
+
+-   $\varepsilon_i$ = Error term for observation $i$ \~ $N(0, \sigma^2)$
+
+-   $i$ = Observation index ($i = 1, 2, \dots, n$)
+
+-   $k$ = Number of independent variables
+
+-   $n$ = Total number of observations (8,679)
 
 ```{r}
-check_collinearity(hdb_mlr)
+#| code-fold: true
+#| code-summary: "CODE"
+start_time <- Sys.time()
+cat("Starting multiple linear regression log at:", format(Sys.time(), "%H:%M:%S"), "\n")
+loghdb_mlr <- lm(
+  LOG_RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
+    DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT
+    + DIS_TO_POPPRIM + DIS_TO_MALL +
+    DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
+    N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1KM + N_KINDY_350M + DIS_TO_SPORTS +DIS_TO_SUPERMARKET,
+  data = HDBresale)
+
+# End time and duration
+end_time <- Sys.time()
+duration <- end_time - start_time
+
+cat("Model completed at:", format(end_time, "%Y-%m-%d %H:%M:%S"), "\n")
+cat("Processing time:", round(duration, 2), attr(duration, "units"), "\n")
+
+```
+
+The code below outputs a statistical summary table for the log-transformed MLR model, similar to the base MLR model. For clearer interpretation, the intercept is hidden and included as a footnote. All p-values are below 0.05, allowing us to reject the null hypotheses and conclude that both the model and all coefficients are statistically significant at the 95% confidence level.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tbl_regression(loghdb_mlr, intercept = FALSE) %>%
+  bold_labels() %>%
+  bold_p(t = 0.05) %>%
+  add_glance_source_note(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, adj.r.squared, AIC, statistic, p.value, sigma)) %>%
+  modify_caption("Table: Log_MLR Model Statistical Summary") %>%
+  modify_table_body(~ .x %>%
+      mutate(across(c(estimate, conf.low, conf.high), ~(exp(.)-1) * 100)) %>% # change to percentage
+      arrange(desc(abs(estimate)))) %>%  #sort
+  modify_header(
+    estimate = "**% Change in Price**",
+    conf.low = "**CI Lower**", 
+    conf.high = "**CI Upper**") %>%
+  modify_fmt_fun(
+    estimate = function(x) style_number(x, digits = 3),
+    conf.low = function(x) style_number(x, digits = 3),
+    conf.high = function(x) style_number(x, digits = 3))%>%
+  modify_footnote(
+    estimate ~ "Intercept: Estimate :1.330e+01, Std. Error: 1.546e-02, p value < 2e-16")%>%
+   modify_caption("Table: Log-MLR Model Statistical Summary")
+```
+
+The log-MLR model achieves an R^2^ of 0.836 and an Adjusted R^2^ of 0.835, indicating that approximately 83.6% of the variation in 4-room HDB resale prices is explained by the selected explanatory variables. This reflects a stronger model fit. Consistent with the base MLR results, structural factors remain the most influential drivers of resale value in the log-linear specification.
+
+In the log-MLR models, coefficients are interpreted in percentage terms. For example, the coefficient for HIP indicates that, holding other variables constant, flats located in blocks that have undergone the Home Improvement Programme are associated with an approximate 1.42% increase in resale price on average. Similarly, each additional floor level increases price by around 0.71%, while each additional year of age reduces price by about 0.89% per year.
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(loghdb_mlr, "data/model/loghdb_mlr.rds")
 ```
 
 ```{r}
-summary(check_collinearity(hdb_mlr))
+#| echo: false
+loghdb_mlr <-read_rds("data/model/loghdb_mlr.rds")
 ```
 
+#### Regression Diagnostics
+
+Regression models rely on several key assumptions, including linear relationships between independent variable and the target variable, independence of errors, constant variance of residuals (homoscedasticity), normally distributed errors, and the absence of high multicollinearity among explanatory variables. In this section, we conduct diagnostic checks to verify that the log-MLR model satisfies these assumptions. The **olsrr** and **performance** packages are used to implement these diagnostics, as they provide a comprehensive suite of tools for assessing regression model validity, including heteroskedasticity tests, collinearity diagnostics, model fit evaluations, influence measures, and residual analysis. These checks ensure that the fitted model is statistically sound and appropriate for inference.
+
+Since diagnostic requirements are the same for MLR models and the log transformation should enhances normality and variance stability, regression assumptions are evaluated only for the log-MLR model.
+
+::: panel-tabset
+##### Multicollinearity Test
+
+Multicollinearity arises when independent variables are highly correlated with one another. This condition inflates the variance of coefficient estimates, making them unstable and less reliable. As a result, variables that are genuinely important may appear statistically insignificant due to shared explanatory power.
+
+To assess multicollinearity in our log-MLR model, we use the [`check_collinearity()`](https://easystats.github.io/performance/reference/check_collinearity.html) function from the **performance** package, which reports Variance Inflation Factors (VIFs) and related diagnostics.
+
 ```{r}
-mlr.vif <- check_collinearity(hdb_mlr)
-plot(mlr.vif) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+logmlr.vif <- check_collinearity(loghdb_mlr)
+plot(logmlr.vif) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Log-MLR Model VIF")
 ```
 
-| VIF value | Interpretation                                   |
-|-----------|--------------------------------------------------|
-| 1         | No correlation between predictors (ideal)        |
-| 1-5       | Moderate correlation; acceptable in most models. |
-| \>5       | Potential multicollinearity concern              |
-| \>10      | Serious multicollinearity problems               |
++---------------+------------------------------------------------------+
+| VIF value     | Interpretation                                       |
++===============+======================================================+
+| 1             | No correlation between explanatory variables (ideal) |
++---------------+------------------------------------------------------+
+| 1-5           | Moderate correlation; acceptable in most models.     |
++---------------+------------------------------------------------------+
+| \>5           | Potential multicollinearity concern                  |
++---------------+------------------------------------------------------+
+| \>10          | Serious multicollinearity problems                   |
++---------------+------------------------------------------------------+
 
-We can safely conclude that there are no sign of multicollinearity among the independent variables, since all VIF values are less than 10.
+All VIF values are below 10, indicating no signs of multicollinearity in the explanatory variables.
 
+##### Test for Non-Linearity
 
+The code below generates diagnostic plots to examine whether the residuals exhibit any non-linear patterns that may violate the linearity assumption.
 
-#### Test for Non-Linearity
-
-The code chunk below test linearity assumption by using [`ols_plot_resid_fit()`](https://olsrr.rsquaredacademy.com/reference/ols_plot_resid_fit.html) from **olsrr** package.
+The residual pattern largely centres around zero, consistent with the linearity assumption. A slight curve in the reference line suggests that some explanatory variables may have non-linear effects. This observation provides justification for considering complementary non-linear models. While small amount of outliers are visible, they do not exert substantial influence on the overall pattern.
 
 ```{r}
-ols_plot_resid_fit(hdb_mlr)
-```
-
-```{r}
-check_model(hdb_mlr,   #performance pacakge
+check_model(loghdb_mlr,   #performance pacakge
             check = "linearity")
 ```
 
+##### Test for Normality Assumption
 
-::: callout-note
-According to the [`check_model()` documentation](https://www.rdocumentation.org/packages/performance/versions/0.12.4/topics/check_model), `check` argument could be one or more of "all", "vif", "qq", "normality", "linearity", "ncv", "homogeneity", "outliers", "reqq", "pp_check", "binned_residuals" or "overdispersion"."reqq" is a QQ-plot for random effects and only available for mixed models. "ncv" is an alias for "linearity", and checks for non-constant variance, i.e. for heteroscedasticity, as well as the linear relationship. By default, all possible checks are performed and plotted.
-:::
+If the residuals follow a normal distribution, the normality assumption holds, ensuring valid hypothesis tests and confidence intervals.
 
-Since the majority of data points are scattered around the 0 line, relationships between the dependent variable and independent variables seem linear.
-
-#### Test for Normality Assumption
-
-If the model’s residuals (the differences between observed and predicted values) are normally distributed, the normality assumption holds. This is crucial for accurate hypothesis testing and confidence intervals.
-
-The code chunk below uses check_normality() of performance package to perform normality assumption test.
+The code chunk below uses `check_normality()` from the **performance** package to examine the normality of residuals via a Q–Q plot. The results show that most points lie closely along the reference line, indicating that the residuals are approximately normally distributed. Although minor deviations are observed at the tails, this is common in large datasets and does not materially affect the validity of the model.
 
 ```{r}
-check_normality(hdb_mlr) # performance package
+plot(check_normality(loghdb_mlr), type ="qq")
 ```
-
-```{r}
-plot(check_normality(hdb_mlr), type ="qq")
-```
-
-QQ plot above below shows that majority of the data points are felt along the zero line.
 
 The code chunk below uses [`check_model()`](https://easystats.github.io/performance/reference/check_model.html) from performance package to test residuals normality.
 
 ```{r}
-check_model(hdb_mlr,
+check_model(loghdb_mlr,
             check= "normality")
 ```
 
-The figure reveals that the residual of the multiple linear regression model (i.e. condo.mlr1) is resemble normal distribution.
+The figure reveals that the residuals of the log-linear model resemble normal distribution.
 
-Alternatively, we could do the same tests using **olsrr** package, using following residual diagnostics: ols_plot_resid_box(), ols_plot_resid_hist(), ols_plot_resid_qq() and ols_test_normality() to check normality of residuals. ols_test_correlation()tests independence (autocorrelation).
+##### Testing for Spatial Autocorrelation
 
-```{r}
- ols_test_normality(hdb_mlr) #olsrr package
-```
+Since the hedonic model relies on spatially referenced data, it is important to test for spatial autocorrelation in the regression residuals. Standard OLS assumes that observations are independent. However, in spatial datasets, nearby locations often exhibit similar or dissimilar values, consistent with Tobler’s First Law of Geography. If spatial autocorrelation is present, coefficient estimates and p-values may be biased, leading to model misspecification. To address this, we apply Moran’s I test on the residuals. A significant Moran’s I would suggest that the model has not fully accounted for spatial dependence and that a spatial modelling approach (e.g., GWR) may be required.
 
 ```{r}
-ols_plot_resid_hist(hdb_mlr)
+ols_test_correlation(loghdb_mlr)
 ```
+
+The OLS autocorrelation value of 0.998 suggests strong positive autocorrelation that the residuals are not independent. This violates the OLS assumption of error independence and should be further tested using Moran’s I for spatial dependence. Significant spatial autocorrelation in the residuals means the model is not capturing the full spatial story, some spatial dependence is left unexplained.
+
+The following code first saves the model `residuals` as a data frame and then joins them back to the `HDBresale` spatial object. This allows each record to retain both its geographic location and residual value. Then we visualise the spatial distribution of residuals using the **tmap** package. This enables us to assess whether residuals exhibit any spatial clustering or systematic geographic patterns that the model has not captured.
 
 ```{r}
-ols_plot_resid_qq(hdb_mlr) 
+#| code-fold: true
+#| code-summary: "CODE"
+logmlr.output <- as.data.frame(loghdb_mlr$residuals)
+HDBresale <- cbind(HDBresale, logmlr.output) %>%
+  rename(`LOGMLR_RES`= `loghdb_mlr.residuals`)
 ```
-
-#### Testing for Spatial Autocorrelation
-
-The hedonic model uses geographically referenced data, thus it is essential to check for spatial autocorrelation. Traditional OLS regression assumes independent observations, but spatial data often violates this assumption. Spatial autocorrelation occurs when nearby locations exhibit similar (positive) or dissimilar (negative) values, consistent with Tobler’s First Law of Geography. Ignoring it can lead to biased coefficients, incorrect p-values, and model misspecification. Therefore, testing the model’s residuals with Moran’s I is necessary—significant spatial autocorrelation indicates that the model fails to capture important spatial effects.
-
-```{r}
-ols_test_correlation(hdb_mlr)
-```
-The OLS autocorrelation value of 0.825 suggests strong positive autocorrelation that the residuals are not independent. This violates the OLS assumption of error independence and should be further tested using Moran’s I for spatial dependence. Significant spatial autocorrelation in the residuals means the model is not capturing the full spatial story, some spatial dependence is left unexplained.
-
-We first save the residuals as a data frame.
-
-```{r}
-mlr.output <- as.data.frame(hdb_mlr$residuals)
-```
-
-Next,we join the residuals with condo_resale.sf object.
-
-```{r}
-HDBresale <- cbind(HDBresale, mlr.output) %>%
-  rename(`MLR_RES`= `hdb_mlr.residuals`)
-```
-
-Next, we plot the distribution of residuals using functions from tmap package on an interactive map.
 
 ```{r}
 tm_shape(mpsz) +
   tm_polygons(fill_alpha =0.4) +
   tm_shape(HDBresale) +
-  tm_dots( fill = "MLR_RES",
+  tm_dots( fill = "LOGMLR_RES",
            size = 0.4,
            col = "black",
            fill.scale = tm_scale(
@@ -2260,22 +2289,21 @@ tm_shape(mpsz) +
              midpoint = NA),
            fill.legend = tm_legend(title = "Residuals")) +
   
-  tm_title("LM Residuals (Quantile Classification)") +
-  tm_layout(legdend.outside = TRUE) +
-  tm_view(set_zoom_limits = c(11,14))
+  tm_title("Log MLR Residuals (Quantile Classification)") +
+  tm_layout(legdend.outside = TRUE)
 ```
 
 Each dot represents a condo resale residual (actual - predicted):
 
--   Green dots (positive): model underpredicted (actual \> predicted).
+-   Green dots (positive): model underestimated (actual \> predicted).
 
--   Purple dots (negative): model overpredicted (actual \< predicted).
+-   Purple dots (negative): model overestimated (actual \< predicted).
 
-If residuals were spatially random, green and purple dots would be evenly scattered across Singapore.But it is not the case here. Further, the coexistence of overestimates and underestimates within the same region indicates that the OLS model cannot fully capture local variations in housing market dynamics.
+If residuals were spatially random, green and purple dots would be evenly scattered across Singapore. However, this is not observed. Further, the coexistence of positive and negative residuals within the same region indicates that the OLS model cannot fully capture local variations in housing market dynamics.
 
-Next we can confirm with Moran’s I test on residuals.
+To formally verify this spatial dependence, we proceed with Moran’s I test on the model residuals.
 
-First, we compute distance-based weight matrix using [`st_dist_band()`](https://sfdep.josiahparry.com/reference/st_dist_band) function of **sfdep.**
+First, we compute distance-based weight matrix using [`st_dist_band()`](https://sfdep.josiahparry.com/reference/st_dist_band) function of **sfdep.** A 1.5 km distance band is selected as it reflects a reasonable neighbourhood interaction range in Singapore. Most daily amenities are designed to be within short walking or public-transport access, and extending the radius beyond 1.5 km risks diluting local price relationships by mixing flats from different neighbourhood markets.
 
 ```{r}
 HDBresale <- HDBresale %>%
@@ -2286,10 +2314,13 @@ HDBresale <- HDBresale %>%
 Then, we use [`global_moran_perm()`](https://sfdep.josiahparry.com/reference/global_moran_perm) of **sfdep** package conduct Moran's I test for residual spatial autocorrelation with Monte Carlo Simulations (500 times).
 
 ```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+#| eval: false
 start_time <- Sys.time()
 cat("Starting Global Moran's I Simulation at:", format(Sys.time(), "%H:%M:%S"), "\n")
 set.seed(1234)
-global_moran_perm(HDBresale$MLR_RES,
+gmperm <-global_moran_perm(HDBresale$LOGMLR_RES,
                   nb = HDBresale$nb,
                   wt = HDBresale$wt,
                   alternative = "two.sided",
@@ -2302,37 +2333,78 @@ cat("Simulation completed at:", format(end_time, "%Y-%m-%d %H:%M:%S"), "\n")
 cat("Processing time:", round(duration, 2), attr(duration, "units"), "\n")
 ```
 
-The Global Moran’s I value of 0.1439 (p \< 0.05) indicates a statistically significant positive spatial autocorrelation, suggesting a mild clustering pattern across the study area.
-::::
-
-
-
-
-
-
-## Building Hedonic Pricing Models Using GWmodel Package
-
-In this section, we build hedonic pricing models using both the fixed and adaptive bandwidth schemes.
-
-### Computing Adaptive Bandwidth
-
-
-The `bw.gwr()` function from the **GWModel** package determines the optimal fixed bandwidth (`**adaptive** = FALSE`) and uses a stopping rule based on either the cross-validation (CV) or AICc (AIC) approach, as specified by the **approach** argument. Here, we use the AIC approach while the alternative method CV tends to produce a smaller bandwidth, which is more suitable for capturing local spatial variation.
-
-
-#### CV
 ```{r}
+#| eval: false
+#| echo: false
+write_rds(gmperm, "data/rds/gmperm.rds")
+```
+
+```{r}
+#| echo: false
+gmperm <- read_rds("data/rds/gmperm.rds")
+```
+
+```{r}
+gmperm
+```
+
+The Global Moran’s I value of 0.3389 (p \< 0.05) indicates statistically significant positive spatial autocorrelation in the residuals. This suggests the presence of mild spatial clustering across the study area at the confidence level of 95%. That nearby locations tend to exhibit similar residual patterns.
+:::
+
+### Geographically Weighted Regression
+
+Since the OLS model cannot fully account for the spatial dependence in HDB resale prices, we next apply a Geographically Weighted Regression (GWR) model to examine how the effects of explanatory variables vary across Singapore. Unlike the global OLS model, GWR allows for localised coefficient estimation, providing deeper insights into the spatial heterogeneity of housing market dynamics.
+
+Specifically, we construct hedonic pricing models using an adaptive bandwidth approach. The adaptive bandwidth automatically adjusts the spatial extent of each local regression, ensuring that areas with dense observations use smaller neighbourhoods, while regions with fewer observations draw from a wider spatial context to maintain model stability and reliability.
+
+The formula for GWR is as follows:
+
+$$\log(price_i) = \beta_0(u_i,v_i) + \beta_1(u_i,v_i)X_{1i} + \beta_2(u_i,v_i)X_{2i} + \cdots + \beta_k(u_i,v_i)X_{ki} + \varepsilon_i$$ $\log(price_i)$ = Natural log of resale price for observation $i$
+
+Where:
+
+-   $\beta_0(u_i,v_i)$ = Local intercept at coordinates $(u_i, v_i)$
+
+-   $\beta_j(u_i,v_i)$ = Local coefficient for predictor $j$ at location $(u_i, v_i)$
+
+-   $X_{ji}$ = Value of predictor $j$ for observation $i$
+
+-   $\varepsilon_i$ = Error term for observation $i$
+
+-   $(u_i, v_i)$ = Spatial coordinates (longitude, latitude)
+
+To ensure consistency and comparability with the earlier OLS results, the log-transformed resale price is retained as the dependent variable, along with the same set of explanatory variables.
+
+After estimating the GWR model, we extract diagnostic and model evaluation measures stored in the `sf` DataFrame under the `SDF` output list. These include observed and predicted values, residuals, condition numbers, local R^2^, coefficient estimates, standard errors, and corresponding t-values.
+
+The local R^2^ represents the spatially varying explanatory power of the model (ranging from 0 to 1). Residuals, calculated as the differences between observed and predicted values, can be visualised to illustrate spatial patterns of model performance.
+
+Finally, the standard errors of coefficients reflect the reliability of local parameter estimates. Smaller standard errors relative to the magnitude of coefficients suggest stable and well-estimated relationships, whereas larger standard errors point to possible local collinearity issues. By jointly examining the local R^2^, residual and coefficient estimates maps, we can identify spatial variations in model performance, providing a more nuanced understanding of the underlying factors influencing HDB resale prices across Singapore.
+
+#### Computing Adaptive Bandwidth
+
+The `bw.gwr()` function in the **GWModel** package selects the optimal bandwidth for GWR. With `adaptive = FALSE`, it searches for a fixed distance bandwidth, while with `adaptive = TRUE`, it finds an adaptive (k-nearest-neighbour) bandwidth. The optimisation uses either `AIC` or `CV`, controlled by the approach argument. In this study, we evaluate both the AICc and CV approaches to identify an adaptive bandwidth that best captures local spatial variation.
+
+::: panel-tabset
+##### CV
+
+The following code conducts the adaptive bandwidth selection using the `approach = CV` option in the `bw.gwr()` function. The process returns an optimal bandwidth of 140. That means each local regression in the GWR model was calibrated using the 140 nearest neighbouring observations.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+#| eval: false
 # Start timing
 start_time <- Sys.time()
 cat("Clculating GWR bandwidth (CV approach)... This may take a while.\n")
 
 # Run the bandwidth selection
 bw_adaptive_cv <- bw.gwr(
-  formula = RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
-    DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT +
-    DIS_TO_POPPRIM + DIS_TO_MALL + DIS_TO_COMMUNITYCLUB + 
-    DIS_TO_HOSPITAL + DIS_TO_PARK + N_CHILDCARE_350M + 
-    N_CLINIC_350M + N_BUS_350M + N_PRI_1M,
+  formula = LOG_RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
+    DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT
+    + DIS_TO_POPPRIM + DIS_TO_MALL +
+    DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
+    N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1KM + N_KINDY_350M + DIS_TO_SPORTS +DIS_TO_SUPERMARKET,
   data = HDBresale,
   approach = "CV",
   kernel = "gaussian",
@@ -2347,37 +2419,41 @@ duration <- end_time - start_time
 cat("COMPLETED: GWR Bandwidth Selection\n")
 cat("Optimal bandwidth:", bw_adaptive_cv, "\n")
 cat("Processing time: ", round(duration, 2), attr(duration, "units"), "\n")
-cat("Observations:", nrow(HDBresale), "\n")
-cat("Predictors:", length(all.vars(formula)) - 1, "\n")
-```
-
-
-```{r}
-write_rds(bw_adaptive_cv, "data/model/bw_adaptive_cv.rds")
 ```
 
 ```{r}
+#| eval: false
+#| echo: false
+# write_rds(bw_adaptive_cv, "data/model/bw_adaptive_cv.rds")
+```
+
+```{r}
+#| echo: false
 bw_adaptive_cv <- read_rds("data/model/bw_adaptive_cv.rds")
+```
 
+```{r}
 bw_adaptive_cv
 ```
 
+##### AIC
 
-#### AIC
-
-
+The following code performs an AIC-based bandwidth search using the `bw.gwr()` function. The optimisation process took approximately 22 minutes, nearly twice as long as the cross-validation (CV) approach, and returned the same optimal bandwidth of 140. This consistency across both methods reinforces the reliability of the selected bandwidth, confirming that a neighbourhood size of **140** nearest observations is appropriate for capturing local spatial variation in the dataset.
 
 ```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+#| eval: false
 # Start timing
 start_time <- Sys.time()
 cat("Clculating GWR bandwidth (AIC approach)... This may take a while.\n")
 
 bw_adaptive_aic <- bw.gwr(
-  formula = RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
+ formula = LOG_RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
     DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT
     + DIS_TO_POPPRIM + DIS_TO_MALL +
     DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
-    N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1M,
+    N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1KM + N_KINDY_350M + DIS_TO_SPORTS +DIS_TO_SUPERMARKET,
   data = HDBresale,
   approach = "AIC",
   kernel = "gaussian",
@@ -2391,42 +2467,43 @@ duration <- end_time - start_time
 cat("COMPLETED: GWR Bandwidth Selection\n")
 cat("Optimal bandwidth:", bw_adaptive_aic, "\n")
 cat("Processing time: ", round(duration, 2), attr(duration, "units"), "\n")
-cat("Observations:", nrow(HDBresale), "\n")
-cat("Predictors:", length(all.vars(formula)) - 1, "\n")
 
 ```
 
-
-
 ```{r}
+#| eval: false
+#| echo: false
 write_rds(bw_adaptive_aic, "data/model/bw_adaptive_aic.rds")
 ```
 
 ```{r}
+#| echo: false
 bw_adaptive_aic <- read_rds("data/model/bw_adaptive_aic.rds")
-
-bw_adaptive_aic
 ```
 
+```{r}
+bw_adaptive_aic
+```
+:::
 
+#### Constructing GWR Model
 
-###  Constructing the Adaptive Bandwidth GWR Model
-
-Similarly, we build the GWR model using adpative bandwidth and Gaussian Kernel.
-
+In this section, we construct the Geographically Weighted Regression (GWR) model using an adaptive bandwidth of **140** nearest neighbours and a **Gaussian** kernel.
 
 ```{r}
-
+#| code-fold: true
+#| code-summary: "CODE"
+#| eval: false
 # Start timing
 start_time <- Sys.time()
 cat("Building Adaptive Bandwidth GWRModel... This may take a while.\n")
 
 gwr_adaptive <- gwr.basic(
-  formula = RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
+ formula = LOG_RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
     DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT
     + DIS_TO_POPPRIM + DIS_TO_MALL +
     DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
-    N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1M,
+    N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1KM + N_KINDY_350M + DIS_TO_SPORTS +DIS_TO_SUPERMARKET,
   data = HDBresale,
   bw=bw_adaptive_cv,
   kernel = "gaussian",
@@ -2439,263 +2516,825 @@ duration <- end_time - start_time
 
 cat("COMPLETED: Adaptive Bandwidth GWRModel\n")
 cat("Processing time: ", round(duration, 2), attr(duration, "units"), "\n")
-
-
-
-
 ```
 
-
 ```{r}
-gwr_adaptive
-```
-```{r}
-# Check for extreme MUP coefficients
-mup_coefs <- gwr_adaptive$SDF$MUP
-cat("MUP coefficients summary:\n")
-summary(mup_coefs)
-cat("Number of extreme MUP values:", sum(abs(mup_coefs) > 1e10), "\n")
-
-# Consider removing or transforming MUP if problematic
-```
-
-
-
-
-
-
-
-```{r}
+#| eval: false
+#| echo: false
 write_rds(gwr_adaptive, "data/model/gwr_adaptive.rds")
 ```
 
 ```{r}
+#| echo: false
 gwr_adaptive <- read_rds("data/model/gwr_adaptive.rds")
 ```
 
+#### GWR statistics
 
-
-
-## Explantory Modelling: RF method
-
-### Data preparation
-
-Firstly, code chunk below is used to extract the coordinates of training and test data sets
+The GWR model summary indicates a substantial improvement in model performance compared with the global log-MLR. The global model achieved an Adjusted R^2^ of 0.8354 and an AICc of −17,707.73, whereas the GWR model produced an Adjusted R^2^ of 0.9528 and an AICc of −28,135.92. This demonstrates that the GWR explains a much larger proportion of variation in resale prices and provides a better overall model fit. With R^2^ of 0.9564, the model explains approximately 95.64% of the variation in HDB resale prices.
 
 ```{r}
-coords <- st_coordinates(HDBresale)
+gwr_adaptive
 ```
 
-ext, code chunk below is used to drop the geometry column of both training and test data sets.
+#### Residual Diagnostics
+
+The code below generates two residual choropleth maps using contiguous classification, plotted on the same scale to enable direct comparison between the log-MLR and GWR models. The results show that the GWR model produces much lighter colours overall, indicating smaller residuals and a better fit. Extreme values are markedly reduced, and spatial clustering of residuals is less pronounced compared to the MLR model. These improvements demonstrate that GWR more effectively captures local spatial heterogeneity in HDB resale prices.
 
 ```{r}
-HDBresale_nogeom <- HDBresale %>%
-  st_drop_geometry()
-```
-
-
-### Calibrating RF model
-
-```{r}
-# Start timing
-start_time <- Sys.time()
-cat("Building RF model... This may take a while.\n")
-set.seed(1234)
-rf <- ranger(formula = RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
-    DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT
-    + DIS_TO_POPPRIM + DIS_TO_MALL +
-    DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
-    N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1M,
-             data=HDBresale_nogeom,importance ="permutation" )
-
-
-# End timing and display results
-end_time <- Sys.time()
-duration <- end_time - start_time
-
-cat("COMPLETED: RF model\n")
-cat("Processing time: ", round(duration, 2), attr(duration, "units"), "\n")
-
+# Map residuals
+#| code-fold: true
+#| code-summary: "CODE"
+gwrres<- tm_shape(mpsz) +
+  tm_polygons(alpha = 0.3) +
+  tm_shape(gwr_adaptive$SDF) +
+  tm_dots(fill = "residual",
+          size = 0.25,
+          fill.scale = tm_scale_continuous()) +  
+  tm_title("GWR Residuals (Continuous)") +
+  tm_layout(legdend.outside = TRUE)
+gwrres
 ```
 
 ```{r}
-rf
+#| code-fold: true
+#| code-summary: "CODE"
+mlrres <- tm_shape(mpsz) +
+  tm_polygons(alpha = 0.3) +
+  tm_shape(HDBresale) +  # Changed from HDB_resale to HDBresale
+  tm_dots(fill = "LOGMLR_RES",
+          size = 0.25,
+          fill.scale = tm_scale_continuous()) +  
+  tm_title("Log MLR Residuals (Continuous)") +
+  tm_layout(legend.outside = TRUE)  # Fixed typo: legdend -> legend
+
+mlrres
 ```
 
-
-
-
-```{r}
-write_rds(rf, "data/model/rf.rds")
-```
+A global Moran’s I test is applied to the residuals using `global_moran_perm()` from **sfdep** package.
 
 ```{r}
-rf <- read_rds("data/model/rf.rds")
-```
+gwr_residuals <- gwr_adaptive$SDF$residual
 
-```{r}
-summary(rf)
-```
-```{r}
-importance_pvalues(
-rf,
-method = "altmann",
-num.permutations = 100,
-formula = RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
-    DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT
-    + DIS_TO_POPPRIM + DIS_TO_MALL +
-    DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
-    N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1M,
-             data=HDBresale_nogeom
-
-)
-```
-
-
-```{r}
-explain_forest(rf)
-
+gmperm_gwr <- global_moran_perm(
+  gwr_residuals,                   
+  nb = HDBresale$nb,
+  wt = HDBresale$wt,
+  alternative = "two.sided",
+  nsim = 499)
 ```
 
 ```{r}
-class(forest)
+#| eval: false
+#| echo: false
+write_rds(gmperm_gwr, "data/rds/gmperm_gwr.ds")
 ```
 
-## SpatialML method
-
- 
 ```{r}
-start_time <- Sys.time()
-cat("Building GWRF model... This may take a while.\n")
-
-set.seed(1234)
-gwRF <- grf.bw(
-  formula = RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
-    DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT
-    + DIS_TO_POPPRIM + DIS_TO_MALL +
-    DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
-    N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1M,
-                     data=HDBresale_nogeom, 
-                     kernel="adaptive",
-                     coords=coords,  
-                     trees = 100,        # Reduce from 500 to 100-200
-                     nthreads = parallel::detectCores() - 1,  # Use multiple cores
-                     step = 1           # Larger step size in bandwidth search
-)
-
-
-# End timing and display results
-end_time <- Sys.time()
-duration <- end_time - start_time
-
-cat("COMPLETED: GWRF model\n")
-cat("Processing time: ", round(duration, 2), attr(duration, "units"), "\n")
-
+#| echo: false
+gmperm_gwr <- read_rds("data/rds/gmperm_gwr.ds")
 ```
 
-
 ```{r}
-write_rds(gwRF_bw,
-          "data/model/gwRF_bw.rds")
+gmperm_gwr
 ```
 
+:::{.callout-note}
+Although there remains statistically significant spatial autocorrelation at the 95% confidence level, the 94.8% reduction in Moran’s I (from 0.33889 to 0.01778) indicates that the GWR model effectively accounted for most of the spatial dependence present in the data.
+:::
+
+#### Local R^2^ Mapping
+
+In this section, we first prepare the SDF output from the GWR model into a data frame and extract the local R^2^ values. With functions from the tmap package, these values are then visualised at the national level and further examined by region to compare model fit across different areas.
+
+::: panel-tabset
+##### National Level
+
+The following code is used to extract the SDF from the gwrm object and convert it to an sf data frame in SVY21 / EPSG:3414 for subsequent analysis.
 
 ```{r}
-gwRF_bw <-read_rds("data/model/gwRF_bw.rds")
-gwRF_bw
+HDBresale_adaptive <- st_as_sf(gwr_adaptive$SDF) %>%
+  st_transform(3414) %>%
+  mutate(across(where(is.character), as.numeric))
 ```
 
-HDB_sample <-mdata
-
-HDB_sample <-mdata %>%
-  sample_n(1500)
-
-## SpatialRF method
+```{r}
+#| eval: false
+#| echo: false
+write_rds(HDBresale_adaptive, "data/model/HDBresale_adaptive.rds")
+```
 
 ```{r}
-predictors <- names(HDBresale)[c(4:7, 9:17,19,21,23:25)]
+#| echo: false
+HDBresale_adaptive <- read_rds("data/model/HDBresale_adaptive.rds")
+```
+
+```{r}
+glimpse(HDBresale_adaptive)
+```
+
+Using **tmap** pacakge, we visualise the spatial distribution of local R^2^, which summarises the location-specific explanatory power of the hedonic GWR.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+localr2<-tm_shape(mpsz) +
+  tm_polygons(fill = "gray50",
+              border.col = "white", 
+              alpha = 0.6) +
+tm_shape(HDBresale_adaptive) +    #event points
+  tm_dots(fill = "Local_R2",
+          fill_alpha = 0.6,
+          size = 0.2,
+          fill.scale = tm_scale_intervals(
+            style = "quantile", n = 5, values = "-viridis")) +
+  tm_view(set_zoom_limits = c(11,14)) +
+  tm_compass(type = "8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: data.gov.sg",
+            position = c("right", "bottom")) +
+  tm_title("GWR Model Local R^2") +
+  tm_layout(frame = FALSE)
+localr2
+```
+
+Interpretation:
+
+High local R^2^ clusters (shown in purple) are concentrated in central and north-western regions, such as Kallang, Bukit Merah, Queenstown, Clementi, Jurong West, and Woodlands, where the model explains price variation very well (R^2^ 0.95–0.99). These areas are typically mature estates with stable housing attributes and well-established market dynamics, that the selected strcutural and locational variables capture price differences effectively.
+
+Conversely, lower local R^2^ values (yellow to green tones) are observed in new-town and developing areas, including Punggol and Sengkang in the northeast, and parts of Tampines and Pasir Ris in the east, where model fit weakens (R^2^ 0.71–0.88).These estates are undergoing rapid urban development, and their pricing may be influenced by emerging infrastructure, future growth expectations, and unmeasured locational factors, which the current model does not fully capture.
+
+##### Central Region
+
+In the Central Region, the local R^2^ values are consistently high, mostly around or above 0.95. This reflects the fact that the central estates are well-established and mature, with stable housing characteristics and well-defined amenity structures. Consequently, the explanatory variables included in the model effectively capture the spatial effects influencing resale prices in these areas.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz[mpsz$REGION_N %in% c("CENTRAL REGION"), ]) + 
+  tm_polygons(fill = "gray50",
+              border.col = "white", 
+              alpha = 0.6) +
+tm_shape(HDBresale_adaptive) +    #event points
+  tm_dots(fill = "Local_R2",
+          fill_alpha = 0.6,
+          size = 0.2,
+          fill.scale = tm_scale_intervals(
+            style = "quantile", n = 5, values = "-viridis")) +
+  tm_view(set_zoom_limits = c(11,14)) +
+  tm_compass(type = "8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: data.gov.sg",
+            position = c("right", "bottom")) +
+  tm_title("GWR Model Local R^2") +
+  tm_layout(frame = FALSE)
+```
+
+##### East Region
+
+When examining the eastern region, distinct spatial clusters of local R^2^ can be observed. Within Tampines, Tampines North exhibits the strongest model fit, with R^2^ values reaching approximately 0.97. Moving westward, the local R^2^ gradually decreases to around 0.93, and continues to decline eastward towards Tampines East, where values range between 0.71 and 0.88. This gradient pattern suggests that the explanatory variables capture resale price variations more effectively in Tampines North, while the eastern precincts may be influenced by unobserved locational or developmental factors not fully represented in the model.
+
+A comparable pattern is evident in Pasir Ris, where the eastern side of Pasir Ris Drive 8 records lower local R^2^ values (0.71–0.88, yellow). In contrast, the western side demonstrates moderately higher R^2^ values (0.88–0.94, light green).
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz[mpsz$REGION_N %in% c("EAST REGION"), ]) + 
+  tm_polygons(fill = "gray50",
+              border.col = "white", 
+              alpha = 0.6) +
+tm_shape(HDBresale_adaptive) +    #event points
+  tm_dots(fill = "Local_R2",
+          fill_alpha = 0.6,
+          size = 0.2,
+          fill.scale = tm_scale_intervals(
+            style = "quantile", n = 5, values = "-viridis")) +
+  tm_view(set_zoom_limits = c(11,14)) +
+  tm_compass(type = "8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: data.gov.sg",
+            position = c("right", "bottom")) +
+  tm_title("GWR Model Local R^2") +
+  tm_layout(frame = FALSE)
+```
+
+##### North- East Region
+
+In the North-East region, a distinct green belt can be observed across Hougang, Sengkang, and Punggol, where local R^2^ values range between 0.88 and 0.93. Surrounding these towns, areas shaded in yellow (R^2^ 0.71 to 0.88) are particularly along the outer fringes and Buangkok. This pattern suggests that while the model explains resale price variations reasonably well within the central parts of these towns, unexplained factors may influence pricing dynamics in the surrounding areas. Such factors could include ongoing urban development, varying accessibility, or unmeasured neighbourhood amenities that are not fully captured by the current model specification.
+
+```{r, fig.height=4, fig.width=10}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz[mpsz$REGION_N %in% c("NORTH-EAST REGION"), ]) + 
+  tm_polygons(fill = "gray50",
+              border.col = "white", 
+              alpha = 0.6) +
+tm_shape(HDBresale_adaptive) +    #event points
+  tm_dots(fill = "Local_R2",
+          fill_alpha = 0.6,
+          size = 0.2,
+          fill.scale = tm_scale_intervals(
+            style = "quantile", n = 5, values = "-viridis")) +
+  tm_view(set_zoom_limits = c(11,14)) +
+  tm_compass(type = "8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: data.gov.sg",
+            position = c("right", "bottom")) +
+  tm_title("GWR Model Local R^2- North West Region") +
+  tm_layout(frame = FALSE)
+```
+
+##### North Region
+
+In the Northern region, the local R^2^ values are generally high, exceeding 0.95 across most parts of Woodlands and Sembawang, and ranging between 0.94 and 0.95 in Yishun, indicating a strong model fit throughout much of the area. However, a notable yellow patch (R^2^ 0.71–0.88) appears in the Canberra–western corner of Sembawang, where the model performs less effectively. This weaker fit may be attributed to the area’s ongoing development as a new town, limited connectivity to established amenities, and proximity to large green and park spaces, which introduce spatial variation not fully captured by the current set of explanatory variables.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz[mpsz$REGION_N %in% c("NORTH REGION"), ]) + 
+  tm_polygons(fill = "gray50",
+              border.col = "white", 
+              alpha = 0.6) +
+tm_shape(HDBresale_adaptive) +    #event points
+  tm_dots(fill = "Local_R2",
+          fill_alpha = 0.6,
+          size = 0.2,
+          fill.scale = tm_scale_intervals(
+            style = "quantile", n = 5, values = "-viridis")) +
+  tm_view(set_zoom_limits = c(11,14)) +
+  tm_compass(type = "8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: data.gov.sg",
+            position = c("right", "bottom")) +
+  tm_title("GWR Model Local R^2- North Region") +
+  tm_layout(frame = FALSE)
+```
+
+##### West Region
+
+In the Western region, the local R^2^ values are generally high, exceeding 0.95 across the central areas of Jurong West, Clementi, and Choa Chu Kang, indicating strong model performance. In contrast, lower R^2^ values are observed along the edges near Bukit Batok, particularly around the Brickworks area, which borders the new-town Tengah. These peripheral zones exhibit greater variation in housing characteristics and ongoing development activities, resulting in a weaker model fit. Overall, outside the core heartland areas, local R^2^ values typically range between 0.93 and 0.95.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+tm_shape(mpsz[mpsz$REGION_N %in% c("WEST REGION"), ]) + 
+  tm_polygons(fill = "gray50",
+              border.col = "white", 
+              alpha = 0.6) +
+tm_shape(HDBresale_adaptive) +    #event points
+  tm_dots(fill = "Local_R2",
+          fill_alpha = 0.6,
+          size = 0.2,
+          fill.scale = tm_scale_intervals(
+            style = "quantile", n = 5, values = "-viridis")) +
+  tm_view(set_zoom_limits = c(11,14)) +
+  tm_compass(type = "8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+  tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: data.gov.sg",
+            position = c("right", "bottom")) +
+  tm_title("GWR Model Local R^2- West Region") +
+  tm_layout(frame = FALSE)
+```
+:::
+
+### Visualising Coefficient Estimates
+
+In explanatory modelling it is important to visualise and understand which factors matter most in shaping the model results. In our case we focus on the variables that contribute most to the percentage change in resale price as reflected by their coefficient estimates.
+
+In this section we first summarise each variable’s median coefficient estimate, its local statistical significance represented by the t value, its spatial coverage, and its standard error. We then select the fifteen coefficients based on their magnitude and contextual relevance, particularly those related to everyday amenities such as places to shop, eat,live, study, heal, and spend leisure time to highlight the factors that most strongly influence housing prices across Singapore.
+
+#### Selection of Coefficients
+
+Since our model is a log-transformed GWR model, the coefficient estimates can be interpreted as the percentage change in resale price associated with a one-unit change in each explanatory variable. Because most coefficients are relatively small in magnitude, they are converted into percentage terms to represent the % change in resale price. For distance-based variables, such as proximity to amenities, coefficients are further scaled to reflect the change per 100 m, rather than per metre, to enhance interpretability.
+
+In addition to the coefficient magnitudes, the analysis also focuses on their t-values (TVs). The t-statisic is used in statistical hypothesis testing to determine if a relationship is statistically significant. In our GMR model, a coefficient is considered locally significant when its absolute t-value exceeds 1.96, corresponding to a 95% confidence level. We also calculate the frequency of local significance across all observations to evaluate how consistently each statistically significant svariable influences resale prices spatially. For example, if the variable `FLOOR` is locally significant in all 8,679 observations, it achieves a 100% significance frequency, ranking at the top of the summary table. This measure highlights variables that exert consistent spatial effects on HDB resale prices across Singapore.
+
+Finally, we examine the standard errors (SEs) of the coefficients to assess estimate reliability. Coefficients with small SEs are regarded as highly reliable, while those with moderate or large SEs indicate greater local uncertainty in parameter estimation.
+
+To evaluate the spatial distribution of variable significance, a complete summary table is created sorting variables by the frequency of local significance across all 8,679 observations.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+# 1. Calculate spatial significance summary
+sig_summary <- HDBresale_adaptive %>%
+  st_drop_geometry() %>%
+  summarise(across(ends_with("_TV"), 
+                   ~ sum(abs(.) > 1.96, na.rm = TRUE))) %>%
+  pivot_longer(everything(), names_to = "Variable", values_to = "Sig_Locations") %>%
+  mutate(Percentage = round(Sig_Locations / nrow(HDBresale_adaptive) * 100, 1),
+         Variable = gsub("_TV", "", Variable)) %>%
+  arrange(desc(Percentage))
+
+# 2. Extract median coefficients and create percentage effects
+median_coefficients <- sapply(HDBresale_adaptive, function(x) {
+  if(is.numeric(x)) median(x, na.rm = TRUE) else NA})
+
+# Create a data frame with the coefficients we need - INCLUDING INTERCEPT
+coef_vars <- c("Intercept", "FLOOR", "HIP", "MUP", "AGE", "AREA_SQM", "DIS_TO_CBD", 
+               "DIS_TO_ELDERCARE", "DIS_TO_HAWKER", "DIS_TO_MRT", "DIS_TO_POPPRIM",
+               "DIS_TO_MALL", "DIS_TO_COMMUNITYCLUB", "DIS_TO_HOSPITAL", "DIS_TO_PARK",
+               "N_CHILDCARE_350M", "N_CLINIC_350M", "N_BUS_350M", "N_PRI_1KM", 
+               "N_KINDY_350M", "DIS_TO_SPORTS", "DIS_TO_SUPERMARKET")
+
+gwr_percent_effects <- data.frame(
+  Variable = coef_vars,
+  median_Coefficient = median_coefficients[coef_vars])
+
+# Convert to percentage effects - special handling for intercept
+gwr_percent_effects$Percent_Effect <- sapply(1:nrow(gwr_percent_effects), function(i) {
+  coef <- gwr_percent_effects$median_Coefficient[i]
+  var_name <- gwr_percent_effects$Variable[i]
+  
+  if(var_name == "Intercept") {
+    # Intercept: convert to actual price (SGD)
+    exp(coef)  # This gives the baseline price in SGD
+  } else if(grepl("^DIS_TO_", var_name)) {
+    # Distance variables: effect per 100 meters
+    (exp(coef * 100) - 1) * 100
+  } else {
+    # Other variables: effect per unit
+    (exp(coef) - 1) * 100}})
+
+# Format for display - special formatting for intercept
+gwr_percent_effects$Formatted_Effect <- sapply(1:nrow(gwr_percent_effects), function(i) {
+  if(gwr_percent_effects$Variable[i] == "Intercept") {
+    sprintf("$%.0f", gwr_percent_effects$Percent_Effect[i])  # Dollar format for intercept
+  } else {
+    sprintf("%.3f%%", gwr_percent_effects$Percent_Effect[i])}})# Percentage for others
+
+gwr_percent_effects$Direction <- ifelse(gwr_percent_effects$Percent_Effect > 0, "Positive", "Negative")
+gwr_percent_effects$Units <- ifelse(gwr_percent_effects$Variable == "Intercept", "Baseline Price",ifelse(grepl("^DIS_TO_", gwr_percent_effects$Variable), "per 100m", "per unit"))
+
+# 3. Combine both tables and include SE
+combined_table <- sig_summary %>%
+  rename(Variable_Sig = Variable) %>%
+  # Join with percentage effects table
+  left_join(gwr_percent_effects, by = c("Variable_Sig" = "Variable")) %>%
+  # Get median SE for each variable
+  mutate(SE_Column = paste0(Variable_Sig, "_SE")) %>%
+  rowwise() %>%
+  mutate(median_SE = ifelse(SE_Column %in% names(median_coefficients),
+                      median_coefficients[SE_Column], NA)) %>%
+  ungroup() %>%
+  select(Variable = Variable_Sig, Formatted_Effect, Direction, Units,
+         Sig_Locations, Percentage, median_SE) %>%
+  # Format SE nicely
+  mutate(Formatted_SE = ifelse(Variable == "Intercept", 
+                         sprintf("%.3f", median_SE),
+                         sprintf("%.2e", median_SE)))
+
+# 4. Sort the combined table (intercept first, then by significance percentage)
+intercept_row <- combined_table %>% filter(Variable == "Intercept")
+non_intercept <- combined_table %>% filter(Variable != "Intercept") %>% arrange(desc(Percentage))
+combined_table_sorted <- bind_rows(intercept_row, non_intercept)
+
+# 5. Display the comprehensive combined table
+combined_table_sorted %>%
+  select(Variable, Formatted_Effect, Direction, Units, Percentage, Formatted_SE) %>%
+  gt() %>%
+  tab_header(
+    title = md("**Comprehensive GWR Analysis of HDB Price Determinants**"),
+    subtitle = "Combining effect sizes, spatial significance, and estimate precision") %>%
+  cols_label(
+    Variable = "Explanatory Variable",
+    Formatted_Effect = "Price Effect",
+    Direction = "Direction",
+    Units = "Units",
+    Percentage = "Sig. %",
+    Formatted_SE = "Standard Error") %>%
+  tab_style(
+    style = cell_text(weight = "bold", size = px(16)),
+    locations = cells_title(groups = "title")) %>%
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_column_labels()) %>%
+  tab_style(
+    style = cell_text(weight = "bold", color = "darkgreen"),
+    locations = cells_body(rows = Variable == "Intercept")) %>%
+  # Color coding for significance percentage
+  data_color(
+    columns = Percentage,
+    colors = scales::col_numeric(
+      palette = c("#FFE5E5", "#FFB3B3", "#FF0000"),
+      domain = c(0, 100))) %>%
+  fmt_number(
+    columns = Percentage,
+    decimals = 1) %>%
+  tab_footnote(
+    footnote = "Intercept: BasemHDB price when all independent variables = 0",
+    locations = cells_body(rows = Variable == "Intercept")) %>%
+  tab_footnote(
+    footnote = "Sig. %: Percentage of Singapore locations where relationship is statistically significant (p < 0.05)",
+    locations = cells_column_labels(columns = Percentage)) %>%
+  tab_options(
+    table.width = pct(95),
+    table.align = "center",
+    heading.title.font.size = 20,
+    heading.subtitle.font.size = 14)
+```
+
+The intercept is converted into dollar terms, showing that the average flat price is approximately \$665,655 when all other variables are held at zero. This value is close to both the median and mean resale prices, serving as a useful baseline reference for interpreting the model results. Each coefficient then represents either a positive or negative adjustment to this baseline price, reflecting the marginal effect of each explanatory variable.
+
+Based on the summary table, the following variables are identified as the most influential in explaining price variation: `FLOOR, AGE, AREA_SQM, HIP, DIS_TO_CBD, DIS_TO_MRT, DIS_TO_HAWKER, DIS_TO_MALL, DIS_TO_SUPERMARKET, DIS_TO_PARK, DIS_TO_ELDERCARE, N_BUS_350M, N_PRI_1KM, N_CHILDCARE, and N_CLINIC_350M`.
+
+#### Mapping
+
+Following the summary table, we implement two mapping functions that visualises local coefficient estimates and each coefficient’s t-value from the GWR. Observations are classified as:
+
+-   Very significant positive: t ≥ 2.58 shown in dark purple.
+
+-   Significant positive: 1.96 ≤ t \< 2.58 in light purple.
+
+-   Significant negative: −2.58 \< t ≤ −1.96 in light orange.
+
+-   Very significant negative: t ≤ −2.58 in dark orange.
+
+-   Not significant: \|t\| \< 1.96 in light blue.
+
+This framework follows the recommendations of Mennis (2006) and Matthews and Yang (2012) for mapping local coefficients. It simultaneously conveys both the direction of the relationship (price increasing versus price decreasing) and the strength of statistical evidence for each local effect. Conceptually, it is similar to the colour themed local Gi\* mapping used in Hot and Cold Spot Analysis, which visually differentiates areas of strong positive and negative influence across space.
+
+The following code defines helper functions to create choropleth maps for coefficient estimates (effects on resale price) and for coefficient significance.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+create_coefficient_map <- function(coef_var, title) {
+
+  HDBresale_adaptive$transformed_coef <- HDBresale_adaptive[[coef_var]]
+  
+  regions <- mpsz %>%
+    group_by(REGION_N) %>%
+    summarise(do_union = TRUE)
+  
+    # Many unique values - use intervals
+    tm_shape(regions) +
+      tm_borders(col = "gray50", lwd = 1.5) +
+      tm_shape(HDBresale_adaptive) +
+      tm_dots(fill = "transformed_coef",
+              fill.scale = tm_scale_intervals(
+                #values = c("#8C2D04", "#D94801", "#F16913", "#6A51A3", "#453190", "#1F0C5A"), # orange to purple
+                values = c("#8B0000", "#D73027", "#F46D43", "#74C476", "#31A354", "#006837"), # red to green
+                #values = c("#CA0020", "#EF3B2C", "#F4A582", "#92C5DE", "#0571B0", "#053061"), # red to blue
+                style = "fisher", n = 6),
+              fill.legend = tm_legend(title = "Effect (raw)"),
+              size = 0.3, 
+              shape = 18) +
+      tm_title(paste(title, "- Price Effect")) +
+      tm_compass(type = "8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+      tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+      tm_grid(lwd = 0.1, alpha = 0.2) +
+      tm_credits("Source: data.gov.sg",
+                position = c("right", "bottom")) +
+      tm_layout(na.show = FALSE)}
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+create_significance_map <- function(tv_var, title) {
+  HDBresale_adaptive$classification <- case_when(
+    HDBresale_adaptive[[tv_var]] >= 2.58 ~ "Very Sig Positive",      
+    HDBresale_adaptive[[tv_var]] >= 1.96 ~ "Sig Positive",          
+    HDBresale_adaptive[[tv_var]] <= -2.58 ~ "Very Sig Negative",     
+    HDBresale_adaptive[[tv_var]] <= -1.96 ~ "Sig Negative",          
+    TRUE ~ "Not Significant")
+  
+  HDBresale_adaptive$classification <- factor(
+    HDBresale_adaptive$classification,
+    levels = c("Not Significant","Very Sig Negative", "Sig Negative", 
+               "Sig Positive", "Very Sig Positive"))
+  
+  #Check the distribution
+  #print(paste("Classification distribution for", title, ":"))
+  #print(table(HDBresale_adaptive$classification))
+  
+  regions <- mpsz %>%
+    group_by(REGION_N) %>%
+    summarise(do_union = TRUE)
+  
+  tm_shape(regions) +
+    tm_borders(col = "gray80", lwd = 1.5) +
+    tm_shape(HDBresale_adaptive) +
+    tm_dots(
+      fill = "classification",
+      size = 0.25, shape = 15,
+      fill.scale = tm_scale_categorical(
+        values = c("Very Sig Positive" = "#542788",
+                   "Sig Positive" = "turquoise",
+                   "Not Significant" = "grey50",
+                   "Sig Negative" = "#f1a340",
+                   "Very Sig Negative" = "#e66101")),
+      fill.legend = tm_legend(title = title)) +
+    tm_title(paste(title, "- Significance"))+
+    tm_compass(type = "8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+    tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+    tm_grid(lwd = 0.1, alpha = 0.2) +
+    tm_credits("Source: data.gov.sg",
+              position = c("right", "bottom")) +
+    tm_layout(na.show = FALSE)}
+```
+
+#### Structoral Factors
+
+We use the mapping functions to visualise structural factors, floor level, flat size, and building age, by local t-values and its coefficient estimates.
+
+::: panel-tabset
+##### Floor level
+
+The results show that floor level is consistently strong positive across nearly all observations: higher floors contribute to a price premium throughout Singapore. On average, an increase of one floor level is associated with approximately a 0.4 percent to 1.0 percent increase in resale price, holding other factors constant.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+create_significance_map ("FLOOR_TV", "FLOOR Level") 
+create_coefficient_map("FLOOR", "FLOOR Level")
+```
+
+##### Floor Area
+
+Similarly, larger flat size shows a significant positive relationship with resale price. The statistically significant coefficient estimates range from 0 to 2 percent, indicating that an increase in floor area is generally associated with higher resale prices across Singapore. We disregard the insignificant negative relationships and outliers between floor size and resale price.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+create_significance_map ("AREA_SQM_TV", "Floor Area")
+create_coefficient_map("AREA_SQM", "Floor Area")
+```
+
+##### Block Age
+
+In contrast, building age appears predominantly in dark orange, reflecting a significant negative relationship, older properties are generally associated with lower resale prices. A one-year increase in building age corresponds to approximately a 0.2 to zero percent decrease in resale price. These negative effects are strong in mature estates such as Clementi, Bukit Merah, and Toa Payoh.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+create_significance_map ("AGE_TV", "Block Age")
+create_coefficient_map("AGE", "Block Age")
+```
+
+##### HIP Completion
+
+HIP completion has a spatially uneven and locally significant effect, influencing about 40 percent of all observations. The pattern suggests that HIP’s price impact depends strongly on estate characteristics and location. In mature estates such as Bukit Merah, Toa Payoh, and Clementi, the effect is often postive, where completed upgrading may signal improved living quality. Conversely, slightly negative or zero effects appear in northern and north-eastern towns like Woodlands, Yishun, and Bedok, possibly reflecting overall newer building conditions and buyer preferences for newer flats. These results highlight that the HIP upgrades is highly context dependent.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+create_significance_map ("HIP_TV", "HIP Completion")
+create_coefficient_map("HIP", "HIP Completion")
+```
+:::
+
+#### Locational Factors
+
+We use the mapping functions to visualise locational factors.
+
+In this section, choropleth maps are created to visualise the local coefficients for locational factors, categorised by statistical significance and magnitude of price effect.
+
+::: panel-tabset
+##### Proximity to MRTs
+
+Proximity to MRTs genally represents negative effects, that shorter distances to MRT stations are associated with higher resale prices. Based on the median effect, for every 100 metres closer to an MRT station, the resale price increases by about 0.7 percent, holding other factors constant. This effect is statistically significant in approximately 72.3 percent of all observations, suggesting that accessibility to MRT stations is be a major driver of housing value in suburban estates.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+create_significance_map ("DIS_TO_MRT_TV", "Proximity to MRT")
+create_coefficient_map("DIS_TO_MRT", "Proximity to MRT")
+```
+
+##### Proximity to CBD
+
+Proximity to the CBD is statistically significant in approximately 62 percent of the dataset. At a glance, most coefficients are negative, indicating that as the distance from the CBD increases, resale prices tend to decline. Based on the median effect, every 100 metres closer to the CBD is associated with an estimated 0.24 percent increase in resale price,holding other factors constant.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+create_significance_map ("DIS_TO_CBD_TV", "Proximity to CBD") 
+create_coefficient_map("DIS_TO_CBD", "Proximity to CBD")
+```
+
+##### Proximity to Hawker Centres
+
+Proximity to hawker centres is locally significant in about 59.6 percent of observations. The raw coefficient estimates range from approximately −0.02 to 0.003, with a median effect of around 0.11 percent, holding other factors constant. The direction of significance is mixed, showing both positive and negative local effects. Negative relationships are more common in Jurong West, Choa Chu Kang, Bishan, and Bukit Merah, where the abundance of food options may dilute the unique value of hawker centres. In these dense neighbourhoods, proximity reduces housing desirability due to noise, hygiene concerns, or heavy foot traffic. In contrast, positive effects are more evident in areas such as Woodlands, Punggol, and Kallang, where hawker centres are scarcer and therefore more valued as essential community amenities that enhance flat values.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+create_significance_map ("DIS_TO_HAWKER_TV", "Proximity to Hawker Centre")
+create_coefficient_map("DIS_TO_HAWKER", "Proximity to Hawker Centre")
+```
+
+##### Proximity to Malls
+
+In terms of proximity to malls, which is locally significant in about 58.3 percent of observations, areas showing significance generally exhibit a negative relationship between distance and resale price. Based on the median converted effect, every 100 metres farther from a mall is associated with approximately a 0.449 percent decrease in resale price.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+create_significance_map ("DIS_TO_MALL_TV", "Proximity to Malls")
+create_coefficient_map("DIS_TO_MALL", "Proximity to Malls")
+```
+
+##### Proximity to Eldercare Centres
+
+
+Proximity to eldercare centres is locally significant in approximately 56.1 percent of observations across Singapore. The presence of eldercare facilities tends to add value to nearby HDB resale flats in areas such as River Valley, Newton, Hougang, and Punggol. Outside these locations, however, the variable shows little or no positive influence on resale prices. Based on the median effect, every 100 metres closer to an eldercare centre is associated with an estimated 0.086 percent decrease in resale price, holding other factors constant, indicating a context-dependent impact on housing value.
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+create_significance_map ("DIS_TO_ELDERCARE_TV", "Proximity to Eldercare")
+create_coefficient_map("DIS_TO_ELDERCARE", "Proximity to Eldercare")
+```
+
+##### Proximity to Supermarkets
+
+Proximity to supermarkets is statistically significant in approximately 56.9 percent of observations. The results show that supermarket accessibility does not add value to properties located along a vertical belt stretching from Yishun through Toa Payoh to Kallang. In contrast, ease of access to supermarkets is regarded as a desirable amenity in most other regions. Based on the median effect, every 100 metres farther from a supermarket corresponds to an estimated 0.167 percent decrease in resale price,holding other factors constant.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+create_significance_map ("DIS_TO_SUPERMARKET_TV", "Proximity to Supermarket")
+create_coefficient_map("DIS_TO_SUPERMARKET", "Proximity to Supermarket")
+```
+
+##### Proximity to Parks
+
+Proximity to parks is locally significant in about 53.5 percent of observations, but its effects are not uniformly distributed across Singapore. In general, proximity to parks adds value to most properties located near green spaces. However, negative and significant effects are observed in Bukit Batok, Queenstown, and Kallang, where parks are already abundant.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+create_significance_map ("DIS_TO_PARK_TV", "Proximity to Park")
+create_coefficient_map("DIS_TO_PARK", "Proximity to Park")
+```
+
+##### Number of Primary Schools within 1km
+
+The number of primary schools within 1 kilometre is statistically significant in about 50.6 percent of observations. In regions where this variable is significant, the availability of nearby schools is generally perceived as a desirable neighbourhood feature. Based on the median converted effect, the presence of one additional primary school within 1 kilometre is associated with approximately a 0.249 percent increase in resale price, holding other factors constant. However, in areas with an abundance of schools or where the local demographic composition includes fewer families with primary-school-aged children, this effect tends to diminish or become insignificant.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+create_significance_map ("N_PRI_1KM_TV", "# Primary Schools within 1km") 
+create_coefficient_map("N_PRI_1KM", "No of Primary Schools within 1km")
+```
+
+##### Number of Bus Stops within 350m
+
+In general, the number of bus stops within 350 metres is statistically significant in about 48.4 percent of observations. The effect tends to add value to neighbourhoods where MRT stations are not nearby, where bus routes offer greater network versatility. Based on the median converted effect, each additional bus stop within the defined buffer is associated with approximately a 0.145 percent increase in resale price, holding other factors constant. This finding suggests that bus accessibility is an important transport amenity to HDB residents.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+create_significance_map ("N_BUS_350M_TV", "# Bus Stops within 350m")
+create_coefficient_map("N_BUS_350M", "No of Bus Stops within 350m")
+```
+
+##### Number to Childcare Centres within 350m
+
+The number of childcare centres within 350 metres shows a marginal effect on resale prices, with local significance in about 40.2 percent of observations. he effect is generally positive, but it does not add value to flats in Yishun, Punggol, Sengkang, and Hougang, likely because these newer towns already have a high concentration of childcare facilities. After conversion, the median effect indicates that the presence of one additional childcare centre within 350 metres is associated with an estimated 0.089 percent increase in resale price.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+create_significance_map ("N_CHILDCARE_350M_TV", "# Childcare within 350m")
+create_coefficient_map("N_CHILDCARE_350M", "No of Chilcare within 350m")
+```
+
+##### Number to Clinics within 350m
+
+Although only 32.7 percent of observations show a statistically significant local relationship between the number of clinics within 350 metres and resale prices, the median converted effect is approximately +0.167 percent. Notably, in areas such as Bendemeer, Woodlands East, and Bukit Panjang, the local coefficients are negative and significant, likely reflecting a saturation effect. In these mature estates, where healthcare infrastructure is already abundant or hospitals are located nearby, the presence of additional clinics may weaken housing values. This finding is consistent with the pattern observed for proximity to hospitals, where the median effect is positive, indicating that being closer to a hospital tends to slightly depress resale prices, holding all other variables constant.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+create_significance_map ("N_CLINIC_350M_TV", "# Clincs within 350m")
+create_coefficient_map("N_CLINIC_350M", "No of Clincs within 350m")
+```
+:::
+
+
+
+### Explanatory Random Forest Model: SpatialRF method
+
+In this section, we apply the SpatialRF method to develop a non-linear Random Forest model to identify feature importance and compare its performance with the log-GWR model described earlier. The following code uses the same set of explanatory variables and target variable to ensure consistency and comparability between the two modelling approaches.
+
+```{r}
+#| echo: false
+HDBresale <- read_rds("data/rds/HDBresalelg.rds")
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+predictors <- names(HDBresale)[c(4:7, 9:25)]
 predictors
-dependent <- names(HDBresale)[3]
+dependent <- names(HDBresale)[26]
 dependent
 ```
 
+#### Non-spatial Random Forest
+
+We first randomly sample 1,500 observations from the dataset due to computational constraints, and then define the distance matrix and distance threshold to create a non-spatial Random Forest model `rf()` from [**spatialRF**](https://cran.r-project.org/web/packages/spatialRF/index.html) pacakge.
+
 ```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+#| eval: false
+
 set.seed(1234)
-HDB <- HDBresale %>%
-  mutate(x = coords[,1], y = coords[,2]) %>%
-  sample_n(500)
-coords_sample <- st_coordinates(HDB)
-distance.matrix <- as.matrix(dist(coords_sample))
-distance.thresholds <- c(200, 600, 1200, 3000)
-xy <- HDB[, c("x","y")] %>%
+
+coords <- st_coordinates(HDBresale)
+HDBresale_nogeom <- HDBresale %>%
   st_drop_geometry()
-HDB <- HDB %>% st_drop_geometry()
-model.non.spatial <- spatialRF::rf(
-  data = HDB,
+HDB_sample <- HDBresale %>%
+  mutate(x = coords[,1], y = coords[,2]) %>%
+  sample_n(1500)
+coords_sample <- st_coordinates(HDB_sample)
+distance.matrix <- as.matrix(dist(coords_sample))
+distance.thresholds <- c(200,600,1200,3000)
+xy <- HDB_sample[, c("x","y")] %>%
+  st_drop_geometry()
+HDB_sample <- HDB_sample %>% st_drop_geometry()
+HDB_sample_non_spatial <- spatialRF::rf(
+  data = HDB_sample,
   dependent.variable.name = dependent,
   predictor.variable.names = predictors,
   distance.matrix = distance.matrix,
   distance.thresholds = distance.thresholds,
   xy = xy, #not needed by rf, but other functions read it from the model
   seed = 1234,
-  verbose = FALSE
-)
-```
-
-
-```{r}
-write_rds(model.non.spatial, "data/model/model.non.spatial.rds")
+  verbose = FALSE)
 ```
 
 ```{r}
-model.non.spatial <- read_rds("data/model/model.non.spatial.rds")
+#| eval: false
+#| echo: false
+write_rds(HDB_sample_non_spatial, "data/model/HDB_sample_non_spatial.rds")
 ```
-
 
 ```{r}
-summary(model.non.spatial)
-```
-```{r}
-kableExtra::kbl(
- (model.non.spatial$importance$per.variable),
-  format = "html"
-) %>%
-  kableExtra::kable_paper("hover", full_width = F)
+#| echo: false
+HDB_sample_non_spatial <- read_rds("data/model/HDB_sample_non_spatial.rds")
 ```
 
+The `summary()` function output for the `rf` object contains several key pieces of information that describe the model’s structure, performance, and feature importance metrics.
+
+```{r}
+summary(HDB_sample_non_spatial)
+```
+
+The following code uses `plot_residuals_diagnostic()` to produce the residual diagnostics. The residuals are approximately normally distributed, and the residuals versus fitted values plot shows no clear pattern. Finally, the multiscale Moran’s I results indicate that spatial autocorrelation remains present in the model, suggesting some neighbourhood effects are still not fully captured.
 
 ```{r, fig.height=8, fig.width=10}
 spatialRF::plot_residuals_diagnostics(
-  model.non.spatial,
-  verbose = FALSE
-  )
+  HDB_sample_non_spatial,
+  verbose = FALSE)
 ```
 
+By using the `print_performance()` function, the model demonstrates an R^2^ of 0.8943.
+
 ```{r}
-spatialRF::plot_importance(
-  model.non.spatial,
-  verbose = FALSE
-  )
+spatialRF::print_performance(HDB_sample_non_spatial)
 ```
 
+The following code outputs a table showing the global variable importance of the non-spatial Random Forest model, including several key diagnostic measures. These measures comprise the average minimum tree depth (where lower values indicate greater importance), the total number of node splits (higher values suggest more frequent use in decision-making), and the number of times a variable appears as a root node (higher frequency implies greater criticality). The accompanying p-values indicate the statistical significance of each variable’s contribution, with p \< 0.05 denoting significance at the 95% confidence level.
+
+The results highlight several influential predictors, including distance to the CBD, building age, floor level (moderately important, though not statistically significant), proximity to hawker centres, floor area (not statistically significant), distance to MRT, and proximity to popular primary schools. These findings align with the GWR analysis.
 
 ```{r}
-spatialRF::print_performance(model.non.spatial)
+importance.df <- randomForestExplainer::measure_importance(
+  HDB_sample_non_spatial,
+  measures = c("mean_min_depth", "no_of_nodes", "times_a_root", "p_value"))
+kableExtra::kbl(
+  importance.df %>% 
+    dplyr::arrange(mean_min_depth) %>% 
+    dplyr::mutate(p_value = round(p_value, 4)),
+  format = "html", caption = "Global Variable Importance for Non Spatial RF Model") %>%
+  kableExtra::kable_paper("hover", full_width = F)
 ```
 
+#### Spatial Random Forest
 
 ```{r}
-spatialRF::plot_moran(
-  model.non.spatial, 
-  verbose = FALSE
-  )
-```
+#| eval: false
+#| echo: false
 
-```{r}
+cat("Starting Building Spatial Random Forest, this might take hours...\n")
+cat("Processing time: ", round(duration, 2), attr(duration, "units"), "\n")
 
 start_time <- Sys.time()
- model.spatial <- rf_spatial(
-  model = model.non.spatial,
+ HDB_sample_spatial <- rf_spatial(
+  model = HDB_sample_non_spatial,
   xy = xy, #not needed by rf, but other functions read it from the model
   seed = 1234,
   verbose = FALSE,
@@ -2705,104 +3344,80 @@ start_time <- Sys.time()
 end_time <- Sys.time()
 duration <- end_time - start_time
 
-cat("COMPLETED: GWRF model\n")
+
+cat("COMPLETED: Spatial RF Model\n")
 cat("Processing time: ", round(duration, 2), attr(duration, "units"), "\n")
-
-
 ```
 
+```{r}
+#| eval: false
+#| echo: false
+write_rds(HDB_sample_spatial, "data/model/HDB_sample_spatial.rds")
+```
+
+```{r}
+#| echo: false
+HDB_sample_spatial <- read_rds("data/model/HDB_sample_spatial.rds")
+```
+
+The Multiscale Moran’s I results indicate that a small degree of spatial autocorrelation (Moran’s I = 0.01) remains in the spatial Random Forest model. However, this represents a clear improvement compared to the non-spatial model, which recorded a higher Moran’s I value of approximately 0.05.
 
 ```{r}
 spatialRF::plot_moran(
-  model.spatial, 
-  verbose = FALSE
-  )
+  HDB_sample_spatial, 
+  verbose = FALSE)
 ```
 
-```{r}
+```{r, fig.height=8, fig.width=15}
 p1 <- spatialRF::plot_importance(
-  model.non.spatial, 
+  HDB_sample_non_spatial, 
   verbose = FALSE) + 
-  ggplot2::ggtitle("Non-spatial model") 
+  ggplot2::ggtitle("HDB Sample Non-spatial model") 
 
 p2 <- spatialRF::plot_importance(
-  model.spatial,
+  HDB_sample_spatial,
   verbose = FALSE) + 
-  ggplot2::ggtitle("Spatial model")
+  ggplot2::ggtitle("HDB Sample Spatial model")
 
 p1 | p2 
 ```
 
-```{r}
-p <- spatialRF::plot_optimization(model.spatial)
-```
-```{r}
-spatialRF::print_performance(model.spatial)
-```
+The `plot_importance()` function generates the feature importance plots for both the spatial and non-spatial models. The most influential predictors in both models are largely consistent with those identified in the log-GWR model, including variables such as proximity to the CBD, building age, Home Improvement Programme (HIP), floor level, proximity to MRT stations and hawker centres, and number of primary schools in 1km.
 
+## Conclusion & Limitations
 
+In this study, we utilise Multiple Linear Regression (MLR) and Geographically Weighted Regression (GWR) models to construct a hedonic pricing model for HDB 4-room resale flats from January 2025 to September 2025 with handful of carefully selected structural and locational factors. The explanatory variables cover a wide range of characteristics, including flat attributes (age, size, and floor level), government upgrading programmes, proximity to the CBD, accessibility to surrounding amenities and services, and counts of essential facilities such as schools, clinics, and bus stops.
 
-## variable importance table
+The log-GWR model achieves an R^2^ of 0.96, indicating that it could explain 96 percent of the spatial variation in local resale prices. It outperforms the MLR model, effectively capturing local spatial heterogeneity, with the best model performance observed in central regions. We also visualise the spatial distribution of selected coefficient estimates to deepen the understanding of each variable’s local influence and statistical significance.
 
+We also experimented with the SpatialSF Random Forest method, which produces a slightly higher R^2^ but limited explanatory insight compared to the GWR framework.
 
-```{r}
-library(caret)
+However, several limitations remain in the modelling process, even though the overall model fit (R^2^) is very high. In this study, we primarily used the `gwr.basic()` function, which does not include the `f123.test` that are commonly used to evaluate whether GWR provides a significantly better fit than a global regression model. These tests were omitted mainly due to computational cost considerations. Although the `gwr.robust()` function can provide p-values for hypothesis testing and handle outliers more effectively by smoothing coefficient estimates, its results shows similar R\^2 values and comparable AICc improvements. Therefore, the `gwr.basic()` results were retained for consistency in this study.
 
-# Calculate variable importance
-mlr_varimp <- varImp(hdb_mlr, scale = TRUE)
+Additionally, the hedonic model itself does not capture external market factors such as tax policies, housing regulations, or private property market dynamics, all of which may influence HDB resale prices. Furthermore, ongoing urban redevelopment and new town expansions may account for the lower local R^2^ values observed in several North-East and East regions. Finally, the model assumes a linear relationship between explanatory variables and prices. Future research could address these gaps by adopting non-linear or hybrid spatial models, for example, machine learning or spatial econometric approaches to better capture the complex, non-linear behaviours of housing markets and their spatial dependencies.
 
-# Convert to dataframe and plot
-mlr_varimp_df <- mlr_varimp %>%
-  rownames_to_column("Variable") %>%
-  rename(Importance = Overall)
-
-ggplot(mlr_varimp_df, aes(x = reorder(Variable, Importance), y = Importance)) +
-  geom_col(fill = "slateblue", alpha = 0.8) +
-  coord_flip() +
-  labs(title = "[MLR] Variable Importance (caret)",
-       x = "Variables", 
-       y = "Importance Score") +
-  theme_minimal()
-```
-
-
-
-
-```{r}
-rf_varimp_df <- as.data.frame(rf$variable.importance) %>%
-  tibble::rownames_to_column("Variable") %>%
-  rename(Importance = `rf$variable.importance`) %>%
-  arrange(desc(Importance))
-
-ggplot(rf_varimp_df, aes(x = reorder(Variable, Importance), y = Importance)) +
-  geom_col(fill = "coral", alpha = 0.8) +
-  coord_flip() +
-  labs(
-    title = "[RF] Variable Importance (ranger)",
-    x = "Variables",
-    y = "Importance Score"
-  ) +
-  theme_minimal()
-
-```
-
-
-## Plot Modes
-
-The code chunk below lets us switch on demand between interactive and static choropleth maps (via tmap_mode("view") and tmap_mode("plot")).
-
-```{r}
-#| eval: false
-tmap_mode("view")
-```
-
-```{r}
-#| eval: false
-tmap_mode("plot")
-```
+Overall, the findings provide valuable insights into current HDB resale price determinants and may serve as a useful reference for policymakers, buyers, and urban planners.
 
 ## Reference
 
-Lim, A. (2025, February 24). 13+ housing & household statistics in Singapore (2025). SmartWealth Singapore. https://smartwealth.sg/housing-household-statistics-singapore/ Sia, M. (2025, May 26). 5 HDB estates with explosive resale price growth in 2025. Uchify. https://uchify.com/hdb-estates-resale-price-growth-2025/
+Lim, A. (2025, February 24). 13+ housing & household statistics in Singapore (2025). SmartWealth Singapore. https://smartwealth.sg/housing-household-statistics-singapore/ Sia, M. 5 HDB estates with explosive resale price growth in 2025. Uchify. https://uchify.com/hdb-estates-resale-price-growth-2025/
 
-Lim, J. (2025, October 24). HDB resale price growth in Q3 slows; private home prices driven by new launches. The Straits Times. Retrieved from https://www.straitstimes.com/singapore/hdb-resale-price-growth-in-q3-near-5-year-low-private-home-prices-driven-by-new-launches
+Lim, J. (2025, October 24). HDB resale price growth in Q3 slows; private home prices driven by new launches. The Straits Times. Retrieved from https://www.straitstimes.com/singapore/hdb-resale-price-growth-in-q3-near-5-year-low-private-home-prices-driven-by-new-launches Brunsdon, C., Fotheringham, A. S., & Charlton, M. E. (1996). Geographically Weighted Regression: A Method for Exploring Spatial Nonstationarity. Geographical Analysis, 28(4), 281–298.
+
+Mennis, J. (2006). Mapping the Results of Geographically Weighted Regression. The Cartographic Journal, 43(2), 171–179.
+
+Matthews, S. A., & Yang, T.-C. (2012). Mapping the Results of Local Statistics: Using Geographically Weighted Regression. Demographic Research, 26, 151–166.
+
+Xu, T. (2017). Hedonic Modelling of Singapore’s Resale Public Housing Market.
+
+Chia, W.-M., Li, M., & Tang, H. (2017). Booms, Busts, and Household Mobility: The Role of Fundamentals and Policies in Singapore’s Housing Market. Journal of Housing Economics, 37, 16–33.
+
+Wang, J., et al. (2022). Taxi Travel Time-Based Geographically Weighted Regression Model for Modeling Public Housing Prices in Singapore.
+
+Phang, S.-Y. (2015). Singapore’s Housing Policies: Responding to the Challenges of Economic Transitions.
+
+Mennis, Jeremy (2006) “Mapping the Results of Geographically Weighted Regression”, The Cartographic Journal, Vol.43 (2), p.171-179.
+
+Stephen A. Matthews ; Tse-Chuan Yang (2012) “Mapping the results of local statistics: Using geographically weighted regression”, Demographic Research, Vol.26, p.151-166.
+
+Blas Benito. (2025). spatialRF (v3.0.0) \[Computer software\]. GitHub. https://github.com/BlasBenito/spatialRF
