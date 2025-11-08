@@ -2381,6 +2381,139 @@ The local R^2^ represents the spatially varying explanatory power of the model (
 
 Finally, the standard errors of coefficients reflect the reliability of local parameter estimates. Smaller standard errors relative to the magnitude of coefficients suggest stable and well-estimated relationships, whereas larger standard errors point to possible local collinearity issues. By jointly examining the local R^2^, residual and coefficient estimates maps, we can identify spatial variations in model performance, providing a more nuanced understanding of the underlying factors influencing HDB resale prices across Singapore.
 
+
+#### Calibarating Fixed Bandwidth
+
+1. Bandwidth selection with kernel comparison
+2. Choose kernel with best CV performance  
+3. Use THAT kernel AND its corresponding bandwidth in gwr.basic()
+4. Never mix and match kernels/bandwidths from different tests
+
+
+
+::: panel-tabset
+
+##### CV
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+#| eval: false
+# Start timing
+kernels_to_test <- c("gaussian", "bisquare", "exponential")
+results_fixed_cv <- list()
+
+start_time <- Sys.time()
+cat("=== GWR Fixed Bandwidth Selection - Kernel Comparison ===\n")
+
+for(kernel_type in kernels_to_test) {
+  cat("\n--- Testing", kernel_type, "kernel ---\n")
+  
+  # Run the bandwidth selection
+  bw_result <- bw.gwr(
+    formula = LOG_RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
+      DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT +
+      DIS_TO_POPPRIM + DIS_TO_MALL +
+      DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
+      N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1KM + 
+      N_KINDY_350M + DIS_TO_SPORTS + DIS_TO_SUPERMARKET,
+    data = HDBresale,
+    approach = "CV",
+    kernel = kernel_type,
+    adaptive = FALSE,
+    longlat = FALSE)
+  
+  results_fixed_cv[[kernel_type]] <- bw_result
+  cat("-", kernel_type, "bandwidth:", round(bw_result, 4), "\n")}
+
+# End timing and display results
+end_time <- Sys.time()
+duration <- end_time - start_time
+
+cat("\n", rep("=", 50), "\n", sep="") 
+cat("COMPLETED: GWR Fixed Bandwidth Selection\n")
+cat("Processing time: ", round(duration, 2), attributes(duration)$units, "\n")
+cat("\nFinal bandwidth results:\n")
+print(results_fixed_cv)
+```
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(results_fixed_cv, "data/model/bwresults_fixed_cv.rds")
+```
+
+```{r}
+#| echo: false
+bwresults_fixed_cv <- read_rds("data/model/bwresults_fixed_cv.rds")
+```
+
+```{r}
+bwresults_fixed_cv
+```
+
+##### AIC
+
+The following code performs an AIC-based bandwidth search using the `bw.gwr()` function. The optimisation process took approximately 22 minutes, nearly twice as long as the cross-validation (CV) approach, and returned the same optimal bandwidth of 140. This consistency across both methods reinforces the reliability of the selected bandwidth, confirming that a neighbourhood size of **140** nearest observations is appropriate for capturing local spatial variation in the dataset.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+#| eval: false
+# Start timing
+kernels_to_test <- c("gaussian", "bisquare", "exponential")
+bwresults_fixed_aic <- list()
+
+start_time <- Sys.time()
+cat("=== GWR Fixed Bandwidth Selection (AIC Apporach) - Kernel Comparison ===\n")
+
+for(kernel_type in kernels_to_test) {
+  cat("\n--- Testing", kernel_type, "kernel ---\n")
+  
+  # Run the bandwidth selection
+  bw_result <- bw.gwr(
+    formula = LOG_RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
+      DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT +
+      DIS_TO_POPPRIM + DIS_TO_MALL +
+      DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
+      N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1KM + 
+      N_KINDY_350M + DIS_TO_SPORTS + DIS_TO_SUPERMARKET,
+    data = HDBresale,
+    approach = "AIC",
+    kernel = kernel_type,
+    adaptive = FALSE,
+    longlat = FALSE)
+  
+  bwresults_fixed_aic[[kernel_type]] <- bw_result
+  cat("-", kernel_type, "bandwidth:", round(bw_result, 4), "\n")}
+
+# End timing and display results
+end_time <- Sys.time()
+duration <- end_time - start_time
+
+cat("\n", rep("=", 50), "\n", sep="") 
+cat("COMPLETED: GWR Fixed Bandwidth Selection\n")
+cat("Processing time: ", round(duration, 2), attributes(duration)$units, "\n")
+cat("\nFinal bandwidth results:\n")
+```
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(bwresults_fixed_aic, "data/model/bwresults_fixed_aic.rds")
+```
+
+```{r}
+#| echo: false
+bwresults_fixed_aic <- read_rds("data/model/bwresults_fixed_aic.rds")
+```
+
+```{r}
+bwresults_fixed_aic
+```
+:::
+
+
+
 #### Computing Adaptive Bandwidth
 
 The `bw.gwr()` function in the **GWModel** package selects the optimal bandwidth for GWR. With `adaptive = FALSE`, it searches for a fixed distance bandwidth, while with `adaptive = TRUE`, it finds an adaptive (k-nearest-neighbour) bandwidth. The optimisation uses either `AIC` or `CV`, controlled by the approach argument. In this study, we evaluate both the AICc and CV approaches to identify an adaptive bandwidth that best captures local spatial variation.
@@ -3244,7 +3377,7 @@ dependent
 
 #### Non-spatial Random Forest
 
-We first randomly sample 1,500 observations from the dataset due to computational constraints, and then define the distance matrix and distance threshold to create a non-spatial Random Forest model `rf()` from [**spatialRF**](https://cran.r-project.org/web/packages/spatialRF/index.html) pacakge.
+We first randomly sample 1,500 observations from the dataset due to computational constraints (Benito (2025) recommends the sample size between 100 to 5000), and then define the distance matrix and distance threshold to create a non-spatial Random Forest model `rf()` from [**spatialRF**](https://cran.r-project.org/web/packages/spatialRF/index.html) pacakge.
 
 ```{r}
 #| code-fold: true
@@ -3325,9 +3458,10 @@ kableExtra::kbl(
 
 #### Spatial Random Forest
 
+The following code builds a spatial model for HDB sample by using `rf_spatial()`.
+
 ```{r}
 #| eval: false
-#| echo: false
 
 cat("Starting Building Spatial Random Forest, this might take hours...\n")
 cat("Processing time: ", round(duration, 2), attr(duration, "units"), "\n")
@@ -3360,7 +3494,7 @@ write_rds(HDB_sample_spatial, "data/model/HDB_sample_spatial.rds")
 HDB_sample_spatial <- read_rds("data/model/HDB_sample_spatial.rds")
 ```
 
-The Multiscale Moran’s I results indicate that a small degree of spatial autocorrelation (Moran’s I = 0.01) remains in the spatial Random Forest model. However, this represents a clear improvement compared to the non-spatial model, which recorded a higher Moran’s I value of approximately 0.05.
+The Multiscale Moran’s I results indicate that a small degree of spatial autocorrelation (Moran’s I approximately 0.01) remains in the spatial Random Forest model. However, this represents a clear improvement compared to the non-spatial model, which recorded a higher Moran’s I value of approximately 0.05.
 
 ```{r}
 spatialRF::plot_moran(
@@ -3401,7 +3535,7 @@ Overall, the findings provide valuable insights into current HDB resale price de
 ## Reference
 
 Lim, A. (2025, February 24). 13+ housing & household statistics in Singapore (2025). SmartWealth Singapore. https://smartwealth.sg/housing-household-statistics-singapore/ 
-Sia, M. 5 HDB estates with explosive resale price growth in 2025. Uchify. https://uchify.com/hdb-estates-resale-price-growth-2025/
+
 
 Lim, J. (2025, October 24). HDB resale price growth in Q3 slows; private home prices driven by new launches. The Straits Times. Retrieved from https://www.straitstimes.com/singapore/hdb-resale-price-growth-in-q3-near-5-year-low-private-home-prices-driven-by-new-launches 
 
@@ -3423,4 +3557,4 @@ Mennis, Jeremy (2006) “Mapping the Results of Geographically Weighted Regressi
 
 Stephen A. Matthews ; Tse-Chuan Yang (2012) “Mapping the results of local statistics: Using geographically weighted regression”, Demographic Research, Vol.26, p.151-166.
 
-Blas Benito. (2025). spatialRF. GitHub. https://github.com/BlasBenito/spatialRF
+Benito B. (2025). spatialRF. GitHub. https://blasbenito.github.io/spatialRF/
