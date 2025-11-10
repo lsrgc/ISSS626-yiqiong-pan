@@ -192,6 +192,42 @@ Next, we rescale the distance values from metres to kilometres. `as.matrix()` is
 distmat_km <- as.matrix(distmat/1000)
 ```
 
+
+## Count Number of Points within a Distance
+
+The following code imports CHAS KML file downloaded from data.gov.sg.
+
+```{r}
+CHAS <- st_read("data/geospatial/CHASClinics.kml") %>%
+  st_transform(crs = 3414) %>%
+  st_zm(drop = TRUE, what = "ZM")
+```
+Next, st_buffer() of sf package is used to create a buffer of 1km around each eldercare features.
+```{r}
+buffer_1km <- st_buffer(eldercare, 
+                        dist = 1000)
+```
+
+The code chunk below is used to plot the newly created buffers and the CHAS clinics.
+
+```{r}
+tmap_mode("view")
+tm_shape(buffer_1km) +
+  tm_polygons() +
+tm_shape(CHAS) +
+  tm_dots()
+```
+```{r}
+tmap_mode("plot")
+```
+Lastly, the code chunk below is used to count the number of CHAS clinics with 1km of each eldercare centre.
+
+```{r}
+buffer_1km$pts_count <- lengths(
+  st_intersects(buffer_1km, CHAS))
+```
+
+
 ## ac() in the SpatialAcc Package
 
 ac() computes spatial accessibility of demand locations (e.g., residential areas) to service locations (e.g., eldercare centres). It implements several well-known measures:
@@ -232,6 +268,7 @@ A numeric vector of accessibility scores for each origin (length = length(p)).
 
 The code chunk below uses `ac()` to compute the Hansen’s accessibility and saves the output in a data frame by using data.frame().
 
+
 ```{r}
 acc_Hansen <- data.frame(ac(hexagons$demand,
                             eldercare$capacity,
@@ -270,7 +307,6 @@ knitr::kable(head(hexagon_Hansen,10),
              align = "c",
             format = "markdown")
 ```
-
 
 ### Visualising Hansen’s Accessibility
 
@@ -328,10 +364,10 @@ The boxplots of Hansen’s accessibility show that the Central Region has the hi
 
 The average Hansen accessibility scores rank the regions from highest to lowest as follows: Central, North-East, North, East, and West.
 
-
-## Power Selection 0.5 
+## Power Selection 0.5
 
 ```{r}
+
 acc_Hansen_05 <- data.frame(ac(hexagons$demand,
                             eldercare$capacity,
                             distmat_km, 
@@ -363,7 +399,6 @@ tm_shape(eldercare) +
   tm_grid(alpha = 0.2)
 ```
 
-
 ```{r}
 hexagon_Hansen_05 <- st_join(hexagon_Hansen_05, mpsz, join= st_intersects)
 ggplot(data=hexagon_Hansen_05, 
@@ -371,8 +406,8 @@ ggplot(data=hexagon_Hansen_05,
   geom_boxplot() +
   stat_summary(fun="mean", colour ="red", size=0.5)
 ```
-## Power Selection 1
 
+## Power Selection 1
 
 ```{r}
 acc_Hansen_10 <- data.frame(ac(hexagons$demand,
@@ -405,7 +440,6 @@ tm_shape(eldercare) +
   tm_scalebar() +
   tm_grid(alpha = 0.2)
 ```
-
 
 ```{r}
 hexagon_Hansen_10 <- st_join(hexagon_Hansen_10, mpsz, join= st_intersects)
@@ -449,7 +483,6 @@ tm_shape(eldercare) +
   tm_grid(alpha = 0.2)
 ```
 
-
 ```{r}
 hexagon_Hansen_15 <- st_join(hexagon_Hansen_15, mpsz, join= st_intersects)
 ggplot(data=hexagon_Hansen_15, 
@@ -459,7 +492,6 @@ ggplot(data=hexagon_Hansen_15,
 ```
 
 ## Power Section 2.5
-
 
 ```{r}
 acc_Hansen_25 <- data.frame(ac(hexagons$demand,
@@ -493,7 +525,6 @@ tm_shape(eldercare) +
   tm_grid(alpha = 0.2)
 ```
 
-
 ```{r}
 hexagon_Hansen_25 <- st_join(hexagon_Hansen_25, mpsz, join= st_intersects)
 ggplot(data=hexagon_Hansen_25, 
@@ -502,10 +533,61 @@ ggplot(data=hexagon_Hansen_25,
   stat_summary(fun="mean", colour ="red", size=0.5)
 ```
 
-:::callout-note
-When varying the distance-decay power from 0.5 to 2.5 in the `ac()` function (Hansen accessibility), the overall magnitude of scores falls as the power increases. For example, with power = 0.5 the scores range from 0 to 1,158, whereas at power = 2.5 they range from 0 to 136. Intuitively, stronger distance-decay (higher power) penalises far-away opportunities more heavily, so aggregate accessibility declines. In areas where services are sparse or demand is strong relative to supply, accessibility is correspondingly lower.
+## Power Selection 0.5-2.5
 
+```{r}
+powers <- c(0.5, 1, 1.5, 2, 2.5)
+results <- list()
+
+for(power in powers) {
+    acc <- data.frame(ac(hexagons$demand,
+                       eldercare$capacity,
+                       distmat_km,
+                       power = power,
+                       family = "Hansen"))
+  colnames(acc) <- "accHansen"
+  acc <- as_tibble(acc)
+  hex_res <- bind_cols(hexagons, acc)
+  hex_res$power <- power
+  results[[as.character(power)]] <- hex_res
+}
+hexagon_Hansen_all <- bind_rows(results)
+```
+
+
+```{r, fig.height=10, fig.width=15}
+tm_shape(hexagon_Hansen_all, bbox = mapex) +
+  tm_facets(by = "power", ncol = 3) +
+  tm_polygons(fill = "accHansen",
+              fill.scale = tm_scale_intervals(
+                style = "quantile",
+                n = 10,
+                values = "brewer.blues")) +
+  tm_shape(eldercare) +
+  tm_dots(size = 0.3, fill = "red", col = "black") +
+  tm_title("Accessibility to eldercare (Hansen, different power values)") +
+  tm_layout(frame = TRUE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2)
+```
+
+```{r}
+# draw one graph that shows how the distribution changes across power values
+ggplot(hexagon_Hansen_all, aes(x = factor(power), y = accHansen)) +
+  geom_boxplot() +
+  scale_y_log10() +
+  labs(title = "Hansen accessibility across power values",
+       x = "Power",
+       y = "Accessibility value log scale")
+```
+
+
+::: callout-note
+When varying the distance-decay power from 0.5 to 2.5 in the `ac()` function (Hansen accessibility), the overall magnitude of scores falls as the power increases. For example, with power = 0.5 the scores range from 0 to 1,158, whereas at power = 2.5 they range from 0 to 136. Intuitively, stronger distance-decay (higher power) penalises far-away opportunities more heavily, so aggregate accessibility declines. In areas where services are sparse or demand is strong relative to supply, accessibility is correspondingly lower.
 :::
+
+
 
 ## Reference
 
