@@ -17,7 +17,7 @@ format:
     code-link: true
 
 number-sections: true
-number-depth: 6
+number-depth: 8
 
 editor: visual
 ---
@@ -2388,8 +2388,11 @@ In this section, we build a GWR model using a fixed bandwidth, where a fixed dis
 
 Under the cross-validation (CV) method, the bandwidth with the lower CV score is selected, while under the AICc method, the bandwidth with the lower AICc value is preferred. The selected kernel and its corresponding optimal bandwidth are then applied in the `gwr.basic()` function to calibrate the models.
 
-::: panel-tabset
+
 ##### Selecting Optimal Bandwidth
+
+::: panel-tabset
+
 
 ###### CV Method
 
