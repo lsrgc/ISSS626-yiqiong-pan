@@ -42,7 +42,7 @@ Early housing studies relied on global regression models, assuming that the rela
 
 To address these limitations, Brunsdon, Fotheringham, and Charlton (1996) introduced Geographically Weighted Regression (GWR), a spatially local extension of ordinary least squares that allows regression coefficients to vary by location. This innovation made it possible to identify local variations in housing price determinants across geographic space. More recent research has extended spatial modelling to Singapore’s housing market. Wang et al. (2022) incorporated taxi travel time as a spatial weighting mechanism within a GWR framework, demonstrating superior performance over conventional Euclidean-distance models in capturing spatial price variation. Meanwhile, policy studies such as Phang (2015) contextualised these empirical advances by tracing the evolution of Singapore’s state-led housing policies, linking economic transitions and planning strategies to housing affordability and ownership stability.
 
-Together, these studies illustrate a clear methodological progression, from global, non-spatial hedonic models to local, spatially adaptive approaches that better capture heterogeneity in housing market behaviour. Building upon this foundation, this study applies a log-transformed GWR model to analyse HDB 4-room resale prices (Jan–Sep 2025), combining structural and locational attributes to explain spatial variations across Singapore’s public housing landscape.
+Together, these studies illustrate a clear methodological progression, from global, non-spatial hedonic models to local, spatially fixed and adaptive approaches that better capture heterogeneity in housing market behaviour. Building upon this foundation, this study applies a log-transformed GWR model to analyse HDB 4-room resale prices (Jan–Sep 2025), combining structural and locational attributes to explain spatial variations across Singapore’s public housing landscape.
 
 ## Independent Variables for the Hedonic Pricing Model
 
@@ -153,7 +153,6 @@ The study integrates both **aspatial** and **geospatial** datasets to model HDB 
 ### Installing and Loading R packages
 
 ::: panel-tabset
-
 #### Package Description
 
 This analysis utilises **23** R packages in total.
@@ -207,13 +206,15 @@ This analysis utilises **23** R packages in total.
 +-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | [randomForestExplainer](https://cran.r-project.org/web/packages/randomForestExplainer/index.html)     | Interpreting Random Forests through variable Importance                                                                                                                                                                                      |
 +-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [reactable](https://glin.github.io/reactable/)                                                        | Creates interactive data tables for R with features such as sorting, grouping and customisations.                                                                                                                                            |
++-------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 #### The Code
 
 The following code installs and initialises the necessary R packages for this analysis.
 
 ```{r}
-pacman::p_load(olsrr, GWmodel, corrplot, sf, tidyverse, tmap, ggpubr, gtsummary, performance, RColorBrewer, sfdep, httr, jsonlite, knitr, kableExtra, DT, progress, rvest, plotly, ggstatsplot,spatialRF, gt, randomForestExplainer)
+pacman::p_load(olsrr, GWmodel, corrplot, sf, tidyverse, tmap, ggpubr, gtsummary, performance, RColorBrewer, sfdep, httr, jsonlite, knitr, kableExtra, DT, progress, rvest, plotly, ggstatsplot,spatialRF, gt, randomForestExplainer, reactable)
 ```
 :::
 
@@ -677,7 +678,7 @@ tm_shape(hawkers) +
   tm_layout(frame= FALSE)
 ```
 
-#### kindergartens
+#### Kindergartens
 
 In this step, we import the kindergarten dataset (KML format) into the R environment. While child care centres provide full-day care and early childhood services for infants up to six years of age, kindergartens generally operate shorter-hour programmes focused on early education for children aged three to six.
 
@@ -1277,7 +1278,7 @@ In this section, we further prepare the independent variables defined earlier in
 
 ### Checking of Overlapping Points
 
-Before fitting the GWR model, it is necessary to ensure that no unintended point-overlap occurs among the spatial datasets (e.g., HDB locations or public amenities). Overlapping coordinates may indicate geocoding inaccuracies or duplicated facility records, which could distort local parameter estimates. Accordingly, we assess point overlap across all spatial layers:`cbd`, `eldercare` , `hawker` , `mrts`, `parks`, `poppri`, `malls`, `hospitals`, `communityclubs`, `sports`, `childcares`, `kindergartens`, `clinics`, `busstops`, `prisch`, and HDB resale data (`HDBresale_sf`).
+Before fitting the GWR model, it is necessary to ensure that no unintended point-overlap occurs among the spatial datasets (e.g., HDB locations or public amenities). Overlapping coordinates may indicate geocoding inaccuracies or duplicated facility records, which could distort local parameter estimates. Accordingly, we assess point overlap across all spatial layers:`cbd`, `eldercare` , `hawker` , `mrts`, `parks`, `poppri`, `malls`, `hospitals`, `communityclubs`, `sports`, `childcares`, `kindergartens`, `clinics`, `BusStop_in_SG`, `prisch`, and HDB resale data (`HDBresale_sf`).
 
 We differentiate genuine co-located features from unintended duplicates.Then a helper function below employs `st_equals()` to detect identical geometries; the presence of `TRUE` (or `1`) values indicates overlapping points. When overlaps are identified, `st_jitter(amount = 1)` is applied to nudge points by one metre, ensuring spatial separation while maintaining positional accuracy.
 
@@ -1512,7 +1513,7 @@ proximity <- function(data, variable, varname) {
     width = 80
   )
   
-  # Initialize column
+  # Initialise column
   data[[varname]] <- NA
   
   for (i in 1:nrow(data)) {
@@ -1642,7 +1643,7 @@ countnearby <- function(data, variable, varname, distance) {
     width = 80
   )
   
-  # Initialize column
+  # Initialise column
   data[[varname]] <- NA
   
   for (i in 1:nrow(data)) {
@@ -2355,7 +2356,7 @@ The Global Moran’s I value of 0.3389 (p \< 0.05) indicates statistically signi
 
 Since the OLS model cannot fully account for the spatial dependence in HDB resale prices, we next apply a Geographically Weighted Regression (GWR) model to examine how the effects of explanatory variables vary across Singapore. Unlike the global OLS model, GWR allows for localised coefficient estimation, providing deeper insights into the spatial heterogeneity of housing market dynamics.
 
-Specifically, we construct hedonic pricing models using an adaptive bandwidth approach. The adaptive bandwidth automatically adjusts the spatial extent of each local regression, ensuring that areas with dense observations use smaller neighbourhoods, while regions with fewer observations draw from a wider spatial context to maintain model stability and reliability.
+In this section,we build hedonic pricing models using both the fixed and adaptive bandwidth schemes. The `bw.gwr()` function in the **GWModel** package selects the optimal bandwidth for GWR. With `adaptive = FALSE`, it searches for a fixed distance bandwidth, while with `adaptive = TRUE`, it finds an adaptive (k-nearest-neighbour) bandwidth.
 
 The formula for GWR is as follows:
 
@@ -2381,25 +2382,31 @@ The local R^2^ represents the spatially varying explanatory power of the model (
 
 Finally, the standard errors of coefficients reflect the reliability of local parameter estimates. Smaller standard errors relative to the magnitude of coefficients suggest stable and well-estimated relationships, whereas larger standard errors point to possible local collinearity issues. By jointly examining the local R^2^, residual and coefficient estimates maps, we can identify spatial variations in model performance, providing a more nuanced understanding of the underlying factors influencing HDB resale prices across Singapore.
 
+#### Fixed Bandwidth GWR Model
 
-#### Calibarating Fixed Bandwidth
+In this section, we build a GWR model using a fixed bandwidth, where a fixed distance is applied to define the neighbourhood used in each local regression. To determine the optimal fixed distance, we first evaluate the bandwidths through kernel and validation comparisons then select the combination that provides the best model fit. Two kernel types were tested: Gaussian and Bisquare. The Gaussian kernel generally produces smoother local estimates and performs better in handling sparse areas, whereas the Bisquare kernel provides more localised estimates and can delineate clearer spatial boundaries due to its sharp cut-off.
 
-1. Bandwidth selection with kernel comparison
-2. Choose kernel with best CV performance  
-3. Use THAT kernel AND its corresponding bandwidth in gwr.basic()
-4. Never mix and match kernels/bandwidths from different tests
-
-
+Under the cross-validation (CV) method, the bandwidth with the lower CV score is selected, while under the AICc method, the bandwidth with the lower AICc value is preferred. The selected kernel and its corresponding optimal bandwidth are then applied in the `gwr.basic()` function to calibrate the models.
 
 ::: panel-tabset
+##### Selecting Optimal Bandwidth
 
-##### CV
+###### CV Method
+
+The following code performs a cross-validation-based bandwidth optimisation using the `bw.gwr()` function with `adaptive = FALSE`, specifying a fixed bandwidth. The optimisation process took approximately 22 minutes, and the results returned the following optimal fixed bandwidths:
+
+-   **Gaussian kernel**: 679.2717 metres (CV score = 17.80391)
+
+-   **Bisquare kernel**: 6,790.265 metres (CV score = 31.69816)
+
+Since a lower CV score indicates a better model fit, the Gaussian kernel with a bandwidth of **679.27** metres was selected for the subsequent GWR modelling.
+
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
 #| eval: false
 # Start timing
-kernels_to_test <- c("gaussian", "bisquare", "exponential")
+kernels_to_test <- c("gaussian", "bisquare")
 results_fixed_cv <- list()
 
 start_time <- Sys.time()
@@ -2432,8 +2439,6 @@ duration <- end_time - start_time
 cat("\n", rep("=", 50), "\n", sep="") 
 cat("COMPLETED: GWR Fixed Bandwidth Selection\n")
 cat("Processing time: ", round(duration, 2), attributes(duration)$units, "\n")
-cat("\nFinal bandwidth results:\n")
-print(results_fixed_cv)
 ```
 
 ```{r}
@@ -2451,16 +2456,22 @@ bwresults_fixed_cv <- read_rds("data/model/bwresults_fixed_cv.rds")
 bwresults_fixed_cv
 ```
 
-##### AIC
+###### AIC Method
 
-The following code performs an AIC-based bandwidth search using the `bw.gwr()` function. The optimisation process took approximately 22 minutes, nearly twice as long as the cross-validation (CV) approach, and returned the same optimal bandwidth of 140. This consistency across both methods reinforces the reliability of the selected bandwidth, confirming that a neighbourhood size of **140** nearest observations is appropriate for capturing local spatial variation in the dataset.
+The following code performs an AICc-based fixed-bandwidth search using the `bw.gwr()` function. The optimisation process took approximately 1.51 hours and returned the following results:
+
+-   **Gaussian kernel**: optimal fixed bandwidth 418.6772 metres, AICc –30,246.29
+
+-   **Bisquare kernel**: optimal fixed bandwidth6,790.236 metres, AICc –24,127.01
+
+Since lower AICc values indicate a better model fit, the Gaussian kernel with a bandwidth of **418.6772** metres is selected as the optimal fixed bandwidth for the subsequent GWR modelling.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
 #| eval: false
 # Start timing
-kernels_to_test <- c("gaussian", "bisquare", "exponential")
+kernels_to_test <- c("gaussian", "bisquare")
 bwresults_fixed_aic <- list()
 
 start_time <- Sys.time()
@@ -2493,7 +2504,6 @@ duration <- end_time - start_time
 cat("\n", rep("=", 50), "\n", sep="") 
 cat("COMPLETED: GWR Fixed Bandwidth Selection\n")
 cat("Processing time: ", round(duration, 2), attributes(duration)$units, "\n")
-cat("\nFinal bandwidth results:\n")
 ```
 
 ```{r}
@@ -2512,66 +2522,12 @@ bwresults_fixed_aic
 ```
 :::
 
-
-
-#### Computing Adaptive Bandwidth
-
-The `bw.gwr()` function in the **GWModel** package selects the optimal bandwidth for GWR. With `adaptive = FALSE`, it searches for a fixed distance bandwidth, while with `adaptive = TRUE`, it finds an adaptive (k-nearest-neighbour) bandwidth. The optimisation uses either `AIC` or `CV`, controlled by the approach argument. In this study, we evaluate both the AICc and CV approaches to identify an adaptive bandwidth that best captures local spatial variation.
+##### Calibrating Fixed Bandwidth GWR Model
 
 ::: panel-tabset
-##### CV
+###### CV Method
 
-The following code conducts the adaptive bandwidth selection using the `approach = CV` option in the `bw.gwr()` function. The process returns an optimal bandwidth of 140. That means each local regression in the GWR model was calibrated using the 140 nearest neighbouring observations.
-
-```{r}
-#| code-fold: true
-#| code-summary: "CODE"
-#| eval: false
-# Start timing
-start_time <- Sys.time()
-cat("Clculating GWR bandwidth (CV approach)... This may take a while.\n")
-
-# Run the bandwidth selection
-bw_adaptive_cv <- bw.gwr(
-  formula = LOG_RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
-    DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT
-    + DIS_TO_POPPRIM + DIS_TO_MALL +
-    DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
-    N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1KM + N_KINDY_350M + DIS_TO_SPORTS +DIS_TO_SUPERMARKET,
-  data = HDBresale,
-  approach = "CV",
-  kernel = "gaussian",
-  adaptive = TRUE,
-  longlat = FALSE
-)
-
-# End timing and display results
-end_time <- Sys.time()
-duration <- end_time - start_time
-
-cat("COMPLETED: GWR Bandwidth Selection\n")
-cat("Optimal bandwidth:", bw_adaptive_cv, "\n")
-cat("Processing time: ", round(duration, 2), attr(duration, "units"), "\n")
-```
-
-```{r}
-#| eval: false
-#| echo: false
-# write_rds(bw_adaptive_cv, "data/model/bw_adaptive_cv.rds")
-```
-
-```{r}
-#| echo: false
-bw_adaptive_cv <- read_rds("data/model/bw_adaptive_cv.rds")
-```
-
-```{r}
-bw_adaptive_cv
-```
-
-##### AIC
-
-The following code performs an AIC-based bandwidth search using the `bw.gwr()` function. The optimisation process took approximately 22 minutes, nearly twice as long as the cross-validation (CV) approach, and returned the same optimal bandwidth of 140. This consistency across both methods reinforces the reliability of the selected bandwidth, confirming that a neighbourhood size of **140** nearest observations is appropriate for capturing local spatial variation in the dataset.
+The code chunk below use Gaussian Kernel and fixed optimal bandwidth 679.2717 meteres to calibrate GWR model.
 
 ```{r}
 #| code-fold: true
@@ -2579,49 +2535,224 @@ The following code performs an AIC-based bandwidth search using the `bw.gwr()` f
 #| eval: false
 # Start timing
 start_time <- Sys.time()
-cat("Clculating GWR bandwidth (AIC approach)... This may take a while.\n")
+cat("Building Fixed Bandwidth GWRModel (CV)... This may take a while.\n")
 
-bw_adaptive_aic <- bw.gwr(
+gwr_fixed_cv <- gwr.basic(
  formula = LOG_RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
     DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT
     + DIS_TO_POPPRIM + DIS_TO_MALL +
     DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
     N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1KM + N_KINDY_350M + DIS_TO_SPORTS +DIS_TO_SUPERMARKET,
   data = HDBresale,
-  approach = "AIC",
+  bw= 679.2717,
   kernel = "gaussian",
-  adaptive = TRUE,
+  adaptive = FALSE,
   longlat = FALSE)
 
 # End timing and display results
 end_time <- Sys.time()
 duration <- end_time - start_time
 
-cat("COMPLETED: GWR Bandwidth Selection\n")
-cat("Optimal bandwidth:", bw_adaptive_aic, "\n")
+cat("COMPLETED: Fixed Bandwidth GWRModel\n")
 cat("Processing time: ", round(duration, 2), attr(duration, "units"), "\n")
-
 ```
 
 ```{r}
 #| eval: false
 #| echo: false
-write_rds(bw_adaptive_aic, "data/model/bw_adaptive_aic.rds")
+write_rds(gwr_fixed_cv, "data/model/gwr_fixed_cv.rds")
 ```
 
 ```{r}
 #| echo: false
-bw_adaptive_aic <- read_rds("data/model/bw_adaptive_aic.rds")
+gwr_fixed_cv <- read_rds("data/model/gwr_fixed_cv.rds")
+```
+
+The model output shows that the fixed-bandwidth GWR achieves an adjusted R^2^ of 0.9620 and an AICc of –29,674.81, representing 15% improvement over the global regression model, which recorded an adjusted R^2^ of 0.8354.
+
+```{r}
+gwr_fixed_cv
+```
+
+###### AIC Method
+
+Using the optimal Gaussian fixed bandwidth of 418.6772 metres identified through the AICc-based search, we construct the GWR model. The results show an R^2^ of 0.9745 and an adjusted R^2^ of 0.9677, with an AICc of –30,246.89. Overall, the AICc-optimised bandwidth leads to a better-fitting and more efficiently specified GWR model.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+#| eval: false
+# Start timing
+start_time <- Sys.time()
+cat("Building Fixed Bandwidth GWRModel (AIC, gaussian)... This may take a while.\n")
+
+gwr_fixed_aic <- gwr.basic(
+ formula = LOG_RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
+    DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT
+    + DIS_TO_POPPRIM + DIS_TO_MALL +
+    DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
+    N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1KM + N_KINDY_350M + DIS_TO_SPORTS +DIS_TO_SUPERMARKET,
+  data = HDBresale,
+  bw= 418.6772,
+  kernel = "gaussian",
+  adaptive = FALSE,
+  longlat = FALSE)
+
+# End timing and display results
+end_time <- Sys.time()
+duration <- end_time - start_time
+
+cat("COMPLETED: Fixed Bandwidth GWRModel\n")
+cat("Processing time: ", round(duration, 2), attr(duration, "units"), "\n")
 ```
 
 ```{r}
-bw_adaptive_aic
+#| eval: false
+#| echo: false
+write_rds(gwr_fixed_aic, "data/model/gwr_fixed_aic.rds")
+```
+
+```{r}
+#| echo: false
+gwr_fixed_aic <- read_rds("data/model/gwr_fixed_aic.rds")
+```
+
+```{r}
+gwr_fixed_aic
 ```
 :::
 
-#### Constructing GWR Model
+#### Adaptive Bandwidth GWR Model
 
-In this section, we construct the Geographically Weighted Regression (GWR) model using an adaptive bandwidth of **140** nearest neighbours and a **Gaussian** kernel.
+Next, we construct the GWR model using an adaptive bandwidth. The adaptive bandwidth automatically adjusts the spatial extent of each local regression, ensuring that areas with dense observations use smaller neighbourhoods, while regions with fewer observations draw from a wider spatial context to maintain model stability and reliability.
+
+The optimisation uses either `AIC` or `CV`, controlled by the approach argument. In this study, we evaluate both the AICc and CV approaches and the Gaussian and Bisquare kernels to identify an adaptive bandwidth that best captures local spatial variation.
+
+##### Selecting Optimal Bandwidth
+
+::: panel-tabset
+###### CV Method
+
+The following code performs the adaptive bandwidth selection using the `approach = "CV"` option in the `bw.gwr()` function. The optimisation process returns an optimal adaptive bandwidth of **140**, meaning that each local regression in the GWR model is calibrated using the 140 nearest neighbouring observations. This conclusion is based on the lower CV score, where the Gaussian kernel produced a score of 20.12471 at a bandwidth of 140 neighbours, compared with the Bisquare kernel, which produced a higher CV score of 30.59457 at 2,116 neighbours. Since lower CV values indicate a better-fitting model, the Gaussian adaptive bandwidth of 140 was selected.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+#| eval: false
+# Start timing
+kernels_to_test <- c("gaussian", "bisquare")
+bwresults_adpative_cv <- list()
+
+start_time <- Sys.time()
+cat("=== GWR Adaptive Bandwidth Selection - Kernel Comparison ===\n")
+
+for(kernel_type in kernels_to_test) {
+  cat("\n--- Testing", kernel_type, "kernel ---\n")
+  
+  # Run the bandwidth selection
+  bw_result <- bw.gwr(
+    formula = LOG_RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
+      DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT +
+      DIS_TO_POPPRIM + DIS_TO_MALL +
+      DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
+      N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1KM + 
+      N_KINDY_350M + DIS_TO_SPORTS + DIS_TO_SUPERMARKET,
+    data = HDBresale,
+    approach = "CV",
+    kernel = kernel_type,
+    adaptive = TRUE,
+    longlat = FALSE)
+  
+  bwresults_adpative_cv[[kernel_type]] <- bw_result
+  cat("-", kernel_type, "bandwidth:", round(bw_result, 4), "\n")}
+
+# End timing and display results
+end_time <- Sys.time()
+duration <- end_time - start_time
+
+cat("\n", rep("=", 50), "\n", sep="") 
+cat("COMPLETED: GWR Adaptive Bandwidth Selection\n")
+cat("Processing time: ", round(duration, 2), attributes(duration)$units, "\n")
+```
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(bwresults_adpative_cv, "data/model/bwresults_adpative_cv.rds")
+```
+
+```{r}
+#| echo: false
+bwresults_adpative_cv <- read_rds("data/model/bwresults_adpative_cv.rds")
+```
+
+```{r}
+bwresults_adpative_cv
+```
+
+###### AIC Method
+
+Similarly, the AICc-based optimisation returns the same optimal adaptive bandwidth. The Bisquare kernel produced an AICc of –24,445.65 at 2,116 neighbours, while the Gaussian kernel achieved a substantially lower AICc of –28,135.92 at 140 neighbours. Since lower AICc values indicate a better model fit, the Gaussian adaptive bandwidth of **140** neighbours is again selected as the optimal specification.
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+#| eval: false
+# Start timing
+kernels_to_test <- c("gaussian", "bisquare")
+bwresults_adaptive_aic <- list()
+
+start_time <- Sys.time()
+cat("=== GWR Adaptive Bandwidth Selection (AIC Apporach) - Kernel Comparison ===\n")
+
+for(kernel_type in kernels_to_test) {
+  cat("\n--- Testing", kernel_type, "kernel ---\n")
+  
+  # Run the bandwidth selection
+  bw_result <- bw.gwr(
+    formula = LOG_RESALE_PRICE ~ FLOOR + HIP + MUP + AGE + AREA_SQM +
+      DIS_TO_CBD + DIS_TO_ELDERCARE + DIS_TO_HAWKER + DIS_TO_MRT +
+      DIS_TO_POPPRIM + DIS_TO_MALL +
+      DIS_TO_COMMUNITYCLUB + DIS_TO_HOSPITAL + DIS_TO_PARK +
+      N_CHILDCARE_350M + N_CLINIC_350M + N_BUS_350M + N_PRI_1KM + 
+      N_KINDY_350M + DIS_TO_SPORTS + DIS_TO_SUPERMARKET,
+    data = HDBresale,
+    approach = "AIC",
+    kernel = kernel_type,
+    adaptive = TRUE,
+    longlat = FALSE)
+  
+  bwresults_adaptive_aic[[kernel_type]] <- bw_result
+  cat("-", kernel_type, "bandwidth:", round(bw_result, 4), "\n")}
+
+# End timing and display results
+end_time <- Sys.time()
+duration <- end_time - start_time
+
+cat("\n", rep("=", 50), "\n", sep="") 
+cat("COMPLETED: GWR Adaptive Bandwidth Selection\n")
+cat("Processing time: ", round(duration, 2), attributes(duration)$units, "\n")
+```
+
+```{r}
+#| eval: false
+#| echo: false
+write_rds(bwresults_adaptive_aic, "data/model/bwresults_adaptive_aic.rds")
+```
+
+```{r}
+#| echo: false
+bwresults_adaptive_aic <- read_rds("data/model/bwresults_adaptive_aic.rds")
+```
+
+```{r}
+bwresults_adaptive_aic
+```
+:::
+
+#### Calibrating Adaptive Bandwidth GWR Model
+
+In this section, we construct the Geographically Weighted Regression (GWR) model using an adaptive bandwidth of 140 nearest neighbours and a Gaussian kernel, as this specification was identified as the optimal choice under both the AICc and CV bandwidth selection approaches.
 
 ```{r}
 #| code-fold: true
@@ -2662,12 +2793,31 @@ write_rds(gwr_adaptive, "data/model/gwr_adaptive.rds")
 gwr_adaptive <- read_rds("data/model/gwr_adaptive.rds")
 ```
 
-#### GWR statistics
-
-The GWR model summary indicates a substantial improvement in model performance compared with the global log-MLR. The global model achieved an Adjusted R^2^ of 0.8354 and an AICc of −17,707.73, whereas the GWR model produced an Adjusted R^2^ of 0.9528 and an AICc of −28,135.92. This demonstrates that the GWR explains a much larger proportion of variation in resale prices and provides a better overall model fit. With R^2^ of 0.9564, the model explains approximately 95.64% of the variation in HDB resale prices.
-
 ```{r}
 gwr_adaptive
+```
+
+#### GWR statistics
+
+The GWR model summary indicates a substantial improvement in model performance compared with the global log-MLR. The global model achieved an Adjusted R^2^ of 0.8354 and an AICc of −17,707.73, whereas the best GWR model produced an Adjusted R^2^ of 0.96770 and an AICc of -30,246.89. This demonstrates that the GWR explains a much larger proportion of variation in resale prices and provides a better overall model fit. With R^2^ of 0.97452, the model explains approximately 97.45% of the variation in HDB resale prices.
+
+The following code creates an interactive summary table using [`reactable()`](https://glin.github.io/reactable/articles/examples.html#basic-usage) from **reactable** package.
+
+```{r}
+
+model_results <- data.frame(
+  Model = c("Global", "GWR (fixed bw=679)", "GWR (fixed bw=418)", "GWR (adaptive=140)"),
+  AICc = c(-17707.86, -29674.81, -30246.89, -28135.92),
+  R_squared = c(0.8358, 0.9666535, 0.9745183, 0.9564602),
+  Adjusted_R_squared = c(0.8354, 0.9620098, 0.9677013, 0.9528076))
+
+reactable(model_results,
+          columns = list(
+            Model = colDef(name = "Model"),
+            AICc = colDef(name = "AICc", format = colFormat(digits = 2)),
+            R_squared = colDef(name = "R_2", format = colFormat(digits = 4)),
+            Adjusted_R_squared = colDef(name = "Adj. R_2", format = colFormat(digits = 4))),
+            bordered = TRUE, highlight = TRUE, striped = TRUE)
 ```
 
 #### Residual Diagnostics
@@ -2680,7 +2830,7 @@ The code below generates two residual choropleth maps using contiguous classific
 #| code-summary: "CODE"
 gwrres<- tm_shape(mpsz) +
   tm_polygons(alpha = 0.3) +
-  tm_shape(gwr_adaptive$SDF) +
+  tm_shape(gwr_fixed_aic$SDF) +
   tm_dots(fill = "residual",
           size = 0.25,
           fill.scale = tm_scale_continuous()) +  
@@ -2707,7 +2857,7 @@ mlrres
 A global Moran’s I test is applied to the residuals using `global_moran_perm()` from **sfdep** package.
 
 ```{r}
-gwr_residuals <- gwr_adaptive$SDF$residual
+gwr_residuals <- gwr_fixed_aic$SDF$residual
 
 gmperm_gwr <- global_moran_perm(
   gwr_residuals,                   
@@ -2720,19 +2870,19 @@ gmperm_gwr <- global_moran_perm(
 ```{r}
 #| eval: false
 #| echo: false
-write_rds(gmperm_gwr, "data/rds/gmperm_gwr.ds")
+write_rds(gmperm_gwr, "data/rds/gmperm_gwr_fixed_aic.ds")
 ```
 
 ```{r}
 #| echo: false
-gmperm_gwr <- read_rds("data/rds/gmperm_gwr.ds")
+gmperm_gwr <- read_rds("data/rds/gmperm_gwr_fixed_aic.ds")
 ```
 
 ```{r}
 gmperm_gwr
 ```
 
-:::{.callout-note}
+::: callout-note
 Although there remains statistically significant spatial autocorrelation at the 95% confidence level, the 94.8% reduction in Moran’s I (from 0.33889 to 0.01778) indicates that the GWR model effectively accounted for most of the spatial dependence present in the data.
 :::
 
@@ -2746,7 +2896,7 @@ In this section, we first prepare the SDF output from the GWR model into a data 
 The following code is used to extract the SDF from the gwrm object and convert it to an sf data frame in SVY21 / EPSG:3414 for subsequent analysis.
 
 ```{r}
-HDBresale_adaptive <- st_as_sf(gwr_adaptive$SDF) %>%
+HDBresale_fixed <- st_as_sf(gwr_fixed_aic$SDF) %>%
   st_transform(3414) %>%
   mutate(across(where(is.character), as.numeric))
 ```
@@ -2754,16 +2904,16 @@ HDBresale_adaptive <- st_as_sf(gwr_adaptive$SDF) %>%
 ```{r}
 #| eval: false
 #| echo: false
-write_rds(HDBresale_adaptive, "data/model/HDBresale_adaptive.rds")
+write_rds(HDBresale_fixed, "data/model/HDBresale_fixed.rds")
 ```
 
 ```{r}
 #| echo: false
-HDBresale_adaptive <- read_rds("data/model/HDBresale_adaptive.rds")
+HDBresale_fixed <- read_rds("data/model/HDBresale_fixed.rds")
 ```
 
 ```{r}
-glimpse(HDBresale_adaptive)
+glimpse(HDBresale_fixed)
 ```
 
 Using **tmap** pacakge, we visualise the spatial distribution of local R^2^, which summarises the location-specific explanatory power of the hedonic GWR.
@@ -2775,7 +2925,7 @@ localr2<-tm_shape(mpsz) +
   tm_polygons(fill = "gray50",
               border.col = "white", 
               alpha = 0.6) +
-tm_shape(HDBresale_adaptive) +    #event points
+tm_shape(HDBresale_fixed) +    #event points
   tm_dots(fill = "Local_R2",
           fill_alpha = 0.6,
           size = 0.2,
@@ -2794,13 +2944,13 @@ localr2
 
 Interpretation:
 
-High local R^2^ clusters (shown in purple) are concentrated in central and north-western regions, such as Kallang, Bukit Merah, Queenstown, Clementi, Jurong West, and Woodlands, where the model explains price variation very well (R^2^ 0.95–0.99). These areas are typically mature estates with stable housing attributes and well-established market dynamics, that the selected strcutural and locational variables capture price differences effectively.
+High local R^2^ clusters (shown in purple) are concentrated in central and north-western regions, such as Kallang, Bukit Merah, Queenstown, Clementi, Jurong West, and Woodlands, where the model explains price variation very well (R^2^ 0.968–0.998). These areas are typically mature estates with stable housing attributes and well-established market dynamics, that the selected structural and locational variables capture price differences effectively.
 
-Conversely, lower local R^2^ values (yellow to green tones) are observed in new-town and developing areas, including Punggol and Sengkang in the northeast, and parts of Tampines and Pasir Ris in the east, where model fit weakens (R^2^ 0.71–0.88).These estates are undergoing rapid urban development, and their pricing may be influenced by emerging infrastructure, future growth expectations, and unmeasured locational factors, which the current model does not fully capture.
+Conversely, lower local R^2^ values (yellow to green tones) are observed in new-town and developing areas, including Punggol and Sengkang in the northeast, and parts of Tampines and Pasir Ris in the east, where model fit weakens (R^2^ 0.701–0.902).These estates are undergoing rapid urban development, and their pricing may be influenced by emerging infrastructure, future growth expectations, and unmeasured locational factors, which the current model does not fully capture.
 
 ##### Central Region
 
-In the Central Region, the local R^2^ values are consistently high, mostly around or above 0.95. This reflects the fact that the central estates are well-established and mature, with stable housing characteristics and well-defined amenity structures. Consequently, the explanatory variables included in the model effectively capture the spatial effects influencing resale prices in these areas.
+In the Central Region, the local R^2^ values are consistently high, mostly around or above 0.968. This reflects the fact that the central estates are well-established and mature, with stable housing characteristics and well-defined amenity structures. Consequently, the explanatory variables included in the model effectively capture the spatial effects influencing resale prices in these areas.
 
 ```{r}
 #| code-fold: true
@@ -2809,7 +2959,7 @@ tm_shape(mpsz[mpsz$REGION_N %in% c("CENTRAL REGION"), ]) +
   tm_polygons(fill = "gray50",
               border.col = "white", 
               alpha = 0.6) +
-tm_shape(HDBresale_adaptive) +    #event points
+tm_shape(HDBresale_fixed) +    #event points
   tm_dots(fill = "Local_R2",
           fill_alpha = 0.6,
           size = 0.2,
@@ -2821,15 +2971,15 @@ tm_shape(HDBresale_adaptive) +    #event points
   tm_grid(lwd = 0.1, alpha = 0.2) +
   tm_credits("Source: data.gov.sg",
             position = c("right", "bottom")) +
-  tm_title("GWR Model Local R^2") +
+  tm_title("GWR Model Local R^2 - Central Region") +
   tm_layout(frame = FALSE)
 ```
 
 ##### East Region
 
-When examining the eastern region, distinct spatial clusters of local R^2^ can be observed. Within Tampines, Tampines North exhibits the strongest model fit, with R^2^ values reaching approximately 0.97. Moving westward, the local R^2^ gradually decreases to around 0.93, and continues to decline eastward towards Tampines East, where values range between 0.71 and 0.88. This gradient pattern suggests that the explanatory variables capture resale price variations more effectively in Tampines North, while the eastern precincts may be influenced by unobserved locational or developmental factors not fully represented in the model.
+When examining the eastern region, distinct spatial clusters of local R^2^ can be observed. Within Tampines, Tampines North exhibits the strongest model fit, with R^2^ values reaching approximately 0.968. Moving westward, the local R^2^ gradually decreases to around 0.951, and continues to decline eastward towards Tampines East, where values range between 0.701 and 0.902. This gradient pattern suggests that the explanatory variables capture resale price variations more effectively in Tampines North, while the eastern precincts may be influenced by unobserved locational or developmental factors not fully represented in the model.
 
-A comparable pattern is evident in Pasir Ris, where the eastern side of Pasir Ris Drive 8 records lower local R^2^ values (0.71–0.88, yellow). In contrast, the western side demonstrates moderately higher R^2^ values (0.88–0.94, light green).
+A comparable pattern is evident in Pasir Ris, where the eastern side of Pasir Ris Drive 8 records lower local R^2^ values (0.701–0.902, yellow). In contrast, the western side demonstrates moderately higher R^2^ values (0.903-0.950, light green).
 
 ```{r}
 #| code-fold: true
@@ -2838,7 +2988,7 @@ tm_shape(mpsz[mpsz$REGION_N %in% c("EAST REGION"), ]) +
   tm_polygons(fill = "gray50",
               border.col = "white", 
               alpha = 0.6) +
-tm_shape(HDBresale_adaptive) +    #event points
+tm_shape(HDBresale_fixed) +    #event points
   tm_dots(fill = "Local_R2",
           fill_alpha = 0.6,
           size = 0.2,
@@ -2850,13 +3000,13 @@ tm_shape(HDBresale_adaptive) +    #event points
   tm_grid(lwd = 0.1, alpha = 0.2) +
   tm_credits("Source: data.gov.sg",
             position = c("right", "bottom")) +
-  tm_title("GWR Model Local R^2") +
+  tm_title("GWR Model Local R^2- East Region") +
   tm_layout(frame = FALSE)
 ```
 
 ##### North- East Region
 
-In the North-East region, a distinct green belt can be observed across Hougang, Sengkang, and Punggol, where local R^2^ values range between 0.88 and 0.93. Surrounding these towns, areas shaded in yellow (R^2^ 0.71 to 0.88) are particularly along the outer fringes and Buangkok. This pattern suggests that while the model explains resale price variations reasonably well within the central parts of these towns, unexplained factors may influence pricing dynamics in the surrounding areas. Such factors could include ongoing urban development, varying accessibility, or unmeasured neighbourhood amenities that are not fully captured by the current model specification.
+In the North-East region, a distinct green belt can be observed across Hougang, Sengkang, and Punggol, where local R^2^ values range between 0.903 and 0.950. Surrounding these towns, areas shaded in yellow (R^2^ 0.701 to 0.902) are particularly along the outer fringes and Buangkok. This pattern suggests that while the model explains resale price variations reasonably well within the central parts of these towns, unexplained factors may influence pricing dynamics in the surrounding areas. Such factors could include ongoing urban development, varying accessibility, or unmeasured neighbourhood amenities that are not fully captured by the current model specification.
 
 ```{r, fig.height=4, fig.width=10}
 #| code-fold: true
@@ -2865,7 +3015,7 @@ tm_shape(mpsz[mpsz$REGION_N %in% c("NORTH-EAST REGION"), ]) +
   tm_polygons(fill = "gray50",
               border.col = "white", 
               alpha = 0.6) +
-tm_shape(HDBresale_adaptive) +    #event points
+tm_shape(HDBresale_fixed) +    #event points
   tm_dots(fill = "Local_R2",
           fill_alpha = 0.6,
           size = 0.2,
@@ -2883,7 +3033,7 @@ tm_shape(HDBresale_adaptive) +    #event points
 
 ##### North Region
 
-In the Northern region, the local R^2^ values are generally high, exceeding 0.95 across most parts of Woodlands and Sembawang, and ranging between 0.94 and 0.95 in Yishun, indicating a strong model fit throughout much of the area. However, a notable yellow patch (R^2^ 0.71–0.88) appears in the Canberra–western corner of Sembawang, where the model performs less effectively. This weaker fit may be attributed to the area’s ongoing development as a new town, limited connectivity to established amenities, and proximity to large green and park spaces, which introduce spatial variation not fully captured by the current set of explanatory variables.
+In the Northern region, the local R^2^ values are generally high, exceeding 0.968 across most parts of Woodlands and Sembawang, and ranging between 0.903 and 0.982 in Yishun. A notable yellow patch (R^2^ 0.701–0.902) appears in the Canberra, western corner of Sembawang, where the model performs less effectively. This weaker fit may be attributed to the area’s ongoing development as a new town, limited connectivity to established amenities, and proximity to large green and park spaces, which introduce spatial variation not fully captured by the current set of explanatory variables.
 
 ```{r}
 #| code-fold: true
@@ -2892,7 +3042,7 @@ tm_shape(mpsz[mpsz$REGION_N %in% c("NORTH REGION"), ]) +
   tm_polygons(fill = "gray50",
               border.col = "white", 
               alpha = 0.6) +
-tm_shape(HDBresale_adaptive) +    #event points
+tm_shape(HDBresale_fixed) +    #event points
   tm_dots(fill = "Local_R2",
           fill_alpha = 0.6,
           size = 0.2,
@@ -2910,7 +3060,7 @@ tm_shape(HDBresale_adaptive) +    #event points
 
 ##### West Region
 
-In the Western region, the local R^2^ values are generally high, exceeding 0.95 across the central areas of Jurong West, Clementi, and Choa Chu Kang, indicating strong model performance. In contrast, lower R^2^ values are observed along the edges near Bukit Batok, particularly around the Brickworks area, which borders the new-town Tengah. These peripheral zones exhibit greater variation in housing characteristics and ongoing development activities, resulting in a weaker model fit. Overall, outside the core heartland areas, local R^2^ values typically range between 0.93 and 0.95.
+In the Western region, the local R^2^ values are generally high, exceeding 0.932 across the central areas of Jurong West, Clementi, and Choa Chu Kang, indicating strong model performance. In contrast, lower R^2^ values are observed along the edges near Bukit Batok, particularly around the Brickworks area, which borders the new-town Tengah. These peripheral zones exhibit greater variation in housing characteristics and ongoing development activities. Overall, outside the core heartland areas, local R^2^ values typically range between 0.903 and 0.950.
 
 ```{r}
 #| code-fold: true
@@ -2919,7 +3069,7 @@ tm_shape(mpsz[mpsz$REGION_N %in% c("WEST REGION"), ]) +
   tm_polygons(fill = "gray50",
               border.col = "white", 
               alpha = 0.6) +
-tm_shape(HDBresale_adaptive) +    #event points
+tm_shape(HDBresale_fixed) +    #event points
   tm_dots(fill = "Local_R2",
           fill_alpha = 0.6,
           size = 0.2,
@@ -2942,11 +3092,11 @@ In explanatory modelling it is important to visualise and understand which facto
 
 In this section we first summarise each variable’s median coefficient estimate, its local statistical significance represented by the t value, its spatial coverage, and its standard error. We then select the fifteen coefficients based on their magnitude and contextual relevance, particularly those related to everyday amenities such as places to shop, eat,live, study, heal, and spend leisure time to highlight the factors that most strongly influence housing prices across Singapore.
 
-#### Selection of Coefficients
+#### Selection of Coefficients for Spatial Mapping
 
 Since our model is a log-transformed GWR model, the coefficient estimates can be interpreted as the percentage change in resale price associated with a one-unit change in each explanatory variable. Because most coefficients are relatively small in magnitude, they are converted into percentage terms to represent the % change in resale price. For distance-based variables, such as proximity to amenities, coefficients are further scaled to reflect the change per 100 m, rather than per metre, to enhance interpretability.
 
-In addition to the coefficient magnitudes, the analysis also focuses on their t-values (TVs). The t-statisic is used in statistical hypothesis testing to determine if a relationship is statistically significant. In our GMR model, a coefficient is considered locally significant when its absolute t-value exceeds 1.96, corresponding to a 95% confidence level. We also calculate the frequency of local significance across all observations to evaluate how consistently each statistically significant svariable influences resale prices spatially. For example, if the variable `FLOOR` is locally significant in all 8,679 observations, it achieves a 100% significance frequency, ranking at the top of the summary table. This measure highlights variables that exert consistent spatial effects on HDB resale prices across Singapore.
+In addition to the coefficient magnitudes, the analysis also focuses on their t-values (TVs). The t-statistic is used in statistical hypothesis testing to determine if a relationship is statistically significant. In our GMR model, a coefficient is considered locally significant when its absolute t-value exceeds 1.96, corresponding to a 95% confidence level. We also calculate the frequency of local significance across all observations to evaluate how consistently each statistically significant variable influences resale prices spatially. For example, if the variable `FLOOR` is locally significant in all 8,679 observations, it achieves a 100% significance frequency, ranking at the top of the summary table. This measure highlights variables that exert consistent spatial effects on HDB resale prices across Singapore.
 
 Finally, we examine the standard errors (SEs) of the coefficients to assess estimate reliability. Coefficients with small SEs are regarded as highly reliable, while those with moderate or large SEs indicate greater local uncertainty in parameter estimation.
 
@@ -2956,17 +3106,17 @@ To evaluate the spatial distribution of variable significance, a complete summar
 #| code-fold: true
 #| code-summary: "CODE"
 # 1. Calculate spatial significance summary
-sig_summary <- HDBresale_adaptive %>%
+sig_summary <- HDBresale_fixed %>%
   st_drop_geometry() %>%
   summarise(across(ends_with("_TV"), 
                    ~ sum(abs(.) > 1.96, na.rm = TRUE))) %>%
   pivot_longer(everything(), names_to = "Variable", values_to = "Sig_Locations") %>%
-  mutate(Percentage = round(Sig_Locations / nrow(HDBresale_adaptive) * 100, 1),
+  mutate(Percentage = round(Sig_Locations / nrow(HDBresale_fixed) * 100, 1),
          Variable = gsub("_TV", "", Variable)) %>%
   arrange(desc(Percentage))
 
 # 2. Extract median coefficients and create percentage effects
-median_coefficients <- sapply(HDBresale_adaptive, function(x) {
+median_coefficients <- sapply(HDBresale_fixed, function(x) {
   if(is.numeric(x)) median(x, na.rm = TRUE) else NA})
 
 # Create a data frame with the coefficients we need - INCLUDING INTERCEPT
@@ -3033,7 +3183,7 @@ combined_table_sorted %>%
   select(Variable, Formatted_Effect, Direction, Units, Percentage, Formatted_SE) %>%
   gt() %>%
   tab_header(
-    title = md("**Comprehensive GWR Analysis of HDB Price Determinants**"),
+    title = md("**Comprehensive GWR Analysis of HDB Price Determinants (Median Effect)**"),
     subtitle = "Combining effect sizes, spatial significance, and estimate precision") %>%
   cols_label(
     Variable = "Explanatory Variable",
@@ -3061,7 +3211,7 @@ combined_table_sorted %>%
     columns = Percentage,
     decimals = 1) %>%
   tab_footnote(
-    footnote = "Intercept: BasemHDB price when all independent variables = 0",
+    footnote = "Intercept: Not meaningfully interpretable as it represents impossible zero values for all variables. Included for reference only.",
     locations = cells_body(rows = Variable == "Intercept")) %>%
   tab_footnote(
     footnote = "Sig. %: Percentage of Singapore locations where relationship is statistically significant (p < 0.05)",
@@ -3073,11 +3223,11 @@ combined_table_sorted %>%
     heading.subtitle.font.size = 14)
 ```
 
-The intercept is converted into dollar terms, showing that the average flat price is approximately \$665,655 when all other variables are held at zero. This value is close to both the median and mean resale prices, serving as a useful baseline reference for interpreting the model results. Each coefficient then represents either a positive or negative adjustment to this baseline price, reflecting the marginal effect of each explanatory variable.
+The intercept represents the baseline price in dollar terms under the impossible scenario of all variables being zero. While this specific scenario is not meaningful, the spatial variation in intercept values reveals important geographic patterns in base housing costs across Singapore. All other coefficients represent the spatially varying relationships between each variable and HDB realse prices.
 
 Based on the summary table, the following variables are identified as the most influential in explaining price variation: `FLOOR, AGE, AREA_SQM, HIP, DIS_TO_CBD, DIS_TO_MRT, DIS_TO_HAWKER, DIS_TO_MALL, DIS_TO_SUPERMARKET, DIS_TO_PARK, DIS_TO_ELDERCARE, N_BUS_350M, N_PRI_1KM, N_CHILDCARE, and N_CLINIC_350M`.
 
-#### Mapping
+#### Geographical Patterns of Coefficients
 
 Following the summary table, we implement two mapping functions that visualises local coefficient estimates and each coefficient’s t-value from the GWR. Observations are classified as:
 
@@ -3100,7 +3250,7 @@ The following code defines helper functions to create choropleth maps for coeffi
 #| code-summary: "CODE"
 create_coefficient_map <- function(coef_var, title) {
 
-  HDBresale_adaptive$transformed_coef <- HDBresale_adaptive[[coef_var]]
+  HDBresale_fixed$transformed_coef <- HDBresale_fixed[[coef_var]]
   
   regions <- mpsz %>%
     group_by(REGION_N) %>%
@@ -3109,7 +3259,7 @@ create_coefficient_map <- function(coef_var, title) {
     # Many unique values - use intervals
     tm_shape(regions) +
       tm_borders(col = "gray50", lwd = 1.5) +
-      tm_shape(HDBresale_adaptive) +
+      tm_shape(HDBresale_fixed) +
       tm_dots(fill = "transformed_coef",
               fill.scale = tm_scale_intervals(
                 #values = c("#8C2D04", "#D94801", "#F16913", "#6A51A3", "#453190", "#1F0C5A"), # orange to purple
@@ -3132,21 +3282,21 @@ create_coefficient_map <- function(coef_var, title) {
 #| code-fold: true
 #| code-summary: "CODE"
 create_significance_map <- function(tv_var, title) {
-  HDBresale_adaptive$classification <- case_when(
-    HDBresale_adaptive[[tv_var]] >= 2.58 ~ "Very Sig Positive",      
-    HDBresale_adaptive[[tv_var]] >= 1.96 ~ "Sig Positive",          
-    HDBresale_adaptive[[tv_var]] <= -2.58 ~ "Very Sig Negative",     
-    HDBresale_adaptive[[tv_var]] <= -1.96 ~ "Sig Negative",          
+  HDBresale_fixed$classification <- case_when(
+    HDBresale_fixed[[tv_var]] >= 2.58 ~ "Very Sig Positive",      
+    HDBresale_fixed[[tv_var]] >= 1.96 ~ "Sig Positive",          
+    HDBresale_fixed[[tv_var]] <= -2.58 ~ "Very Sig Negative",     
+    HDBresale_fixed[[tv_var]] <= -1.96 ~ "Sig Negative",          
     TRUE ~ "Not Significant")
   
-  HDBresale_adaptive$classification <- factor(
-    HDBresale_adaptive$classification,
+  HDBresale_fixed$classification <- factor(
+    HDBresale_fixed$classification,
     levels = c("Not Significant","Very Sig Negative", "Sig Negative", 
                "Sig Positive", "Very Sig Positive"))
   
   #Check the distribution
   #print(paste("Classification distribution for", title, ":"))
-  #print(table(HDBresale_adaptive$classification))
+  #print(table(HDBresale_fixed$classification))
   
   regions <- mpsz %>%
     group_by(REGION_N) %>%
@@ -3154,7 +3304,7 @@ create_significance_map <- function(tv_var, title) {
   
   tm_shape(regions) +
     tm_borders(col = "gray80", lwd = 1.5) +
-    tm_shape(HDBresale_adaptive) +
+    tm_shape(HDBresale_fixed) +
     tm_dots(
       fill = "classification",
       size = 0.25, shape = 15,
@@ -3174,192 +3324,243 @@ create_significance_map <- function(tv_var, title) {
     tm_layout(na.show = FALSE)}
 ```
 
-#### Structoral Factors
+
+```{r}
+#| code-fold: true
+#| code-summary: "CODE"
+create_se_map <- function(se_var, title) {
+  # Extract the corresponding SE variable (e.g., "DIS_TO_MRT_SE")
+  HDBresale_fixed$se_value <- HDBresale_fixed[[se_var]]
+  
+  regions <- mpsz %>%
+    group_by(REGION_N) %>%
+    summarise(do_union = TRUE)
+  
+  tm_shape(regions) +
+    tm_borders(col = "gray50", lwd = 1.5) +
+    tm_shape(HDBresale_fixed) +
+    tm_dots(fill = "se_value",
+            fill.scale = tm_scale_intervals(
+              values = c("#F7FBFF", "#D2E3F3", "#9ECAE1", "#6BAED6", "#3182BD", "#08519C"), # blue gradient
+              style = "fisher", n = 6),
+            fill.legend = tm_legend(title = "Standard Error"),
+            size = 0.3, 
+            shape = 18) +
+    tm_title(paste(title, "- Estimation Uncertainty")) +
+    tm_compass(type = "8star", size = 2, bg.color = "white", bg.alpha = 0.5) +
+    tm_scalebar(bg.color = "white", bg.alpha = 0.5) +
+    tm_grid(lwd = 0.1, alpha = 0.2) +
+    tm_credits("Source: data.gov.sg",
+              position = c("right", "bottom")) +
+    tm_layout(na.show = FALSE)
+}
+```
+
+
+##### Structoral Factors
 
 We use the mapping functions to visualise structural factors, floor level, flat size, and building age, by local t-values and its coefficient estimates.
 
 ::: panel-tabset
-##### Floor level
+###### Floor level
 
-The results show that floor level is consistently strong positive across nearly all observations: higher floors contribute to a price premium throughout Singapore. On average, an increase of one floor level is associated with approximately a 0.4 percent to 1.0 percent increase in resale price, holding other factors constant.
+The results show that floor level is consistently strong positive across nearly all observations: higher floors contribute to a price premium throughout Singapore. Based on the median effect, for every one unit increase in floor level, the resale price increases by about 0.673 percent, holding other factors constant.
+
+
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
-create_significance_map ("FLOOR_TV", "FLOOR Level") 
-create_coefficient_map("FLOOR", "FLOOR Level")
+create_coefficient_map("FLOOR", "Floor Level")
+create_significance_map ("FLOOR_TV", "Floor Level") 
+create_se_map("FLOOR_SE", "Floor Level")
 ```
 
-##### Floor Area
+###### Floor Area
 
-Similarly, larger flat size shows a significant positive relationship with resale price. The statistically significant coefficient estimates range from 0 to 2 percent, indicating that an increase in floor area is generally associated with higher resale prices across Singapore. We disregard the insignificant negative relationships and outliers between floor size and resale price.
+Similarly, larger flat sizes exhibit a significant positive relationship with resale prices across approximately 87 percent of the observations. Based on the median local effect, a one-sqm increase in floor area is associated with about a 0.567 percent rise in resale price, holding other factors constant. However, in the Taman Jurong area (shown in orange on the significance map), the effect of floor area turns significantly negative. Since the standard error in this area is not particularly low, the magnitude should be interpreted with caution.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
-create_significance_map ("AREA_SQM_TV", "Floor Area")
 create_coefficient_map("AREA_SQM", "Floor Area")
+create_significance_map ("AREA_SQM_TV", "Floor Area")
+create_se_map("AREA_SQM_SE", "Floor Area")
 ```
 
-##### Block Age
+###### Block Age
 
-In contrast, building age appears predominantly in dark orange, reflecting a significant negative relationship, older properties are generally associated with lower resale prices. A one-year increase in building age corresponds to approximately a 0.2 to zero percent decrease in resale price. These negative effects are strong in mature estates such as Clementi, Bukit Merah, and Toa Payoh.
+In contrast, building age appears predominantly in dark orange, reflecting a significant negative relationship, older properties are generally associated with lower resale prices. Based on the median local effect, a one-year increase in building age is associated with about a 0.071 percent decrease in resale price, holding other factors constant. These negative effects are strong in mature estates such as Clementi, Bukit Merah, and Toa Payoh, whereas flats in Yew Tee at the northern end of Choa Chu Kang display a small positive relationship with resale price, although the magnitude of this effect remains modest.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
-create_significance_map ("AGE_TV", "Block Age")
 create_coefficient_map("AGE", "Block Age")
+create_significance_map ("AGE_TV", "Block Age")
+create_se_map("AGE_SE", "Block Age")
 ```
 
-##### HIP Completion
+###### HIP Completion
 
-HIP completion has a spatially uneven and locally significant effect, influencing about 40 percent of all observations. The pattern suggests that HIP’s price impact depends strongly on estate characteristics and location. In mature estates such as Bukit Merah, Toa Payoh, and Clementi, the effect is often postive, where completed upgrading may signal improved living quality. Conversely, slightly negative or zero effects appear in northern and north-eastern towns like Woodlands, Yishun, and Bedok, possibly reflecting overall newer building conditions and buyer preferences for newer flats. These results highlight that the HIP upgrades is highly context dependent.
+HIP completion has a spatially uneven and locally significant effect, influencing about 31.5 percent of all observations. The pattern suggests that HIP’s price impact depends strongly on estate characteristics and location. In mature estates such as Bukit Merah, Toa Payoh, and Clementi, the effect is often postive, where completed upgrading may signal improved living quality. Conversely, slightly negative or zero effects appear in northern and north-eastern towns like Woodlands, Choa Chu Kang, Jurong East, possibly reflecting overall newer building conditions and buyer preferences for newer flats. These results highlight that the HIP upgrades is highly context dependent.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
-create_significance_map ("HIP_TV", "HIP Completion")
 create_coefficient_map("HIP", "HIP Completion")
+create_significance_map ("HIP_TV", "HIP Completion")
+create_se_map("HIP_SE", "HIP Completion")
 ```
 :::
 
-#### Locational Factors
+##### Locational Factors
 
 We use the mapping functions to visualise locational factors.
 
 In this section, choropleth maps are created to visualise the local coefficients for locational factors, categorised by statistical significance and magnitude of price effect.
 
 ::: panel-tabset
-##### Proximity to MRTs
+###### Proximity to MRTs
 
-Proximity to MRTs genally represents negative effects, that shorter distances to MRT stations are associated with higher resale prices. Based on the median effect, for every 100 metres closer to an MRT station, the resale price increases by about 0.7 percent, holding other factors constant. This effect is statistically significant in approximately 72.3 percent of all observations, suggesting that accessibility to MRT stations is be a major driver of housing value in suburban estates.
+Proximity to MRTs generally represents negative effects, that shorter distances to MRT stations are associated with higher resale prices. Based on the median effect, for every 100 metres closer to an MRT station, the resale price increases by about 0.742 percent, holding other factors constant.This relationship is statistically significant for about 40.9% of all observations, suggesting that accessibility to MRT stations is an important driver of housing value, particularly in suburban estates. However, in highly accessible central locations such as Rochor, a slight positive relationship is observed, where flats located farther from MRT stations tend to command marginally higher prices.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
-create_significance_map ("DIS_TO_MRT_TV", "Proximity to MRT")
-create_coefficient_map("DIS_TO_MRT", "Proximity to MRT")
+create_coefficient_map("DIS_TO_MRT", "MRT proximity")
+create_significance_map ("DIS_TO_MRT_TV", "MRT proximity")
+create_se_map("DIS_TO_MRT_SE", "MRT proximity")
 ```
 
-##### Proximity to CBD
+###### Proximity to CBD
 
-Proximity to the CBD is statistically significant in approximately 62 percent of the dataset. At a glance, most coefficients are negative, indicating that as the distance from the CBD increases, resale prices tend to decline. Based on the median effect, every 100 metres closer to the CBD is associated with an estimated 0.24 percent increase in resale price,holding other factors constant.
+Proximity to the CBD is statistically significant in approximately 35.1 percent of the dataset. At a glance, most coefficients are negative, indicating that as the distance from the CBD increases, resale prices tend to decline.However, areas such as Little India Rochor display a positive relationship with proximity to the CBD, similar to the pattern observed for MRT accessibility. Based on the median effect, every 100 metres closer to the CBD is associated with an estimated 0.463 percent increase in resale price,holding other factors constant.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
-create_significance_map ("DIS_TO_CBD_TV", "Proximity to CBD") 
-create_coefficient_map("DIS_TO_CBD", "Proximity to CBD")
+create_coefficient_map("DIS_TO_CBD", "CBD proximity")
+create_significance_map ("DIS_TO_CBD_TV", "CBD proximity")
+create_se_map("DIS_TO_CBD_SE","CBD proximity") 
 ```
 
-##### Proximity to Hawker Centres
+###### Proximity to Hawker Centres
 
-Proximity to hawker centres is locally significant in about 59.6 percent of observations. The raw coefficient estimates range from approximately −0.02 to 0.003, with a median effect of around 0.11 percent, holding other factors constant. The direction of significance is mixed, showing both positive and negative local effects. Negative relationships are more common in Jurong West, Choa Chu Kang, Bishan, and Bukit Merah, where the abundance of food options may dilute the unique value of hawker centres. In these dense neighbourhoods, proximity reduces housing desirability due to noise, hygiene concerns, or heavy foot traffic. In contrast, positive effects are more evident in areas such as Woodlands, Punggol, and Kallang, where hawker centres are scarcer and therefore more valued as essential community amenities that enhance flat values.
+Proximity to hawker centres is locally significant in about 35.0 percent of observations. The raw coefficient estimates range from approximately −0.02 to 0.0084, with a median effect of around 0.134 percent, holding other factors constant. The direction of significance is mixed, showing both positive and negative local effects. Negative relationships are more common in Bukit Batok, Choa Chu Kang, Bishan, and Redhill Bukit Merah, where hawker centres are scarcer and therefore more valued as essential community amenities that enhance flat values. In contrast, positive effects are more evident in areas such as Toa Payoh, Ting Bahru, Jurong West where the abundance of food options may dilute the unique value of hawker centres. In these dense neighbourhoods, proximity reduces housing desirability due to noise, hygiene concerns, or heavy foot traffic.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
-create_significance_map ("DIS_TO_HAWKER_TV", "Proximity to Hawker Centre")
-create_coefficient_map("DIS_TO_HAWKER", "Proximity to Hawker Centre")
+create_coefficient_map("DIS_TO_HAWKER", "Hawker Centre Proximity")
+create_significance_map ("DIS_TO_HAWKER_TV", "Hawker Proximity")
+create_se_map("DIS_TO_HAWKER_SE","Hawker Centre Proximity")  
 ```
 
-##### Proximity to Malls
+###### Proximity to Malls
 
-In terms of proximity to malls, which is locally significant in about 58.3 percent of observations, areas showing significance generally exhibit a negative relationship between distance and resale price. Based on the median converted effect, every 100 metres farther from a mall is associated with approximately a 0.449 percent decrease in resale price.
+In terms of proximity to malls, which is locally significant in about 33.1 percent of observations, areas showing significance generally exhibit a negative relationship between distance and resale price. Based on the median converted effect, every 100 metres farther from a mall is associated with approximately a 0.874 percent decrease in resale price.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
-create_significance_map ("DIS_TO_MALL_TV", "Proximity to Malls")
-create_coefficient_map("DIS_TO_MALL", "Proximity to Malls")
+create_coefficient_map("DIS_TO_MALL", "Mall Proximity")
+create_significance_map ("DIS_TO_MALL_TV", "Mall Proximity")
+create_se_map("DIS_TO_MALL_SE", "Mall Proximity")  
 ```
 
-##### Proximity to Eldercare Centres
+###### Proximity to Eldercare Centres
 
-
-Proximity to eldercare centres is locally significant in approximately 56.1 percent of observations across Singapore. The presence of eldercare facilities tends to add value to nearby HDB resale flats in areas such as River Valley, Newton, Hougang, and Punggol. Outside these locations, however, the variable shows little or no positive influence on resale prices. Based on the median effect, every 100 metres closer to an eldercare centre is associated with an estimated 0.086 percent decrease in resale price, holding other factors constant, indicating a context-dependent impact on housing value.
-
+Proximity to eldercare centres is locally significant in approximately 31.1 percent of observations across Singapore. The presence of eldercare facilities tends to add value to nearby HDB resale flats in areas such as Kallang, Hougang, and Punggol. Outside these locations, however, the variable shows little or no positive influence on resale prices. Based on the median effect, every 100 metres closer to an eldercare centre is associated with an estimated 0.322 percent decrease in resale price, holding other factors constant.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
-create_significance_map ("DIS_TO_ELDERCARE_TV", "Proximity to Eldercare")
-create_coefficient_map("DIS_TO_ELDERCARE", "Proximity to Eldercare")
+create_coefficient_map("DIS_TO_ELDERCARE", "Eldercare Proximity")
+create_significance_map ("DIS_TO_ELDERCARE_TV", "Eldercare")
+create_se_map("DIS_TO_ELDERCARE_SE", "Eldercare Proximity") 
 ```
 
-##### Proximity to Supermarkets
+###### Proximity to Supermarkets
 
-Proximity to supermarkets is statistically significant in approximately 56.9 percent of observations. The results show that supermarket accessibility does not add value to properties located along a vertical belt stretching from Yishun through Toa Payoh to Kallang. In contrast, ease of access to supermarkets is regarded as a desirable amenity in most other regions. Based on the median effect, every 100 metres farther from a supermarket corresponds to an estimated 0.167 percent decrease in resale price,holding other factors constant.
+Proximity to supermarkets is statistically significant in approximately 23.5 percent of observations. The results indicate that supermarket accessibility does not appear to significantly enhance property values in areas such as Bukit Merah, Queenstown, and Geylang, where the local coefficients are positive. However, since the standard errors in some of these areas are moderate, the results should be interpreted with caution.
+In general, ease of access to supermarkets is regarded as a desirable amenity in most other regions. Based on the median effect, every 100 metres farther from a supermarket corresponds to an estimated 0.200 percent decrease in resale price,holding other factors constant.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
-create_significance_map ("DIS_TO_SUPERMARKET_TV", "Proximity to Supermarket")
-create_coefficient_map("DIS_TO_SUPERMARKET", "Proximity to Supermarket")
+create_coefficient_map("DIS_TO_SUPERMARKET", "Supermarket Proximity")
+create_significance_map ("DIS_TO_SUPERMARKET_TV", "Supermarket")
+create_se_map("DIS_TO_SUPERMARKET_SE","Supermarket Proximity") 
 ```
 
-##### Proximity to Parks
+###### Proximity to Parks
 
-Proximity to parks is locally significant in about 53.5 percent of observations, but its effects are not uniformly distributed across Singapore. In general, proximity to parks adds value to most properties located near green spaces. However, negative and significant effects are observed in Bukit Batok, Queenstown, and Kallang, where parks are already abundant.
+Proximity to parks is locally significant in about 30.8 percent of observations, but its effects are not uniformly distributed across Singapore. In general, proximity to parks adds value to most properties located near green spaces. However, negative and significant effects are observed in Bukit Batok, Queenstown, and Kallang, where parks are already abundant.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
-create_significance_map ("DIS_TO_PARK_TV", "Proximity to Park")
+
 create_coefficient_map("DIS_TO_PARK", "Proximity to Park")
+create_significance_map ("DIS_TO_PARK_TV", "Park Proximity")
+create_se_map("DIS_TO_PARK_SE",    "Proximity to Park") 
 ```
 
-##### Number of Primary Schools within 1km
+###### Number of Primary Schools within 1km
 
-The number of primary schools within 1 kilometre is statistically significant in about 50.6 percent of observations. In regions where this variable is significant, the availability of nearby schools is generally perceived as a desirable neighbourhood feature. Based on the median converted effect, the presence of one additional primary school within 1 kilometre is associated with approximately a 0.249 percent increase in resale price, holding other factors constant. However, in areas with an abundance of schools or where the local demographic composition includes fewer families with primary-school-aged children, this effect tends to diminish or become insignificant.
+The number of primary schools within 1 kilometre is statistically significant in about 19.1 percent of observations. In regions where this variable is significant, the availability of nearby schools is generally perceived as a desirable neighbourhood feature. Based on the median converted effect, the presence of one additional primary school within 1 kilometre is associated with approximately a 0.099 percent increase in resale price, holding other factors constant. However, in areas with an abundance of schools or where the local demographic composition includes fewer families with primary-school-aged children, this effect tends to diminish or become insignificant.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
-create_significance_map ("N_PRI_1KM_TV", "# Primary Schools within 1km") 
+
 create_coefficient_map("N_PRI_1KM", "No of Primary Schools within 1km")
+create_significance_map ("N_PRI_1KM_TV", "N_Prisch_1KM") 
+create_se_map("N_PRI_1KM_SE","Primary Schools within 1 km") 
 ```
 
-##### Number of Bus Stops within 350m
+###### Number of Bus Stops within 350m
 
-In general, the number of bus stops within 350 metres is statistically significant in about 48.4 percent of observations. The effect tends to add value to neighbourhoods where MRT stations are not nearby, where bus routes offer greater network versatility. Based on the median converted effect, each additional bus stop within the defined buffer is associated with approximately a 0.145 percent increase in resale price, holding other factors constant. This finding suggests that bus accessibility is an important transport amenity to HDB residents.
+In general, the number of bus stops within 350 metres is statistically significant in about 24.4 percent of observations. The effect tends to add value to neighbourhoods where MRT stations are not nearby, where bus routes offer greater network versatility. Based on the median converted effect, each additional bus stop within the defined buffer is associated with approximately a 0.114 percent increase in resale price, holding other factors constant.This finding suggests that bus accessibility is an important transport amenity for HDB residents. However, the magnitude of the effect should be interpreted with caution, as the standard errors are relatively high, indicating some degree of uncertainty in the local estimates.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
-create_significance_map ("N_BUS_350M_TV", "# Bus Stops within 350m")
+
 create_coefficient_map("N_BUS_350M", "No of Bus Stops within 350m")
+create_significance_map ("N_BUS_350M_TV", "N_BUS_350M")
+create_se_map("N_BUS_350M_SE","Bus Stops within 350 m")
 ```
 
-##### Number to Childcare Centres within 350m
+###### Number to Childcare Centres within 350m
 
-The number of childcare centres within 350 metres shows a marginal effect on resale prices, with local significance in about 40.2 percent of observations. he effect is generally positive, but it does not add value to flats in Yishun, Punggol, Sengkang, and Hougang, likely because these newer towns already have a high concentration of childcare facilities. After conversion, the median effect indicates that the presence of one additional childcare centre within 350 metres is associated with an estimated 0.089 percent increase in resale price.
+The number of childcare centres within 350 metres shows a marginal effect on resale prices, with local significance in about 18.0 percent of observations. The effect is generally positive, but it does not add value to flats in Yishun, Queenstown, Sengkang, and Hougang, likely because these  towns already have a high concentration of childcare facilities. After conversion, the median effect indicates that the presence of one additional childcare centre within 350 metres is associated with an estimated 0.025 percent increase in resale price.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
-create_significance_map ("N_CHILDCARE_350M_TV", "# Childcare within 350m")
 create_coefficient_map("N_CHILDCARE_350M", "No of Chilcare within 350m")
+create_significance_map ("N_CHILDCARE_350M_TV", "# CC 350m")
+create_se_map("N_CHILDCARE_350M_SE", "# Childcare within 350m")   
 ```
 
-##### Number to Clinics within 350m
+###### Number to Clinics within 350m
 
-Although only 32.7 percent of observations show a statistically significant local relationship between the number of clinics within 350 metres and resale prices, the median converted effect is approximately +0.167 percent. Notably, in areas such as Bendemeer, Woodlands East, and Bukit Panjang, the local coefficients are negative and significant, likely reflecting a saturation effect. In these mature estates, where healthcare infrastructure is already abundant or hospitals are located nearby, the presence of additional clinics may weaken housing values. This finding is consistent with the pattern observed for proximity to hospitals, where the median effect is positive, indicating that being closer to a hospital tends to slightly depress resale prices, holding all other variables constant.
+Although only 17.2 percent of observations show a statistically significant local relationship between the number of clinics within 350 metres and resale prices, the median converted effect is approximately 0.132 percent. Notably, in areas such as Bendemeer, Woodlands East, and Bukit Panjang, the local coefficients are negative and significant, likely reflecting a saturation effect. In these mature estates, where healthcare infrastructure is already abundant or hospitals are located nearby, the presence of additional clinics may weaken housing values. This finding is consistent with the pattern observed for proximity to hospitals, where the median effect is positive, indicating that being closer to a hospital tends to slightly depress resale prices, holding all other variables constant.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "CODE"
-create_significance_map ("N_CLINIC_350M_TV", "# Clincs within 350m")
+
 create_coefficient_map("N_CLINIC_350M", "No of Clincs within 350m")
+create_significance_map ("N_CLINIC_350M_TV", "# Clinics 350m")
+create_se_map("N_CLINIC_350M_SE", "Clinics within 350 m") 
 ```
 :::
 
+### Explanatory Random Forest Model
 
-
-### Explanatory Random Forest Model: SpatialRF method
-
-In this section, we apply the SpatialRF method to develop a non-linear Random Forest model to identify feature importance and compare its performance with the log-GWR model described earlier. The following code uses the same set of explanatory variables and target variable to ensure consistency and comparability between the two modelling approaches.
+In this section, we apply the **SpatialRF** method to develop a non-linear Random Forest model to identify feature importance and compare its performance with the log-GWR model described earlier. The following code uses the same set of explanatory variables and target variable to ensure consistency and comparability between the two modelling approaches.
 
 ```{r}
 #| echo: false
@@ -3522,22 +3723,26 @@ The `plot_importance()` function generates the feature importance plots for both
 
 In this study, we utilise Multiple Linear Regression (MLR) and Geographically Weighted Regression (GWR) models to construct a hedonic pricing model for HDB 4-room resale flats from January 2025 to September 2025 with handful of carefully selected structural and locational factors. The explanatory variables cover a wide range of characteristics, including flat attributes (age, size, and floor level), government upgrading programmes, proximity to the CBD, accessibility to surrounding amenities and services, and counts of essential facilities such as schools, clinics, and bus stops.
 
-The log-GWR model achieves an R^2^ of 0.96, indicating that it could explain 96 percent of the spatial variation in local resale prices. It outperforms the MLR model, effectively capturing local spatial heterogeneity, with the best model performance observed in central regions. We also visualise the spatial distribution of selected coefficient estimates to deepen the understanding of each variable’s local influence and statistical significance.
+The log-GWR model achieves an R^2^ of 0.97, indicating that it could explain 97 percent of the spatial variation in local resale prices. It outperforms the MLR model, effectively capturing local spatial heterogeneity, with the best model performance observed in central regions. We also visualise the spatial distribution of selected coefficient estimates to deepen the understanding of each variable’s local influence and statistical significance.
 
-We also experimented with the SpatialSF Random Forest method, which produces a slightly higher R^2^ but limited explanatory insight compared to the GWR framework.
+In addition, we experiment with the SpatialSF Random Forest method, which validats the variable importance rankings but provides limited explanatory insight compared to the GWR framework, given its black-box nature.
 
-However, several limitations remain in the modelling process, even though the overall model fit (R^2^) is very high. In this study, we primarily used the `gwr.basic()` function, which does not include the `f123.test` that are commonly used to evaluate whether GWR provides a significantly better fit than a global regression model. These tests were omitted mainly due to computational cost considerations. Although the `gwr.robust()` function can provide p-values for hypothesis testing and handle outliers more effectively by smoothing coefficient estimates, its results shows similar R^2^ values and comparable AICc improvements. Therefore, the `gwr.basic()` results were retained for consistency in this study.
 
-Additionally, the hedonic model itself does not capture external market factors such as tax policies, housing regulations, or private property market dynamics, all of which may influence HDB resale prices. Furthermore, ongoing urban redevelopment and new town expansions may account for the lower local R^2^ values observed in several North-East and East regions. Finally, the model assumes a linear relationship between explanatory variables and prices. Future research could address these gaps by adopting non-linear or hybrid spatial models, for example, machine learning or spatial econometric approaches to better capture the complex, non-linear behaviours of housing markets and their spatial dependencies.
+It is worth noting that, the hedonic model itself does not capture external market factors such as tax policies, housing regulations, or private property market dynamics, all of which may influence HDB resale prices. Furthermore, ongoing urban redevelopment and new town expansions may account for the lower local R^2^ values observed in several North-East and East regions. Finally, the model assumes a linear relationship between explanatory variables and prices. Future research could explore non-linear or hybrid spatial approaches to address this limitation. While machine learning models are primarily predictive, they can help uncover complex, non-linear structures in housing data. In contrast, spatial econometric models offer stronger explanatory power and can be used in tandem to enhance both prediction and interpretability in future studies.
 
 Overall, the findings provide valuable insights into current HDB resale price determinants and may serve as a useful reference for policymakers, buyers, and urban planners.
 
+
+
 ## Reference
 
-Lim, A. (2025, February 24). 13+ housing & household statistics in Singapore (2025). SmartWealth Singapore. https://smartwealth.sg/housing-household-statistics-singapore/ 
+Kam, T. S. 13 Calibrating Hedonic Pricing Model for Private Highrise Property with GWR Method. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap13
 
+Lim, A. (2025, February 24). 13+ housing & household statistics in Singapore (2025). SmartWealth Singapore. https://smartwealth.sg/housing-household-statistics-singapore/
 
-Lim, J. (2025, October 24). HDB resale price growth in Q3 slows; private home prices driven by new launches. The Straits Times. Retrieved from https://www.straitstimes.com/singapore/hdb-resale-price-growth-in-q3-near-5-year-low-private-home-prices-driven-by-new-launches 
+Lim, J. (2025, October 24). HDB resale price growth in Q3 slows; private home prices driven by new launches. The Straits Times. Retrieved from https://www.straitstimes.com/singapore/hdb-resale-price-growth-in-q3-near-5-year-low-private-home-prices-driven-by-new-launches
+
+Anselin, L., & Bera, A. K. (1998). Spatial dependence in linear regression models with an introduction to spatial econometrics. In A. Ullah & D. E. A. Giles (Eds.), Handbook of applied economic statistics (pp. 237–289). New York: Marcel Dekker
 
 Brunsdon, C., Fotheringham, A. S., & Charlton, M. E. (1996). Geographically Weighted Regression: A Method for Exploring Spatial Nonstationarity. Geographical Analysis, 28(4), 281–298.
 
