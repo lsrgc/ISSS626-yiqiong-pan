@@ -1955,7 +1955,7 @@ The histograms below illustrate the spatial accessibility characteristics of a t
 
 -   Kindergartens (350 m): usually 1–2
 
--   Clinics (350 m): commonly \~3
+-   Clinics (350 m): commonly 3
 
 -   Bus stops (350 m): typically 7–8
 
@@ -2886,12 +2886,12 @@ gmperm_gwr
 ```
 
 ::: callout-note
-Although there remains statistically significant spatial autocorrelation at the 95% confidence level, the 94.8% reduction in Moran’s I (from 0.33889 to 0.01778) indicates that the GWR model effectively accounted for most of the spatial dependence present in the data.
+Although there remains statistically significant spatial autocorrelation at the 95% confidence level, the reduction in Moran’s I (from 0.33889 to -0.0043816) indicates that the GWR model effectively accounted for most of the spatial dependence present in the data.
 :::
 
 #### Local R^2^ Mapping
 
-In this section, we first prepare the SDF output from the GWR model into a data frame and extract the local R^2^ values. With functions from the tmap package, these values are then visualised at the national level and further examined by region to compare model fit across different areas.
+In this section, we first prepare the SDF output from the GWR model into a data frame and extract the local R^2^ values. With functions from the **tmap** package, these values are then visualised at the national level and further examined by region to compare model fit across different areas.
 
 ::: panel-tabset
 ##### National Level
@@ -3362,12 +3362,13 @@ create_se_map <- function(se_var, title) {
 
 ##### Structoral Factors
 
-We use the mapping functions to visualise structural factors, floor level, flat size, and building age, by local t-values and its coefficient estimates.
+We use the mapping functions to visualise structural factors, floor level, flat size, and building age, by local t-values, SE and its coefficient estimates.
 
 ::: panel-tabset
+
 ###### Floor level
 
-The results show that floor level is consistently strong positive across nearly all observations: higher floors contribute to a price premium throughout Singapore. Based on the median effect, for every one unit increase in floor level, the resale price increases by about 0.673 percent, holding other factors constant.
+The results show that floor level is consistently strong **positive** across nearly all observations: higher floors contribute to a price premium throughout Singapore. Based on the median effect, for every one unit increase in floor level, the resale price increases by about 0.673 percent, holding other factors constant.
 
 
 
@@ -3381,7 +3382,7 @@ create_se_map("FLOOR_SE", "Floor Level")
 
 ###### Floor Area
 
-Similarly, larger flat sizes exhibit a significant positive relationship with resale prices across approximately 87 percent of the observations. Based on the median local effect, a one-sqm increase in floor area is associated with about a 0.567 percent rise in resale price, holding other factors constant. However, in the Taman Jurong area (shown in orange on the significance map), the effect of floor area turns significantly negative. Since the standard error in this area is not particularly low, the magnitude should be interpreted with caution.
+Similarly, larger flat sizes exhibit a significant **positive** relationship with resale prices across approximately 87 percent of the observations. Based on the median local effect, a one-sqm increase in floor area is associated with about a 0.567 percent rise in resale price, holding other factors constant. However, in the Taman Jurong area (shown in orange on the significance map), the effect of floor area turns significantly negative. Since the standard error in this area is not particularly low, the magnitude should be interpreted with caution.
 
 ```{r}
 #| code-fold: true
@@ -3393,7 +3394,7 @@ create_se_map("AREA_SQM_SE", "Floor Area")
 
 ###### Block Age
 
-In contrast, building age appears predominantly in dark orange, reflecting a significant negative relationship, older properties are generally associated with lower resale prices. Based on the median local effect, a one-year increase in building age is associated with about a 0.071 percent decrease in resale price, holding other factors constant. These negative effects are strong in mature estates such as Clementi, Bukit Merah, and Toa Payoh, whereas flats in Yew Tee at the northern end of Choa Chu Kang display a small positive relationship with resale price, although the magnitude of this effect remains modest.
+In contrast, building age appears predominantly in dark orange, reflecting a significant **negative** relationship, older properties are generally associated with lower resale prices. Based on the median local effect, a one-year increase in building age is associated with about a 0.071 percent decrease in resale price, holding other factors constant. These negative effects are strong in mature estates such as Clementi, Bukit Merah, and Toa Payoh, whereas flats in Yew Tee at the northern end of Choa Chu Kang display a small positive relationship with resale price, although the magnitude of this effect remains modest.
 
 ```{r}
 #| code-fold: true
@@ -3420,12 +3421,12 @@ create_se_map("HIP_SE", "HIP Completion")
 
 We use the mapping functions to visualise locational factors.
 
-In this section, choropleth maps are created to visualise the local coefficients for locational factors, categorised by statistical significance and magnitude of price effect.
+In this section, choropleth maps are created to visualise the local coefficients for locational factors, categorised by statistical significance, standard errors and magnitude of price effect.
 
 ::: panel-tabset
 ###### Proximity to MRTs
 
-Proximity to MRTs generally represents negative effects, that shorter distances to MRT stations are associated with higher resale prices. Based on the median effect, for every 100 metres closer to an MRT station, the resale price increases by about 0.742 percent, holding other factors constant.This relationship is statistically significant for about 40.9% of all observations, suggesting that accessibility to MRT stations is an important driver of housing value, particularly in suburban estates. However, in highly accessible central locations such as Rochor, a slight positive relationship is observed, where flats located farther from MRT stations tend to command marginally higher prices.
+Proximity to MRTs generally represents **negative** effects, that shorter distances to MRT stations are associated with higher resale prices. Based on the median effect, for every 100 metres closer to an MRT station, the resale price increases by about 0.742 percent, holding other factors constant.This relationship is statistically significant for about 40.9% of all observations, suggesting that accessibility to MRT stations is an important driver of housing value, particularly in suburban estates. However, in highly accessible central locations such as Rochor, a slight positive relationship is observed, where flats located farther from MRT stations tend to command marginally higher prices.
 
 ```{r}
 #| code-fold: true
@@ -3437,7 +3438,7 @@ create_se_map("DIS_TO_MRT_SE", "MRT proximity")
 
 ###### Proximity to CBD
 
-Proximity to the CBD is statistically significant in approximately 35.1 percent of the dataset. At a glance, most coefficients are negative, indicating that as the distance from the CBD increases, resale prices tend to decline.However, areas such as Little India Rochor display a positive relationship with proximity to the CBD, similar to the pattern observed for MRT accessibility. Based on the median effect, every 100 metres closer to the CBD is associated with an estimated 0.463 percent increase in resale price,holding other factors constant.
+Proximity to the CBD is statistically significant in approximately 35.1 percent of the dataset. At a glance, most coefficients are **negative**, indicating that as the distance from the CBD increases, resale prices tend to decline.However, areas such as Little India Rochor display a positive relationship with proximity to the CBD, similar to the pattern observed for MRT accessibility. Based on the median effect, every 100 metres closer to the CBD is associated with an estimated 0.463 percent increase in resale price,holding other factors constant.
 
 ```{r}
 #| code-fold: true
@@ -3461,7 +3462,7 @@ create_se_map("DIS_TO_HAWKER_SE","Hawker Centre Proximity")
 
 ###### Proximity to Malls
 
-In terms of proximity to malls, which is locally significant in about 33.1 percent of observations, areas showing significance generally exhibit a negative relationship between distance and resale price. Based on the median converted effect, every 100 metres farther from a mall is associated with approximately a 0.874 percent decrease in resale price.
+In terms of proximity to malls, which is locally significant in about 33.1 percent of observations, areas showing significance generally exhibit a **negative** relationship between distance and resale price. Based on the median converted effect, every 100 metres farther from a mall is associated with approximately a 0.874 percent decrease in resale price.
 
 ```{r}
 #| code-fold: true
@@ -3726,7 +3727,7 @@ The `plot_importance()` function generates the feature importance plots for both
 
 In this study, we utilise Multiple Linear Regression (MLR) and Geographically Weighted Regression (GWR) models to construct a hedonic pricing model for HDB 4-room resale flats from January 2025 to September 2025 with handful of carefully selected structural and locational factors. The explanatory variables cover a wide range of characteristics, including flat attributes (age, size, and floor level), government upgrading programmes, proximity to the CBD, accessibility to surrounding amenities and services, and counts of essential facilities such as schools, clinics, and bus stops.
 
-The log-GWR model achieves an R^2^ of 0.97, indicating that it could explain 97 percent of the spatial variation in local resale prices. It outperforms the MLR model, effectively capturing local spatial heterogeneity, with the best model performance observed in central regions. We also visualise the spatial distribution of selected coefficient estimates to deepen the understanding of each variable’s local influence and statistical significance.
+The log-GWR model with a fixed bandwidth of 418 metres achieves an R^2^ of 0.97, that it could explain 97 percent of the spatial variation in local resale prices. It outperforms the MLR model, effectively capturing local spatial heterogeneity, with the best model performance observed in central regions. We also visualise the spatial distribution of selected coefficient estimates to deepen the understanding of each variable’s local influence and statistical significance. The coefficients display clear spatial heterogeneity, with both positive and negative effects observed across different parts of Singapore. This spatially varying behaviour explains why the GWR model delivers better performance: it accounts for location-specific relationships that the global MLR framework cannot capture. By modelling these local variations, the GWR approach effectively removes the remaining spatial autocorrelation and provides more reliable, geographically nuanced insights.
 
 In addition, we experiment with the SpatialSF Random Forest method, which validats the variable importance rankings but provides limited explanatory insight compared to the GWR framework, given its black-box nature.
 
