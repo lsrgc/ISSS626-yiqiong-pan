@@ -263,10 +263,10 @@ Next, we double-check that the points have been correctly filtered to include on
 ```{r}
 nrow(BusStop_in_SG) -length(unique(BusStop_SG$BUS_STOP_N))  # total rows - unique bus stops
 ```
+
 ```{r}
 write_rds(BusStop_in_SG,"data/rds/BusStop_in_SG.rds")
 ```
-
 
 Here we also plot the bus stop map.
 
@@ -2942,7 +2942,7 @@ H1: a monotonic trend exists (consistently increases or decreases).
 In Kendall’s test, value τ (tau) ranges from −1 to +1 (direction = sign; strength = magnitude) and sl is the p-value.
 
 | EHSA Pattern | Definition |
-|------------------------|------------------------------------------------|
+|------------------------|-----------------------------------------------|
 | No pattern detected | applies if Insignificant. |
 | New Hot/Cold Spot | First time a significant hot/cold pot appears, and it’s recent. |
 | Consecutive Hot/Cold Spot | Hot/Cold Spot in each of the last time steps. |
