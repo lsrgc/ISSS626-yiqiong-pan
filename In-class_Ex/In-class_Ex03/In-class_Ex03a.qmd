@@ -156,7 +156,6 @@ if (nrow(Lcsr_df[Lcsr_df$obs > Lcsr_df$hi,])==0){
   }
 ```
 
-
 ## CHOA CHU KANG planning area
 
 ### Computing L-function estimate
@@ -257,11 +256,7 @@ Notes from lecture:
 
 we transform the static L-function plot into an interactive version using plotly.
 
-We first convert the CSR object (e.g., L_tm.csr or G_tm.csr) to a table with as.data.frame() and pass the object into a reusable function csr_plot() to generate the plot.
-The interactive plot lets us hover to view distances and significance levels.
-This makes it easy to see at which distances clustering or inhibition occurs based on colour coding.
-.
-
+We first convert the CSR object (e.g., L_tm.csr or G_tm.csr) to a table with as.data.frame() and pass the object into a reusable function csr_plot() to generate the plot. The interactive plot lets us hover to view distances and significance levels. This makes it easy to see at which distances clustering or inhibition occurs based on colour coding. .
 
 ::: callout-note
 The main features of the above visualisation:

@@ -34,15 +34,11 @@ This report demonstrates how to apply the Spatial and temporal Spatial Point Pat
 
 In this study, the following business types are selected for analysis:
 
-+----------------------+----------------------------------------------------------------------------------------------------------+-----------------------------+
-| SSIC Code            | Discrption                                                                                               | Number of Live Registration |
-+:====================:+:========================================================================================================:+:===========================:+
-| 46900                | Wholesale trade of a variety of goods without a dominant product                                         | 3862                        |
-+----------------------+----------------------------------------------------------------------------------------------------------+-----------------------------+
-| 62011                | Development of software and applications (except games and cybersecurity)                                | 1590                        |
-+----------------------+----------------------------------------------------------------------------------------------------------+-----------------------------+
-| 56140                | Stalls selling cooked food and prepared drinks (including stalls at food courts and mobile food hawkers) | 475                         |
-+----------------------+----------------------------------------------------------------------------------------------------------+-----------------------------+
+| SSIC Code | Discrption | Number of Live Registration |
+|:--:|:--:|:--:|
+| 46900 | Wholesale trade of a variety of goods without a dominant product | 3862 |
+| 62011 | Development of software and applications (except games and cybersecurity) | 1590 |
+| 56140 | Stalls selling cooked food and prepared drinks (including stalls at food courts and mobile food hawkers) | 475 |
 
 The five-digit codes and their definitions are based on [Singapore Standard Industrial Classification](https://classification.codes/classifications/industry/ssic-singapore) (SSIC) 2020.
 
@@ -70,39 +66,23 @@ For this exercise, the two datasets used are as follows:
 
 A total of **??** R packages will be used in this study.
 
-+-----------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Package                                                                     | Description                                                                                                                                                                               |
-+=============================================================================+===========================================================================================================================================================================================+
-| [sf](https://r-spatial.github.io/sf/)                                       | Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data.                                                                          |
-+-----------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| [raster](https://rspatial.org/raster/)                                      | Tools for reading, writing, and analyzing raster (gridded) spatial data in R                                                                                                              |
-+-----------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| [spatstat](https://spatstat.org/)                                           | Provides useful functions for SPPA, including kcross, Lcross etc.                                                                                                                         |
-+-----------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| [sparr](https://tilmandavies.github.io/sparr/index.html)                    | Functions for fixed/adaptive kernel density estimation and relative risk mapping via density ratios; also supports fixed-bandwidth space-time density and risk estimation with inference. |
-+-----------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| [tmap](https://r-tmap.github.io/tmap/)                                      | Creates cartographic quality static or interactive choropleth maps.                                                                                                                       |
-+-----------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| [tidyverse](https://www.tidyverse.org/)                                     | A collection of R packages for data import, cleaning, transformation, and visualization (e.g., readr, dplyr, tidyr, ggplot2).                                                             |
-+-----------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| [terra](https://rspatial.github.io/terra/index.html)                        | Modern package for raster/vector spatial data and will be used to convert spastat outputs into terra format.                                                                              |
-+-----------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| stopp                                                                       |                                                                                                                                                                                           |
-+-----------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| [stpp](https://cran.r-project.org/web/packages/stpp/index.html)             | A package for the analysis, simulation, and visualization of spatio-temporal point patterns.                                                                                              |
-+-----------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| [gick](https://cran.r-project.org/web/packages/magick/vignettes/intro.html) | Tools for image processing e.g. creating animated images.                                                                                                                                 |
-+-----------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| [httr](https://httr.r-lib.org/)                                             | The package for making web APIs and HTTP requests.                                                                                                                                        |
-+-----------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| [ggthemes](https://cran.r-project.org/web/packages/ggthemes/index.html)     | An extension to `ggplot2` for enhanced visualisation                                                                                                                                      |
-+-----------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| [plotly](https://plotly.com/r/getting-started/)                             | The package for creating interactive plotting.                                                                                                                                            |
-+-----------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| [knitr](https://cran.r-project.org/web/packages/knitr/index.html)           | The package for dynamic reporting                                                                                                                                                         |
-+-----------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| readxl                                                                      |                                                                                                                                                                                           |
-+-----------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Package | Description |
+|----|----|
+| [sf](https://r-spatial.github.io/sf/) | Simple Features, a new R package which handles importing, managing, and processing vector-based geospatial data. |
+| [raster](https://rspatial.org/raster/) | Tools for reading, writing, and analyzing raster (gridded) spatial data in R |
+| [spatstat](https://spatstat.org/) | Provides useful functions for SPPA, including kcross, Lcross etc. |
+| [sparr](https://tilmandavies.github.io/sparr/index.html) | Functions for fixed/adaptive kernel density estimation and relative risk mapping via density ratios; also supports fixed-bandwidth space-time density and risk estimation with inference. |
+| [tmap](https://r-tmap.github.io/tmap/) | Creates cartographic quality static or interactive choropleth maps. |
+| [tidyverse](https://www.tidyverse.org/) | A collection of R packages for data import, cleaning, transformation, and visualization (e.g., readr, dplyr, tidyr, ggplot2). |
+| [terra](https://rspatial.github.io/terra/index.html) | Modern package for raster/vector spatial data and will be used to convert spastat outputs into terra format. |
+| stopp |  |
+| [stpp](https://cran.r-project.org/web/packages/stpp/index.html) | A package for the analysis, simulation, and visualization of spatio-temporal point patterns. |
+| [gick](https://cran.r-project.org/web/packages/magick/vignettes/intro.html) | Tools for image processing e.g. creating animated images. |
+| [httr](https://httr.r-lib.org/) | The package for making web APIs and HTTP requests. |
+| [ggthemes](https://cran.r-project.org/web/packages/ggthemes/index.html) | An extension to `ggplot2` for enhanced visualisation |
+| [plotly](https://plotly.com/r/getting-started/) | The package for creating interactive plotting. |
+| [knitr](https://cran.r-project.org/web/packages/knitr/index.html) | The package for dynamic reporting |
+| readxl |  |
 
 : {tbl-colwidths="\[15,85\]"}
 
