@@ -24,7 +24,9 @@ editor: visual
 
 ## Introduction
 
+Market area analysis, also called trade area analysis, is the process of identifying and examining the geographic region from which a business attracts its customers. It involves studying consumer demographics, spending patterns, and the competitive landscape to evaluate market potential, uncover opportunities, and guide decisions on site selection, marketing, and expansion. This analysis may use both observational techniques, such as customer-spotting, and quantitative models to understand customer behaviour and segment the market.
 
+The Huff model is a commonly used geospatial method within market area analysis. It estimates the probability that consumers from a given location will choose a specific store by comparing the store’s attractiveness with its distance relative to competing stores. Attractiveness may reflect factors such as store size or sales volume, while distance often represents travel time or cost. The model predicts market share by assigning higher probabilities to more attractive and accessible stores, and lower probabilities as distance or competition increases. This helps businesses evaluate potential demand, delineate trade areas, and make better-informed location decisions.
 
 In this exercise, we learn how to conduct market area analysis by using R's geospatial analysis package.
 
@@ -39,13 +41,18 @@ In this exercise, we learn how to conduct market area analysis by using R's geos
 
 ### Setting the scene
 
-In this exercise, we work as a data analyst within the business development team of a fast-food franchise. The objective is to delineate the trade areas of existing stores in Taichung City and to produce corresponding spatial maps to support market analysis and strategic decision-making.
+A fast-food franchise is a business model in which an individual investor, known as the franchisee, purchases the rights to operate a restaurant under an established brand owned by a franchisor. This arrangement usually requires upfront franchise fees, ongoing royalties, and strict adherence to standardised operational, marketing, and quality-control procedures set by the parent company.
 
+Before investing, key considerations include the size of the initial capital commitment, the strength and reputation of the brand, and the suitability of the proposed store location. Capital requirements can vary widely depending on the brand and format, typically ranging from around \$200,000 to more than \$2 million. Well-known global fast-food franchise brands include McDonald’s, Burger King, Pizza Hut, KFC, and Taco Bell.
+
+In this exercise, we work as a data analyst within the business development team of a fast-food franchise. The objective is to delineate the trade areas of existing stores in Taichung City and to produce corresponding spatial maps to support market analysis and strategic decision-making.
 
 ### The Data
 
+Taiwan’s open-data ecosystem is very similar to Singapore’s, which has an excellent official portal that works almost the same way as data.gov.sg. It is designed for data analysis, GIS work, and public research. The spaital data used in this excerise can be downloaded from [opendata.taichung.gov.tw](https://opendata.taichung.gov.tw/).
+
 | Dataset Name | Description | Format |
-|--------------|----------------------------------------------------|----------|
+|----------------|-----------------------------------------|--------------|
 | STORES_TN | Store locations data | ERSI Shapefile |
 | VILLAGE_TN | Village boundary data | ESRI shapefile |
 | pop2019.csv | Population data of Taichung City in 2019. H_CNT, P_CNT, M_CNT, and F_CNT indicate Number of household, Total population, Male population and Female population respectively | CSV |
@@ -56,7 +63,7 @@ In this exercise, we work as a data analyst within the business development team
 There are **five** packages to be used in this exercise.
 
 | Package | Description |
-|----------------------------------------|--------------------------------|
+|------------------------|--------------------------------|
 | [sf](https://r-spatial.github.io/sf/) | Handles importing, managing, and processing vector-based geospatial data |
 | [tidyverse](https://www.tidyverse.org/) | A collection of R packages for data wrangling and visualisation, including **readr**, **dplyr**, and **ggplot2**. |
 | [tmap](https://r-tmap.github.io/tmap/) | Creates cartographic quality static and interactive thematic (choropleth) maps. |
@@ -69,7 +76,7 @@ Let's install and launch these packages into R environment.
 pacman::p_load(tmap, sf, ggstatsplot, MCI, tidyverse)
 ```
 
-##  Importing Data
+## Importing Data
 
 ### Importing Geospatial Data
 
@@ -98,28 +105,29 @@ tm_shape(village) +
 tm_shape(stores) +
   tm_dots()
 ```
+
 ```{r}
 tmap_mode("plot")
 ```
 
-
 ### Importing aspatial data
+
 Next, `read_csv()` of **readr** package will be used to import the two aspatial data sets into R environment.
 
 ```{r}
 pop2019 <- read_csv("data/aspatial/pop2019.csv")
 store_sales <- read_csv("data/aspatial/Store_sales_data.csv")
 ```
+
 The code below uses `summary()` to check if the are any missing values in the data.frame.
 
 ```{r}
 summary(store_sales)
 ```
 
-
 ## Data Preparation
 
-###  Aggregating Store Sales
+### Aggregating Store Sales
 
 The following code aggregates the `Total_Bill` and `Total_Sales` per `Store Code`.
 
@@ -148,16 +156,18 @@ The code below uses `summary()` to check if the are any missing values in the da
 summary(stores)
 ```
 
-###  Tidying pop2019 data.frame
+### Tidying pop2019 data.frame
 
-The code below reveals content overview for `pop2019` and `village`. 
+The code below reveals content overview for `pop2019` and `village`.
 
 ```{r}
 glimpse(pop2019)
 ```
+
 ```{r}
 glimpse(village)
 ```
+
 The plot above shown that the village ID (i.e. `V_ID`) in `pop2019` data.frame is not in the same structure as the village code in village sf data.frame.
 
 Code chunk below will be used to remove the **“-”** sign from the values.
@@ -167,7 +177,6 @@ pop2019 <- pop2019 %>%
   mutate(V_ID = str_remove_all(
     V_ID, "-"))
 ```
-
 
 Next we combine the `tibble` data.frame `pop2019`and `sf` data.frame `village` by joining key the village ID.
 
@@ -182,6 +191,7 @@ village <- village %>%
 ```{r}
 summary(village)
 ```
+
 The output print above revealed that the are five missing values in `H_CNT, P_CNT, M_CNT and F_CNT` fields.
 
 The code chunk below removes the five records with missing values from village sf data.frame.
@@ -196,7 +206,7 @@ any(is.na(village$M_CNT))
 any(is.na(village$F_CNT))
 ```
 
-##  Computing Distance Matrix
+## Computing Distance Matrix
 
 We define the distance between the villages and stores as the distance between the centroids of the villages and the stores. The code chunk below calculates the centroids of the origins and destinations. `st_centroid()` is avoided as the function might return a out-of-boundary centroid when the ploygon shape is odd.
 
@@ -236,7 +246,6 @@ distmat_long <- distmat_long %>%
   mutate(distance = as.numeric(distance)) 
 ```
 
-
 ## Preparing Interaction Matrix
 
 The following code chunk builds the interaction matrix required by MCI package.
@@ -254,7 +263,6 @@ interaction_matrix <- distmat_long %>%
 summary(interaction_matrix)
 ```
 
-
 ## Computing Huff Model
 
 The code chunk below calls `huff.shares()` to build the Huff model.
@@ -267,18 +275,16 @@ huff_share <- huff.shares(
 
 The observation is totally 17,276 (617 from village times 28 from store).
 
-The three parts (probablity, measure of attractiveness and sum of them ) in the Huff model formula are directly embedded in the `huff_share` data.frame. 
+The three parts (probablity, measure of attractiveness and sum of them ) in the Huff model formula are directly embedded in the `huff_share` data.frame.
 
-:::callout-note
+::: callout-note
+Syntax:
 
-Syntax: 
-
-- huff.shares(huffdataset, origins, locations, attrac, dist, gamma = 1, lambda = -2, 
-atype = "pow", dtype = "pow", gamma2 = NULL, lambda2 = NULL, check_df = TRUE)
-
+-   huff.shares(huffdataset, origins, locations, attrac, dist, gamma = 1, lambda = -2, atype = "pow", dtype = "pow", gamma2 = NULL, lambda2 = NULL, check_df = TRUE)
 :::
 
 ### Trade Area Analysis for a Single Store - TG
+
 First, let us select market share data of a store by usign Store_CD field (i.e. TG).
 
 ```{r}
@@ -291,6 +297,7 @@ The selected trade areas along with geometry information are derived.
 ```{r}
 Trade_area <- village %>% left_join(market_share)
 ```
+
 ```{r}
 selected_store <- stores %>%
   filter(Store_CD == "TG")
@@ -320,6 +327,7 @@ tm_shape(Trade_area) +
 ```
 
 ## Trade Area Analysis for a Single Store- BT
+
 First, let us select market share data of a store by usign Store_CD field (i.e. TG).
 
 ```{r}
@@ -332,6 +340,7 @@ The selected trade areas along with geometry information are derived.
 ```{r}
 Trade_area <- village %>% left_join(market_share)
 ```
+
 ```{r}
 selected_store <- stores %>%
   filter(Store_CD == "BT")
@@ -360,7 +369,7 @@ tm_shape(Trade_area) +
   tm_grid(alpha =0.2) 
 ```
 
-Practically, we should plot the trade area analysis for each store. Here we should create 28 charts. Additionally, the legend should be translated to percentage for interpretation. 
+Practically, we should plot the trade area analysis for each store. Here we should create 28 charts. Additionally, the legend should be translated to percentage for interpretation.
 
 ### Store Sales Analaysis
 
@@ -377,27 +386,19 @@ huff_share_pp <- huff_share %>%
   relocate(distance, .after = last_col())
 ```
 
-
 Next, `shares.total()` of **MCI** package will be used to calculate the total sales by using the code chunk below.
 
 ```{r}
 huff_total <- shares.total(huff_share_pp, "VILLCODE", "Store_CD","p_ij", "P_CNT")
 ```
 
+::: callout-note
+Syntax:
 
-:::callout-note
-
-Syntax: 
-
-- shares.total(mcidataset, submarkets, suppliers, shares, localmarket, 
-plotChart = FALSE, plotChart.title = "Total sales", plotChart.unit = "sales", 
-check_df = TRUE)
-
+-   shares.total(mcidataset, submarkets, suppliers, shares, localmarket, plotChart = FALSE, plotChart.title = "Total sales", plotChart.unit = "sales", check_df = TRUE)
 :::
 
-
 We append the estimate store sales (`sum_E_j`) onto `stores` sf data.frame.
-
 
 ```{r}
 store_sales_est <- stores %>%
@@ -405,7 +406,6 @@ store_sales_est <- stores %>%
             by = join_by(
               "Store_CD" == "suppliers_single"))
 ```
-
 
 The code chunk below visualises the estimate sales with the actual sales for comparison. The correlation is 0.58 (similar R^2^), indicating the estimation is not very accurate since we use the simple variable: population that it might not reflect the true target customers as not everyone going to eat fast-food.
 
@@ -418,7 +418,6 @@ ggscatterstats(
   y = Total_Sales)
 ```
 
-
 ## Reference
 
-Kam, T. S. 18  Market Area Analysis for Retail and Service Locations using Huff model. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap18.html
+Kam, T. S. 18 Market Area Analysis for Retail and Service Locations using Huff model. R for Geospatial Data Science and Analytics. https://r4gdsa.netlify.app/chap18.html
